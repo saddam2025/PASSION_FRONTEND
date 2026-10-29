@@ -1,0 +1,114 @@
+.section-container {
+  container-type: inline-size;
+  container-name: section-content;
+}
+.section-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 2rem;
+}
+.section-columns-2,
+.section-columns-3,
+.section-columns-4 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+.section-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.section-cta-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+.section-text-columns {
+  column-count: 1;
+  column-gap: 2rem;
+}
+.section-steps { display: grid; gap: 1rem; }
+.section-step-card { position: relative; display: grid; grid-template-columns: auto auto 1fr; align-items: start; gap: .75rem; border: 1px solid var(--color-border); border-radius: .75rem; padding: 1rem; background: var(--color-surface); }
+.section-step-number { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 9999px; background: var(--color-primary-strong); color: var(--color-on-primary); font-weight: 700; }
+.section-bento-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.section-faq-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.section-hero-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.section-steps { position: relative; }
+.section-step-card:not(:last-child)::after { content: ''; position: absolute; inset-inline-start: 1.92rem; top: 3.2rem; height: calc(100% + 1rem); border-inline-start: 2px solid var(--color-border); }
+.section-divider-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.section-divider-dots::before,
+.section-divider-dots::after {
+  content: '• • •';
+  color: var(--color-primary);
+}
+@container section-content (min-width:40rem) {
+  .section-split {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .section-columns-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .section-columns-3,
+  .section-columns-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .section-gallery-grid[data-columns='3'] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .section-text-columns {
+    column-count: 2;
+  }
+  .section-cta-layout {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+@container section-content (min-width:64rem) {
+  .section-steps { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+  .section-bento-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .section-faq-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .section-step-card:not(:last-child)::after { inset-inline-start: auto; inset-inline-end: -1rem; top: 1.95rem; width: 1rem; height: 0; border-inline-start: 0; border-top: 2px solid var(--color-border); }
+  .section-columns-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .section-columns-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .section-gallery-grid[data-columns='4'] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.section-heading-title {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+.section-hero-title {
+  font-size: 2.25rem;
+}
+.section-card-padding {
+  padding: 1.5rem;
+}
+@container section-content (min-width:40rem) {
+  .section-heading-title {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+  .section-hero-title {
+    font-size: 3.75rem;
+  }
+  .section-card-padding {
+    padding: 2rem;
+  }
+}
+.section-title-accent { color: var(--color-primary-strong); text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: .14em; text-underline-offset: .16em; animation: title-underline .7s ease-out both; }
+@keyframes title-underline { from { text-decoration-color: transparent; } to { text-decoration-color: var(--color-accent); } }
+@media (prefers-reduced-motion: reduce) { .section-title-accent { animation: none; } }

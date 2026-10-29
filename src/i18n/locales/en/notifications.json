@@ -1,0 +1,27 @@
+{
+  "title": "Notifications",
+  "description": "Updates about course reviews and changes.",
+  "all": "All",
+  "unread": "Unread",
+  "markAllRead": "Mark all as read",
+  "empty": "No notifications",
+  "emptyDescription": "Updates will appear here.",
+  "loadError": "Could not load notifications.",
+  "previous": "Previous",
+  "next": "Next",
+  "page": "Page {{page}} of {{pages}}",
+  "types": {
+    "course_submitted": "Course submitted for review",
+    "revision_approved": "Course revision approved",
+    "revision_rejected": "Course revision rejected",
+    "new_registration": "New registration",
+    "payment_recorded": "Payment recorded"
+  },
+  "notificationTypes": {
+    "course_submitted": "Course submitted for review",
+    "revision_approved": "Course revision approved",
+    "revision_rejected": "Course revision rejected",
+    "new_registration": "New registration",
+    "payment_recorded": "Payment recorded"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "title": "Home",
+  "intro": "Explore available learning programs and choose what fits you.",
+  "browseCourses": "Browse courses",
+  "contactWhatsApp": "Contact on WhatsApp",
+  "whatsappGreeting": "Hello, I would like to contact the academy.",
+  "sampleData": "SAMPLE DATA",
+  "contactTitle": "Contact",
+  "mapLink": "Open map",
+  "sampleOnly": "SAMPLE · Preview only",
+  "previous": "Previous",
+  "next": "Next",
+  "close": "Close",
+  "carousel": "Testimonials carousel",
+  "testimonialPosition": "Testimonial {{current}} of {{total}}",
+  "learnMore": "Learn more"
+}

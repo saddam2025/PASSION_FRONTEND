@@ -1,0 +1,17 @@
+{
+  "title": "الرئيسية",
+  "intro": "اكتشف البرامج التعليمية المتاحة واختر ما يناسبك.",
+  "browseCourses": "تصفّح الدورات",
+  "contactWhatsApp": "تواصل عبر واتساب",
+  "whatsappGreeting": "مرحباً، أود التواصل مع الأكاديمية.",
+  "sampleData": "بيانات تجريبية",
+  "contactTitle": "تواصل معنا",
+  "mapLink": "فتح الخريطة",
+  "sampleOnly": "تجريبي · للمعاينة فقط",
+  "previous": "السابق",
+  "next": "التالي",
+  "close": "إغلاق",
+  "carousel": "عرض آراء تجريبية",
+  "testimonialPosition": "الرأي {{current}} من {{total}}",
+  "learnMore": "اعرف المزيد"
+}
