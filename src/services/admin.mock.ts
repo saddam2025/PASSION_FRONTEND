@@ -2,10 +2,10 @@
 import { mockAuthService } from './auth.mock';
 import { mockUsers } from '@/mocks/seed.mock';
 import { readMockDb, writeMockDb, recordMockAudit } from '@/mocks/db';
-import { rolePermissionDefaults, PermissionListSchema } from '@/schemas/permissions';
+import { rolePermissionDefaults } from '@/schemas/permissions';
 import { redact } from '@/schemas/audit';
 import { validateSettingsSection } from '@/schemas/settings';
-import type { AuthUser, UserPermission } from './auth.types';
+import type { AuthUser } from './auth.types';
 import { emailSchema } from '@/schemas/auth';
 async function admin() {
   const u = await mockAuthService.getCurrentUser();
@@ -38,18 +38,6 @@ export const adminService = {
       delete safe.passwordSalt;
       return safe;
     });
-  },
-  async updatePermissions(id: string, permissions: UserPermission[]) {
-    const actor = await admin();
-    permissions = PermissionListSchema.parse(permissions);
-    const db = readMockDb();
-    const user = db.users.find((x) => x.id === id);
-    if (!user) throw new Error('User not found');
-    user.permissions =
-      user.role === 'admin' ? [...rolePermissionDefaults.admin] : [...new Set(permissions)];
-    recordMockAudit(db, actor.id, 'user.permissions_changed', id);
-    writeMockDb(db);
-    return user;
   },
   async changeRole(id: string, role: 'admin' | 'assistant') {
     const actor = await admin();
@@ -101,12 +89,10 @@ export const adminService = {
   async createInvite(
     email: string,
     name: string | undefined,
-    permissions: UserPermission[],
     hours: 24 | 72 | 168,
   ) {
     const actor = await admin();
     const normalized = emailSchema.parse(email);
-    permissions = PermissionListSchema.parse(permissions);
     const db = readMockDb();
     if (userRecords().some((u) => u.email === normalized))
       throw new Error('A user with this email already exists');
@@ -120,7 +106,7 @@ export const adminService = {
       id: crypto.randomUUID(),
       email: normalized,
       name,
-      permissions,
+      permissions: [...rolePermissionDefaults.assistant],
       tokenHash: await tokenHash(raw),
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + hours * 3600000).toISOString(),
@@ -246,7 +232,7 @@ export async function acceptInvite(
     name: input.name,
     email: invite.email,
     role: 'assistant' as const,
-    permissions: invite.permissions,
+    permissions: [...rolePermissionDefaults.assistant],
     active: true,
     createdAt: new Date().toISOString(),
     passwordHash: input.passwordHash,

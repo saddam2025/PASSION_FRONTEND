@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/Button';
 import { Modal, ConfirmDialog } from '@/components/ui/Overlay';
 import { EmptyState, ErrorState, Skeleton, useToast } from '@/components/ui/feedback';
 import { adminService } from '@/services/admin.mock';
-import type { UserPermission } from '@/services/auth.types';
-import { PermissionKey, permissionCatalog, rolePermissionDefaults } from '@/schemas/permissions';
 
 export default function UsersPage() {
   const { t } = useTranslation('users');
@@ -29,19 +27,13 @@ export default function UsersPage() {
   const [link, setLink] = useState('');
   const [resetLink, setResetLink] = useState('');
   const [inviteHours, setInviteHours] = useState<24 | 72 | 168>(72);
-  const [permissions, setPermissions] = useState<UserPermission[]>([
-    ...rolePermissionDefaults.assistant,
-  ]);
-  const [editing, setEditing] = useState<{ id: string; permissions: UserPermission[] } | null>(
-    null,
-  );
   const [confirm, setConfirm] = useState<{ id: string; active: boolean } | null>(null);
   const refresh = () => {
     void client.invalidateQueries({ queryKey: ['admin-users'] });
     void client.invalidateQueries({ queryKey: ['admin-invites'] });
   };
   const invite = useMutation({
-    mutationFn: () => adminService.createInvite(email, name || undefined, permissions, inviteHours),
+    mutationFn: () => adminService.createInvite(email, name || undefined, inviteHours),
     onSuccess: (result) => {
       setLink(result.link);
       setInviteOpen(false);
@@ -66,16 +58,6 @@ export default function UsersPage() {
       adminService.setActive(id, active),
     onSuccess: refresh,
     onError: (error) => toast.notify({ title: error.message, tone: 'danger' }),
-  });
-  const savePermissions = useMutation({
-    mutationFn: () =>
-      editing
-        ? adminService.updatePermissions(editing.id, editing.permissions)
-        : Promise.resolve(null),
-    onSuccess: () => {
-      setEditing(null);
-      refresh();
-    },
   });
   const reset = useMutation({
     mutationFn: (id: string) => adminService.generatePasswordResetLink(id),
@@ -107,17 +89,8 @@ export default function UsersPage() {
               <p>
                 {t(`roles.${member.role}`)} · {member.active ? t('active') : t('deactivated')}
               </p>
-              <p className="text-xs text-muted">
-                {member.permissions.map((key) => t(permissionCatalog[key].labelKey)).join(' · ')}
-              </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => setEditing({ id: member.id, permissions: [...member.permissions] })}
-              >
-                {t('editPermissions')}
-              </Button>
               {member.id !== sessionStorage.getItem('passion-mock-session') && (
                 <>
                   <Button
@@ -243,78 +216,7 @@ export default function UsersPage() {
               <option value={168}>{t('expiryDays', { count: 7 })}</option>
             </select>
           </label>
-          {(Object.keys(PermissionKey) as UserPermission[]).map((permission) => (
-            <label key={permission} className="flex min-h-11 items-center gap-3">
-              <input
-                type="checkbox"
-                checked={permissions.includes(permission)}
-                onChange={(e) =>
-                  setPermissions((current) =>
-                    e.target.checked
-                      ? [...current, permission]
-                      : current.filter((x) => x !== permission),
-                  )
-                }
-              />
-              <span>{t(permissionCatalog[permission].labelKey)}</span>
-            </label>
-          ))}
           <p className="text-sm text-muted">{t('linkOnce')}</p>
-        </div>
-      </Modal>
-      <Modal
-        open={Boolean(editing)}
-        onOpenChange={(open) => !open && setEditing(null)}
-        title={t('editPermissions')}
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setEditing(null)}>
-              {t('cancel')}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() =>
-                setEditing((current) =>
-                  current
-                    ? { ...current, permissions: [...rolePermissionDefaults.assistant] }
-                    : current,
-                )
-              }
-            >
-              {t('resetDefaults')}
-            </Button>
-            <Button onClick={() => savePermissions.mutate()}>{t('save')}</Button>
-          </>
-        }
-      >
-        <div className="grid gap-2">
-          {editing &&
-            (Object.keys(PermissionKey) as UserPermission[]).map((permission) => (
-              <label key={permission} className="flex min-h-11 items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={editing.permissions.includes(permission)}
-                  onChange={(e) =>
-                    setEditing((current) =>
-                      !current
-                        ? current
-                        : {
-                            ...current,
-                            permissions: e.target.checked
-                              ? [...current.permissions, permission]
-                              : current.permissions.filter((x) => x !== permission),
-                          },
-                    )
-                  }
-                />
-                <span>
-                  {t(permissionCatalog[permission].labelKey)}
-                  <small className="block text-muted">
-                    {t(permissionCatalog[permission].descriptionKey)}
-                  </small>
-                </span>
-              </label>
-            ))}
         </div>
       </Modal>
       <Modal
