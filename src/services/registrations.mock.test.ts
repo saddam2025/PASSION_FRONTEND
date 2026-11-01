@@ -35,7 +35,7 @@ describe('public registrations mock contract', () => {
     vi.stubGlobal('window', { localStorage: localStorageMock, setTimeout });
     resetMockDb();
     const seed = readMockDb();
-    writeMockDb({ ...seed, leads: [], enrollments: [], notifications: [], audit: [] });
+    writeMockDb({ ...seed, leads: [], enrollments: [], audit: [] });
     writeCourses(readCourses());
   });
   afterEach(() => vi.unstubAllGlobals());

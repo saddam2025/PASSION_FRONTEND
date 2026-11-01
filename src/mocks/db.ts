@@ -1,5 +1,4 @@
 // MOCK: browser-persisted workflow store; replace with APIs in A4.
-import type { NotificationItem } from '@/services/notifications';
 import type { Enrollment, Lead } from '@/schemas/lead';
 import type { PaymentRecord } from '@/schemas/payment';
 import type { AuditAction } from '@/schemas/audit';
@@ -72,7 +71,6 @@ export interface MockCourseRecord {
 export interface MockDatabase {
   schemaVersion: 2;
   courses: MockCourseRecord[];
-  notifications: NotificationItem[];
   audit: MockAuditEvent[];
   leads: Lead[];
   enrollments: Enrollment[];

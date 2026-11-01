@@ -8,32 +8,6 @@ export const MockDatabaseSchema = z
   .object({
     schemaVersion: z.literal(2),
     courses: z.array(z.any()),
-    notifications: z.array(
-      z
-        .object({
-          id: z.string(),
-          type: z.enum([
-            'course_submitted',
-            'course_withdrawn',
-            'course_published',
-            'course_unpublished',
-            'revision_approved',
-            'revision_rejected',
-            'course_deletion_requested',
-            'course_deletion_approved',
-            'course_deletion_rejected',
-            'new_registration',
-            'payment_recorded',
-          ]),
-          entityId: z.string(),
-          courseId: z.string().optional(),
-          recipientRole: z.enum(['admin', 'assistant']),
-          recipientId: z.string().optional(),
-          createdAt: z.string(),
-          readAt: z.string().nullable(),
-        })
-        .strict(),
-    ),
     audit: z.array(
       z
         .object({

@@ -127,7 +127,6 @@ export function createInitialMockDatabase(): MockDatabase {
     courses: courses.map((course, index) =>
       index === 1 ? { ...course, slugHistory: ['learning-basics-old'] } : course,
     ),
-    notifications: [],
     audit: [],
     leads: [sampleLead],
     enrollments: [sampleEnrollment],

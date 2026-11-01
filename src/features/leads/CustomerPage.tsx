@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Overlay';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/feedback';
 import { useLanguage } from '@/i18n/useLanguage';
-import { computePaymentStatus, outstanding } from '@/schemas/payment';
+import { computePaymentStatus } from '@/schemas/payment';
 import { hasPermission } from '@/schemas/permissions';
 import { leadsService } from '@/services/leads.mock';
 import { paymentsService } from '@/services/payments.mock';
@@ -25,7 +25,10 @@ export default function CustomerPage() {
   const [note, setNote] = useState('');
   const [paymentId, setPaymentId] = useState('');
   const [amount, setAmount] = useState('');
-  const [acknowledge, setAcknowledge] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer' | 'e_wallet' | 'instapay' | 'other'>('cash');
+  const [paymentNote, setPaymentNote] = useState('');
+  const [unpaidId, setUnpaidId] = useState('');
+  const [unpaidReason, setUnpaidReason] = useState('');
   const paymentKey = useRef('');
   const recordLaunchHandled = useRef(false);
   const client = useQueryClient();
@@ -33,8 +36,8 @@ export default function CustomerPage() {
     queryKey: ['customer', leadId],
     queryFn: () => leadsService.getCustomer(leadId),
   });
-  const canView = Boolean(user && hasPermission(user, 'viewPayments'));
-  const canRecord = Boolean(user && hasPermission(user, 'recordPayments'));
+  const canView = Boolean(user && (user.role === 'admin' || user.role === 'assistant'));
+  const canRecord = canView;
   const add = useMutation({
     mutationFn: () => leadsService.addNote({ leadId, body: note }),
     onSuccess: () => {
@@ -47,19 +50,27 @@ export default function CustomerPage() {
       enrollmentId: string;
       amount: number;
       currency: string;
-      acknowledgeOverpayment: boolean;
+      method: 'cash' | 'bank_transfer' | 'e_wallet' | 'instapay' | 'other';
+      note?: string;
       idempotencyKey: string;
     }) =>
       paymentsService.record({
         ...input,
         kind: 'payment',
-        method: 'cash',
         receivedAt: new Date().toISOString(),
       }),
     onSuccess: () => {
       setPaymentId('');
       setAmount('');
-      setAcknowledge(false);
+      setPaymentNote('');
+      void client.invalidateQueries({ queryKey: ['customer', leadId] });
+    },
+  });
+  const markUnpaid = useMutation({
+    mutationFn: () => paymentsService.markUnpaid(unpaidId, unpaidReason),
+    onSuccess: () => {
+      setUnpaidId('');
+      setUnpaidReason('');
       void client.invalidateQueries({ queryKey: ['customer', leadId] });
     },
   });
@@ -130,7 +141,7 @@ export default function CustomerPage() {
                 <div className="flex flex-wrap gap-2">
                   <Status text={t(`enrollmentStatuses.${enrollment.enrollmentStatus}`)} />
                   <Status text={t(`followUpStatuses.${enrollment.followUpStatus}`)} />
-                  {canView && <Status text={t(`paymentStatuses.${status}`)} />}
+          {canView && <Status text={status === 'paid' ? 'مدفوع' : 'غير مدفوع'} />}
                 </div>
               </header>
               {canView && (
@@ -161,26 +172,18 @@ export default function CustomerPage() {
               {canView && (
                 <section>
                   <h3 className="font-semibold">{t('payments')}</h3>
-                  <p>
-                    {records.length} {t('records')} · {t(`paymentStatuses.${status}`)}
-                  </p>
-                  {records.map((record) => (
-                    <p key={record.id} dir="ltr">
-                      {record.kind} · {record.amount} {record.currency} · {record.status}
-                    </p>
-                  ))}
                   {canRecord && (
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
+                    <div className="flex flex-wrap gap-2">
+                    <Button disabled={status === 'paid'} onClick={() => {
                         paymentKey.current = crypto.randomUUID();
                         setPaymentId(enrollment.id);
-                        setAmount('');
-                        setAcknowledge(false);
-                      }}
-                    >
-                      {t('recordPayment')}
+                        setAmount(enrollment.priceSnapshot.amount === null ? '' : String(enrollment.priceSnapshot.amount / 100));
+                        setPaymentMethod('cash');
+                        setPaymentNote('');
+                      }}>تم الدفع
                     </Button>
+                    <Button variant="outline" disabled={status !== 'paid'} onClick={() => setUnpaidId(enrollment.id)}>لم يتم الدفع</Button>
+                    </div>
                   )}
                   <p className="text-sm text-muted">{t('manualPaymentOnly')}</p>
                 </section>
@@ -233,7 +236,8 @@ export default function CustomerPage() {
                   enrollmentId: enrollment.id,
                   amount: Math.round(Number(amount) * 100),
                   currency: enrollment.priceSnapshot.currency,
-                  acknowledgeOverpayment: acknowledge,
+                  method: paymentMethod,
+                  note: paymentNote.trim() || undefined,
                   idempotencyKey: paymentKey.current,
                 });
               }}
@@ -244,6 +248,7 @@ export default function CustomerPage() {
         }
       >
         <div className="grid gap-3">
+          <label className="grid gap-1">طريقة الدفع<select className="min-h-11 rounded-xs border px-3" value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as typeof paymentMethod)}><option value="cash">نقدًا</option><option value="bank_transfer">تحويل بنكي</option><option value="e_wallet">محفظة إلكترونية</option><option value="instapay">إنستاباي</option><option value="other">أخرى</option></select></label>
           <label className="grid gap-1">
             {t('amount')} (
             {enrollments.find((item) => item.id === paymentId)?.priceSnapshot.currency})
@@ -258,27 +263,11 @@ export default function CustomerPage() {
               onChange={(e) => setAmount(e.target.value)}
             />
           </label>
-          {(() => {
-            const enrollment = enrollments.find((item) => item.id === paymentId);
-            const due = enrollment
-              ? outstanding(
-                  enrollment.priceSnapshot,
-                  readMockDb().payments.filter((item) => item.enrollmentId === enrollment.id),
-                )
-              : null;
-            const over = due !== null && Number(amount) * 100 > due;
-            return over ? (
-              <label className="flex min-h-11 items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={acknowledge}
-                  onChange={(e) => setAcknowledge(e.target.checked)}
-                />
-                {t('acknowledgeOverpayment')}
-              </label>
-            ) : null;
-          })()}
+          <label className="grid gap-1">ملاحظة اختيارية<textarea className="min-h-20 rounded-xs border p-3" value={paymentNote} onChange={(event) => setPaymentNote(event.target.value)} /></label>
         </div>
+      </Modal>
+      <Modal open={Boolean(unpaidId)} onOpenChange={(open) => !open && setUnpaidId('')} title="تأكيد عدم الدفع" footer={<><Button variant="secondary" onClick={() => setUnpaidId('')}>إلغاء</Button><Button variant="danger" disabled={unpaidReason.trim().length < 3 || markUnpaid.isPending} onClick={() => markUnpaid.mutate()}>لم يتم الدفع</Button></>}>
+        <label className="grid gap-1">سبب التغيير<textarea className="min-h-24 rounded-xs border p-3" required value={unpaidReason} onChange={(event) => setUnpaidReason(event.target.value)} /></label>
       </Modal>
     </main>
   );

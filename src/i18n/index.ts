@@ -13,18 +13,15 @@ import arRegistration from './locales/ar/registration.json';
 import arBuilder from './locales/ar/builder.json';
 import arDashboard from './locales/ar/dashboard.json';
 import arErrors from './locales/ar/errors.json';
-import arNotifications from './locales/ar/notifications.json';
 import arLeads from './locales/ar/leads.json';
-import arPayments from './locales/ar/payments.json';
 import arUsers from './locales/ar/users.json';
 import arSettings from './locales/ar/settings.json';
-import arAudit from './locales/ar/audit.json';
 import arTerms from './locales/ar/terms.json';
 
 export const namespaces = [
   'common', 'nav', 'auth', 'home', 'courses', 'confirmation', 'privacy', 'footer', 'sections',
-  'registration', 'builder', 'dashboard', 'errors', 'notifications', 'leads', 'payments',
-  'users', 'settings', 'audit', 'terms',
+  'registration', 'builder', 'dashboard', 'errors', 'leads',
+  'users', 'settings', 'terms',
 ] as const;
 export type Namespace = (typeof namespaces)[number];
 export type AppLanguage = 'ar';
@@ -46,12 +43,9 @@ export const i18nResources = {
     builder: arBuilder,
     dashboard: arDashboard,
     errors: arErrors,
-    notifications: arNotifications,
     leads: arLeads,
-    payments: arPayments,
     users: arUsers,
     settings: arSettings,
-    audit: arAudit,
     terms: arTerms,
   },
 } as const;

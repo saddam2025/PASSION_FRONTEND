@@ -163,24 +163,6 @@ export const registrationsService: RegistrationsService = {
       history: [{ type: 'registered', actor: 'visitor', at: now }],
     });
     db.enrollments.unshift(enrollment);
-    db.notifications.unshift({
-      id: crypto.randomUUID(),
-      type: 'new_registration',
-      entityId: enrollment.id,
-      courseId: course.id,
-      recipientRole: 'admin',
-      createdAt: now,
-      readAt: null,
-    });
-    db.notifications.unshift({
-      id: crypto.randomUUID(),
-      type: 'new_registration',
-      entityId: enrollment.id,
-      courseId: course.id,
-      recipientRole: 'assistant',
-      createdAt: now,
-      readAt: null,
-    });
     recordMockAudit(db, 'visitor', 'enrollment.created', enrollment.id);
     writeMockDb(db);
     return { reference, status: 'received' };
