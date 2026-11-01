@@ -4,14 +4,12 @@ import { Checkbox } from '@/components/ui/selection';
 import { useAuth } from '@/app/AuthContext';
 import { ImagePickerField } from '@/features/courses/ImagePickerField';
 import { coursesAdminService } from '@/services/courses.admin';
-import { adminService } from '@/services/admin.mock';
 import { coursesService } from '@/services/courses';
 import { hasInvalidWhatsappTokens, type Course, type Snapshot } from '@/schemas/course';
 import { reservedSlugs } from '@/schemas/courseDraft';
 import { slugFromArabic } from '@/lib/courseSlug';
 
 type Details = Snapshot['details'];
-const CURRENCIES = ['EGP', 'USD', 'SAR', 'AED', 'EUR'] as const;
 const emptyImage = () => ({ src: '', alt: { ar: '', en: '' }, decorative: false });
 const phonePattern = /^\+?[0-9\s()-]{8,20}$/;
 
@@ -19,8 +17,6 @@ export function CourseDetailsTab({ course, snapshot, onChange, assistant }: { co
   const { user } = useAuth();
   const details = snapshot.details;
   const [categories, setCategories] = useState<string[]>([]);
-  const [currencies, setCurrencies] = useState<string[]>(['EGP']);
-  const [currenciesLoaded, setCurrenciesLoaded] = useState(false);
   const [slug, setSlug] = useState(course.slug);
   const [slugEdited, setSlugEdited] = useState(false);
   const [slugStatus, setSlugStatus] = useState<'checking'|'available'|'taken'|'invalid'|'reserved'>('available');
@@ -37,21 +33,12 @@ export function CourseDetailsTab({ course, snapshot, onChange, assistant }: { co
   };
   useEffect(() => {
     let live = true;
-    void Promise.all([coursesAdminService.categories(), adminService.publicSettings()]).then(([items, settings]) => {
+    void coursesAdminService.categories().then((items) => {
       if (!live) return;
       setCategories(items);
-      const payments = settings.values.payments as { enabledCurrencies?: unknown } | undefined;
-      const enabled = Array.isArray(payments?.enabledCurrencies) ? payments.enabledCurrencies.filter((x): x is string => typeof x === 'string' && CURRENCIES.includes(x as typeof CURRENCIES[number])) : ['EGP'];
-      const available = enabled.length ? enabled : ['EGP'];
-      setCurrencies(available.length ? available : ['EGP']);
-      setCurrenciesLoaded(true);
     }).catch(() => { if (live) setCategories([]); });
     return () => { live = false; };
-  }, [details.pricing.currency]);
-  useEffect(() => {
-    if (!currenciesLoaded || currencies.includes(details.pricing.currency)) return;
-    onChange({ ...snapshot, details: { ...details, pricing: { ...details.pricing, currency: currencies[0] as Details['pricing']['currency'] } } });
-  }, [currencies, currenciesLoaded, details, onChange, snapshot]);
+  }, []);
   useEffect(() => {
     setSlug(course.slug);
     setSlugEdited(false);
@@ -100,7 +87,7 @@ export function CourseDetailsTab({ course, snapshot, onChange, assistant }: { co
     <section className="grid gap-4 rounded-md border border-border bg-surface p-4 sm:p-5">
       <h2 className="text-lg font-bold">السعر</h2>
       <label className="flex min-h-11 items-center gap-2 text-sm"><Checkbox checked={pricing.contactUs === true} onCheckedChange={(checked) => setDetails({ pricing: { ...pricing, contactUs: checked === true, price: checked ? null : pricing.price } })} />تواصل لمعرفة السعر</label>
-      {pricing.contactUs !== true && <><div className="grid gap-3 sm:grid-cols-2"><label className="grid gap-1.5 text-sm">السعر بعملة {pricing.currency} · مطلوب<Input data-readiness-path="details.pricing.price" type="number" min="0" step="0.01" value={moneyValue(pricing.price)} onChange={(e) => setDetails({ pricing: { ...pricing, price: moneyOnChange(e.target.value) } })} /></label><label data-readiness-path="details.pricing.promo" className="grid gap-1.5 text-sm">سعر العرض<Input type="number" min="0" step="0.01" value={moneyValue(promo)} onChange={(e) => setDetails({ pricing: { ...pricing, promo: moneyOnChange(e.target.value) ?? undefined, promoPrice: undefined } })} aria-invalid={promoError} /></label></div>{promoError && <p role="alert" className="text-sm text-danger">سعر العرض لازم يكون أقل من السعر الأساسي.</p>}<label className="grid gap-1.5 text-sm">العملة<select className="min-h-11 rounded-xs border border-border bg-surface px-3" value={pricing.currency} onChange={(e) => setDetails({ pricing: { ...pricing, currency: e.target.value as Details['pricing']['currency'] } })}>{currencies.map((currency) => <option key={currency} value={currency}>{currency}</option>)}</select></label></>}
+      {pricing.contactUs !== true && <><div className="grid gap-3 sm:grid-cols-2"><label className="grid gap-1.5 text-sm">السعر بالجنيه المصري · مطلوب<Input data-readiness-path="details.pricing.price" type="number" min="0" step="0.01" value={moneyValue(pricing.price)} onChange={(e) => setDetails({ pricing: { ...pricing, price: moneyOnChange(e.target.value) } })} /></label><label data-readiness-path="details.pricing.promo" className="grid gap-1.5 text-sm">سعر العرض<Input type="number" min="0" step="0.01" value={moneyValue(promo)} onChange={(e) => setDetails({ pricing: { ...pricing, promo: moneyOnChange(e.target.value) ?? undefined, promoPrice: undefined } })} aria-invalid={promoError} /></label></div>{promoError && <p role="alert" className="text-sm text-danger">سعر العرض لازم يكون أقل من السعر الأساسي.</p>}</>}
     </section>
     <section className="grid gap-4 rounded-md border border-border bg-surface p-4 sm:p-5">
       <h2 className="text-lg font-bold">رابط الكورس</h2>

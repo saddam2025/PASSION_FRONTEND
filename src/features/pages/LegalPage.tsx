@@ -32,11 +32,17 @@ export function LegalPage({ kind }: { kind: LegalKind }) {
     void Promise.all([adminService.publicSettings(), siteContentService.get()]).then(
       ([settings, mockContent]) => {
         const legal = settings.values.legal;
+        const registration = settings.values.registration;
+        const privacyText = kind === 'privacyPolicy' && typeof registration === 'object' && registration !== null
+          ? (registration as { privacyPolicy?: { ar?: unknown } }).privacyPolicy?.ar
+          : undefined;
         const configured =
           typeof legal === 'object' && legal !== null && kind in legal
             ? (legal as Record<string, unknown>)[kind]
             : undefined;
-        const sections = isLegalSections(configured)
+        const sections = kind === 'privacyPolicy' && typeof privacyText === 'string' && privacyText.trim()
+          ? [{ heading: { ar: '', en: '' }, paragraphs: [{ ar: privacyText.trim(), en: '' }] }]
+          : isLegalSections(configured)
           ? configured
           : kind === 'privacyPolicy'
             ? mockContent.privacy
