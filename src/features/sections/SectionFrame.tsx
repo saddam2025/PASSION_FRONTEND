@@ -24,7 +24,7 @@ export function SectionFrame({
       className={`section-container relative ps-container pe-container ${spacing[settings.spacing]} ${backgrounds[settings.background]} ${className}`}
     >
       <div
-        className={`mx-auto w-full ${widths[settings.width]} ${settings.align === 'center' ? 'text-center' : 'text-start'}`}
+        className={`mx-auto w-full ${widths[settings.width]} text-start`}
       >
         {children}
       </div>

@@ -43,10 +43,11 @@ export function PageRenderer({
       (section.visible &&
         !isSectionEmpty(section, { ...context.course, contactUs: context.course.pricingContactUs, settings: context.settings })),
   );
+  const registrationTargetId = sections.find((section) => section.type === 'registrationForm' && section.visible)?.id;
   return (
     <CoursePageProvider value={value}>
       {sections.map((section) => {
-        const rendered = <SectionRenderer section={section} mode={mode} />;
+        const rendered = <SectionRenderer section={section} mode={mode} registrationTarget={section.id === registrationTargetId} />;
         const selectable = onSectionSelect ? (
           <div key={section.id} className={`relative cursor-pointer outline-offset-[-3px] hover:outline hover:outline-2 hover:outline-primary ${selectedSectionId === section.id ? 'outline outline-2 outline-primary' : ''} ${mode === 'builder' && !section.visible ? 'opacity-45' : ''}`} onClick={() => onSectionSelect(section.id)} data-builder-section={section.id} data-section-visible={section.visible}>
             {rendered}

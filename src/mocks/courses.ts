@@ -29,7 +29,7 @@ const pageConfig = (title: { ar: string; en: string }) =>
         id: '00000000-0000-4000-8000-000000000001',
         type: 'hero',
         visible: true,
-        settings: { background: 'subtle', spacing: 'xl', width: 'contained', align: 'start' },
+        settings: { background: 'subtle', spacing: 'xl', width: 'contained' },
         content: {
           eyebrow: text('كورس تدريبي', 'Training course'),
           title,
@@ -45,7 +45,7 @@ const pageConfig = (title: { ar: string; en: string }) =>
         id: '00000000-0000-4000-8000-000000000002',
         type: 'text',
         visible: true,
-        settings: { background: 'none', spacing: 'lg', width: 'contained', align: 'start' },
+        settings: { background: 'none', spacing: 'lg', width: 'contained' },
         content: {
           title: text('إيه هو الكورس ده؟', 'About this course'),
           richText: rich('هتلاقي تفاصيل الكورس هنا.', 'الكورس details are available here.'),
@@ -60,8 +60,6 @@ const pageConfig = (title: { ar: string; en: string }) =>
           background: 'subtle',
           spacing: 'lg',
           width: 'contained',
-          align: 'start',
-          anchorId: 'register',
         },
         content: {
           title: text('سجّل بياناتك', 'نموذج التسجيل'),

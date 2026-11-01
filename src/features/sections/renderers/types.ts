@@ -4,4 +4,4 @@ export type RendererProps<T extends SectionType> = {
   section: Extract<Section, { type: T }>;
   mode: SectionMode;
 };
-export type AnyRendererProps = { section: Section; mode: SectionMode };
+export type AnyRendererProps = { section: Section; mode: SectionMode; registrationTarget?: boolean };

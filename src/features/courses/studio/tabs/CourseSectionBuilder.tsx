@@ -39,7 +39,7 @@ function makeSection(type: SectionType): Section {
     id: crypto.randomUUID(),
     type,
     visible: true,
-    settings: { background: 'none', spacing: 'lg', width: 'contained', align: 'start', reveal: 'none' },
+    settings: { background: 'none', spacing: 'lg', width: 'contained', reveal: 'none' },
     content: SECTION_REGISTRY_META[type].defaultContent(),
   }) as Section;
 }

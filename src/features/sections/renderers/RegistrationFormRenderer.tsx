@@ -17,7 +17,7 @@ import { buildRegistrationWhatsAppLink } from '@/lib/registrationWhatsApp';
 import { buildRegistrationMessage } from '@/lib/registrationWhatsApp';
 import { buildWhatsAppLink } from '@/lib/whatsapp';
 const empty: SubmissionValues = { fullName: '', email: '', phone: '', consent: false as never };
-export default function RegistrationFormRenderer({ section }: AnyRendererProps) {
+export default function RegistrationFormRenderer({ section, registrationTarget = false }: AnyRendererProps) {
   const { language } = useLanguage();
   const { t } = useTranslation('registration');
   const { course, formDefinition, settings, mode } = useCoursePage();
@@ -77,7 +77,7 @@ export default function RegistrationFormRenderer({ section }: AnyRendererProps) 
       ? buildRegistrationMessage(course.whatsappMessageTemplate.ar, success.name, success.title, success.reference)
       : defaultMessage;
     const whatsappHref = buildRegistrationWhatsAppLink(course.whatsappNumberOverride || settings.whatsappNumber, whatsappMessage, course.whatsappUrlOverride);
-    return <SectionFrame settings={section.settings} id={section.settings.anchorId ?? 'register'} registrationTarget>
+    return <SectionFrame settings={section.settings} id={registrationTarget ? 'register' : `register-${section.id}`} registrationTarget={registrationTarget}>
       <section role="status" className="mx-auto grid max-w-3xl gap-4 rounded-md border border-success/30 bg-surface p-6 shadow-soft">
         <SectionHeading title={{ ar: t('requestReceived'), en: '' }} language={language} />
         <p>{t('requestNotEnrolled')}</p>
@@ -92,7 +92,7 @@ export default function RegistrationFormRenderer({ section }: AnyRendererProps) 
       message: t('inquiryMessage', { courseTitle: label(course.title) }),
     });
     return (
-      <SectionFrame settings={section.settings} id={section.settings.anchorId ?? 'register'} registrationTarget>
+      <SectionFrame settings={section.settings} id={registrationTarget ? 'register' : `register-${section.id}`} registrationTarget={registrationTarget}>
         <section className="mx-auto grid max-w-3xl gap-4 rounded-md border border-border bg-surface p-6">
           <SectionHeading title={section.content.title} language={language} />
           <p>{t('closed')}</p>
@@ -111,7 +111,7 @@ export default function RegistrationFormRenderer({ section }: AnyRendererProps) 
     );
   }
   return (
-    <SectionFrame settings={section.settings} id={section.settings.anchorId ?? 'register'} registrationTarget>
+    <SectionFrame settings={section.settings} id={registrationTarget ? 'register' : `register-${section.id}`} registrationTarget={registrationTarget}>
       <section className="mx-auto grid max-w-3xl gap-5 rounded-md border border-border bg-surface section-card-padding shadow-soft">
         <SectionHeading title={section.content.title} language={language} />
         {section.content.subtitle && (

@@ -30,6 +30,7 @@ export function CoursePagePreview({
       slug: course.slug,
       title: d.title,
       shortDescription: d.shortDescription,
+      coverImage: d.coverImage,
       price: d.pricing.price,
       promoPrice: d.pricing.promo ?? null,
       currency: d.pricing.currency,

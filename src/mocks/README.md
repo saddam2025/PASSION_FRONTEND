@@ -1,63 +1,29 @@
 # Frontend mock data (local development only)
 
-Every value in this folder is fake and must be removed or replaced when APIs are integrated in batch A4. These are UI preview values, never real accounts or invitations.
+All records in this folder are fictional, browser-local MOCK data. Replace these adapters with API-backed implementations during integration; never use mock data for real customers.
 
-## Mock sign-in accounts
-
-Use either address with its matching password in the local mock login form:
+## Mock accounts
 
 - Admin: `admin@example.test` / `MockAdmin!234`
 - Assistant: `assistant@example.test` / `MockAssistant!234`
 
-The assistant mock uses the default permission set: it can view leads, update follow-up, view payment records, and manage notes. It cannot record payments, export CSV, or view financial reports unless an Admin grants those permissions. Mock passwords are checked against salted SHA-256 hashes and are never persisted as plaintext (MOCK-ONLY; real argon2id arrives in B3). Sessions store only a user id; deactivating that user invalidates the next service call.
+The Assistant has a fixed Scope V1 permission set: view registrations, update follow-up, view payment status, record payments, and manage notes. Assistants cannot open courses, the studio, users, settings, or Overview. Admin can create and publish courses, manage staff/settings, and view Overview.
 
-## Registration and lead workflow
+## Product flow
 
-Register on a currently published mock course with registration enabled, wait at least two seconds after the form appears, then submit. The service creates/updates the visitor's lead and a separate enrollment in `mock.db.v2`, stores form-label snapshots, and replaces the form with an in-place success panel. The panel provides a PAS-XXXXXX reference; `/ar/register-confirmation/{reference}` remains available as a reload/share fallback and shows only the Arabic course title, reference and received status. Use the same email and course again to exercise duplicate protection; submit twice with the same browser form to exercise idempotency. The lead and enrollment appear in the shared Admin/Assistant Leads page. A different email with the same normalized phone is flagged as a possible duplicate and is not merged.
+1. Admin creates a course, edits its Details, Page, registration form, and SEO, then saves or publishes after readiness checks.
+2. Only published, non-archived courses appear in the public catalog. The visitor registers on the course landing page and receives a reference; duplicate/idempotent submissions are handled by the mock registration service.
+3. Admin and Assistant work from the registrations list and detail. Staff can update follow-up status, add internal notes, open WhatsApp, and mark paid or unpaid. Payment records remain immutable; the visible paid/unpaid state is derived from the records.
+4. Admin Overview shows registration and payment totals for the selected period and a per-course summary.
 
-## Invitation links and lockout
+## Persisted mock data
 
-Sign in as Admin and open **Users and invites → Invite assistant**. The raw invite URL is shown once; copy it or use the WhatsApp share action. Stored mock records contain only SHA-256 token hashes. Accept the invite through the public `/{lang}/invite/{token}` route, then sign in with the invited email. Resend rotates the token hash; revoke invalidates it. Invalid, expired, revoked, accepted, and rotated tokens return the same generic invalid-link state. Five failed logins lock a known mock account for 15 minutes. The mock displays a countdown and writes login audit events.
+`mock.db.v2` contains courses, users, invites, password-reset records, leads, enrollments, payments, notes, audit events, registration references, and settings. Mock courses use `passion.courses.v2` and preserve separate draft and published snapshots. The store is schema-validated and migrates legacy section settings before reading them. Resetting mock data restores seeded examples; the development menu includes the reset action.
 
-## Password reset links
+## Media
 
-Admins can generate a one-hour reset link from the users page. Its raw token is returned only in the one-time link dialog; `mock.db.v2` stores only a SHA-256 hash. Expired and used links share the generic invalid-link page. Forgot-password responses do not reveal whether an email exists.
+The media picker uses the typed mock media adapter. Image data stored in course snapshots uses a relative media key; the private-media adapter is reserved for private receipts. Replace both adapters with the backend media API during integration.
 
-### Public registration confirmation
+## Development pages
 
-Registration references are generated dynamically as `PAS-XXXXXX` and live in `mock.db.v2`; use the visitor registration flow above to create one. Unknown references show the generic not-found state. The confirmation projection contains only the Arabic course title, reference and received status; duplicate submissions return the same neutral response without revealing customer details.
-
-## Resetting the mock database
-
-Use **Reset mock data** in the development user menu to clear persisted courses, leads, enrollments, payments, notes, invites, settings, and audit events. The documented sign-in accounts are re-seeded on the next mock authentication call. Generated registration references and invite links are not fixed test references.
-
-## Payment workflow
-
-Payments are manual MOCK records in the same DB as enrollments. The amount input uses the enrollment currency and converts to minor units. Services enforce `recordPayments`, require explicit acknowledgement above the outstanding amount, and derive payment status from confirmed records. Only Admin can refund or void through the service; corrections never delete payment records. Receipt upload uses the isolated MOCK private-media service and is not routed through the public media URL helper.
-
-## Course detail and section preview (F4)
-
-- Published mock courses: `/ar/courses/communication-skills` (registration open) and `/ar/courses/learning-basics` (registration closed).
-- Archived course: `/ar/courses/archived-course` shows the generic not-found state.
-- Legacy slug: `/ar/courses/old-course-name` redirects to the current `learning-basics` slug.
-- Development playground: `/dev/sections` renders the clearly labelled sample course with all 20 section types; its width controls and language switcher are development-only.
-- Sample data is fictional and must be removed or replaced when APIs are integrated in batch A4.
-
-## Media library
-
-The F5 builder media dialog reads and uploads through the typed media service. In the frontend phase it uses local MOCK records and simulated progress; object URLs are limited to the temporary file preview and revoked afterward. Public page data stores only an ImageRef with a relative key and bilingual alt text. The backend API adapter sends multipart data to the application server, never directly to R2.
-
-## Course, revision and notification workflow (F6 MOCK)
-
-- The mock sign-in accounts above exercise the Admin and Assistant roles. Course workflow state is kept in localStorage at `mock.db.v2`; the mock accounts remain in session storage.
-- Admin creates and manages every course and publishes directly after the readiness check.
-- New courses are not returned by public course services until published. Editing a published course creates a separate revision, so public pages continue using the existing published snapshot until Admin approval.
-- To inspect stale checks, choose “Simulate stale conflict once” from the development user menu, then perform the next course save, revision save or approval; the MOCK service returns a typed stale conflict. You can also use two tabs and approve a newer base version before continuing an older edit.
-- From the development user menu, choose “Reset mock data” to clear the persisted workflow store and return to seed courses. Reset also clears the one-time stale simulation flag.
-- The F5 page builder field kit and its full section-editing workflow are not present yet; F6 course details and approval UI currently reuse the available media dialog and F4 renderer, while section editing remains for F5 completion.
-
-
-## Course-management v2 seed
-
-The schema-validated MOCK store seeds draft, pending-review, published, and archived courses, a pending revision, published slug history, and an enrollment. Older mock.db.v1 or invalid v2 payloads are discarded with a DEV-only warning. The Admin course list requires slug confirmation for deletion and preserves courses with enrollment or payment history. The current page manager supports Hero, Text, and Registration Form section insertion, visibility, ordering, and preview; the complete F5 field kit and editing controls for all 20 section types remain unfinished.
-
+`/dev/ui-kit` and `/dev/sections` are development-only visual references, not product routes. The section playground uses the same supported section registry as the course builder; unsupported section types are not present.

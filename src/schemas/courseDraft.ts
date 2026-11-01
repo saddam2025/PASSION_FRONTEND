@@ -11,7 +11,6 @@ export const reservedSlugs = new Set([
   'privacy',
   'terms',
   'register-confirmation',
-  'review',
 ]);
 
 export const CourseDraftInputSchema = z

@@ -28,10 +28,9 @@ export const CoursePricingSchema = z
     price: minorUnits,
     promo: minorUnits.optional(),
     promoPrice: minorUnits.optional(),
-    currency: z.enum(['EGP', 'USD', 'SAR', 'AED', 'EUR']).default('EGP'),
+    currency: z.literal('EGP').default('EGP'),
     contactUs: z.boolean().optional(),
     paymentInstructions: BilingualRichTextSchema.optional(),
-    paymentMethods: z.array(z.string()).optional(),
   })
   .strict();
 export type CoursePricing = z.infer<typeof CoursePricingSchema>;

@@ -31,7 +31,7 @@ export default function CurriculumRenderer({ section }: AnyRendererProps) {
     ),
   }));
   return (
-    <SectionFrame settings={section.settings} id={section.settings.anchorId ?? section.id}>
+    <SectionFrame settings={section.settings} id={section.id}>
       <SectionHeading title={c.title} language={language} />
       {c.layout === 'accordion' ? (
         <Accordion items={items} />

@@ -8,6 +8,7 @@ export interface CoursePageData {
   slug: string;
   title: BilingualText;
   shortDescription: BilingualText;
+  coverImage?: ImageRef;
   price: number | null;
   promoPrice: number | null;
   currency: string;

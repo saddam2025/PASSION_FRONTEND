@@ -71,6 +71,7 @@ export default function CourseDetailPage() {
               slug: course.slug,
               title: course.title,
               shortDescription: course.shortDescription,
+              coverImage: course.coverImage,
               price: course.price,
               promoPrice: course.promoPrice,
               currency: course.currency,
@@ -117,7 +118,7 @@ export default function CourseDetailPage() {
       (section) => section.type === 'registrationForm' && section.visible,
     ),
   );
-  const registrationAnchorId = course?.pageConfig.sections.find((section) => section.type === 'registrationForm' && section.visible)?.settings.anchorId ?? 'register';
+  const registrationAnchorId = 'register';
   useEffect(() => {
     if (!course || !course.registrationOpen || !hasRegistration) return;
     const node = document.getElementById(registrationAnchorId);

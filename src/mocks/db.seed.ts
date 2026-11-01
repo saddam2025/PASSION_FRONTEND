@@ -39,7 +39,6 @@ export function createInitialMockDatabase(): MockDatabase {
         promoPrice: course.promoPrice,
         currency: course.currency as 'EGP',
         paymentInstructions: emptyRich,
-        paymentMethods: [],
       },
       enrollment: {
         registrationOpen: course.registrationOpen,

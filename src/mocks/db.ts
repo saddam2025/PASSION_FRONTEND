@@ -103,7 +103,10 @@ export function readMockDb(): MockDatabase {
     const raw = window.localStorage.getItem(key);
     if (raw) {
       const parsed: unknown = JSON.parse(raw);
-      const validated = MockDatabaseSchema.safeParse(parsed);
+      const withoutRemovedNotifications = parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? Object.fromEntries(Object.entries(parsed).filter(([field]) => field !== 'notifications'))
+        : parsed;
+      const validated = MockDatabaseSchema.safeParse(withoutRemovedNotifications);
       if (validated.success) return validated.data;
       if (import.meta.env.DEV) console.warn('MOCK database v2 is invalid; resetting to seed data.');
     } else if (import.meta.env.DEV) {

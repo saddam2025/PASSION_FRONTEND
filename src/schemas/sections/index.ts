@@ -15,7 +15,7 @@ import type { BilingualText, IconName, SectionHeadingSchema } from './common';
 import { hasRichText } from './richText';
 import type { BilingualRichText } from './richText';
 
-export type { IconName, BilingualText, ImageRef, CtaLink, SectionSettings, VideoEmbed } from './common';
+export type { IconName, BilingualText, ImageRef, CtaLink, SectionSettings } from './common';
 export type { BilingualRichText } from './richText';
 export {
   SectionSettingsSchema,
@@ -25,7 +25,6 @@ export {
   IconNameSchema,
   ImageRefSchema,
   CtaLinkSchema,
-  VideoEmbedSchema,
   SectionHeadingSchema,
 } from './common';
 export type SectionHeading = z.infer<typeof SectionHeadingSchema>;
@@ -171,7 +170,6 @@ export const SECTION_REGISTRY_META = {
       richText: rich(),
       layout: 'imageStart',
       imageRatio: 'landscape',
-      verticalAlign: 'center',
     }),
     layoutPresets: ['imageStart', 'imageEnd', 'imageTop'],
   },

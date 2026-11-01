@@ -59,7 +59,6 @@ const fullTemplateSections: TemplateSectionDescriptor[] = [
       image: { src: '/images/course-cover-default.webp', alt: emptyText(), decorative: true },
       layout: 'imageStart',
       imageRatio: 'landscape',
-      verticalAlign: 'center',
     }),
   },
   {
@@ -172,7 +171,6 @@ function buildSection(
       background: 'none',
       spacing: 'lg',
       width: 'contained',
-      align: 'start',
       reveal: 'none',
     },
     content,

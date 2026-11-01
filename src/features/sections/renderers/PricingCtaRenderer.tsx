@@ -20,7 +20,7 @@ export default function PricingCtaRenderer({ section }: AnyRendererProps) {
   const firstCta = c.cta ?? { label: { ar: 'احجز مكانك', en: '' }, destination: { kind: 'action' as const, action: 'scrollToRegister' as const } };
   const secondCta = c.secondaryCta ?? { label: { ar: 'سجّل دلوقتي', en: '' }, destination: { kind: 'action' as const, action: 'scrollToRegister' as const } };
   return (
-    <SectionFrame settings={section.settings} id={section.settings.anchorId ?? section.id}>
+    <SectionFrame settings={section.settings} id={section.id}>
       <article className="mx-auto grid max-w-3xl gap-5 rounded-md border border-border bg-surface section-card-padding shadow-soft">
         <SectionHeading title={c.title} language={language} />
         {c.note && <RichTextRenderer value={c.note} />}

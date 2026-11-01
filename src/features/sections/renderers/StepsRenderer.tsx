@@ -10,7 +10,7 @@ export default function StepsRenderer({ section }: AnyRendererProps) {
   const { language } = useLanguage();
   if (section.type !== 'steps') return null;
   const c = section.content;
-  return <SectionFrame settings={section.settings} id={section.settings.anchorId ?? section.id}>
+  return <SectionFrame settings={section.settings} id={section.id}>
     <SectionHeading title={c.title} language={language} />
     <ol className="section-steps">{c.items.map((item, index) => <li key={index} className="section-step-card">
       <span className="section-step-number">{formatNumber(index + 1, 0)}</span>

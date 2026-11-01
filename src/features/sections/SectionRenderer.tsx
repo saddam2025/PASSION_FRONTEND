@@ -52,9 +52,11 @@ class SectionBoundary extends Component<
 export function SectionRenderer({
   section,
   mode = 'public',
+  registrationTarget = false,
 }: {
   section: unknown;
   mode?: SectionMode;
+  registrationTarget?: boolean;
 }) {
   const { t } = useTranslation('sections');
   const result = validateSection(section);
@@ -86,7 +88,7 @@ export function SectionRenderer({
         >
           <SectionModeContext.Provider value={mode}>
             <SectionHeadingContext.Provider value={parsed.heading}>
-              <Renderer section={parsed as Section} mode={mode} />
+              <Renderer section={parsed as Section} mode={mode} registrationTarget={registrationTarget} />
             </SectionHeadingContext.Provider>
           </SectionModeContext.Provider>
         </Suspense>
