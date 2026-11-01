@@ -10,7 +10,6 @@ import {
   reservedSlugs,
   type CourseDraftInput,
 } from '@/schemas/courseDraft';
-import { useAuth } from '@/app/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Overlay';
 import { useToast } from '@/components/ui/feedback';
@@ -75,7 +74,6 @@ function NewCourseDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useTranslation('courses');
-  const { user } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const client = useQueryClient();
@@ -117,7 +115,7 @@ function NewCourseDialog({
       toast.notify({ title: t('courseCreated', 'تم إنشاء الكورس'), tone: 'success' });
       form.reset(blank);
       onOpenChange(false);
-      const rolePrefix = user?.role === 'assistant' ? 'assistant' : 'admin';
+      const rolePrefix = 'admin';
       navigate(`/${rolePrefix}/courses/${course.id}/studio/page`);
     },
     onError: (error: Error) => {
@@ -341,3 +339,5 @@ function NewCourseDialog({
     </Modal>
   );
 }
+
+

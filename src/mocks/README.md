@@ -50,7 +50,7 @@ The F5 builder media dialog reads and uploads through the typed media service. I
 ## Course, revision and notification workflow (F6 MOCK)
 
 - The mock sign-in accounts above exercise the Admin and Assistant roles. Course workflow state is kept in localStorage at `mock.db.v2`; the mock accounts remain in session storage.
-- An Assistant can create and edit a draft at `/assistant/courses`, then submit it when the details and page sections pass readiness. An Admin reviews submissions at `/admin/review`, checks structured changes and the live/proposed preview, then approves or rejects with a reason.
+- Admin creates and manages every course and publishes directly after the readiness check.
 - New courses are not returned by public course services until published. Editing a published course creates a separate revision, so public pages continue using the existing published snapshot until Admin approval.
 - To inspect stale checks, choose “Simulate stale conflict once” from the development user menu, then perform the next course save, revision save or approval; the MOCK service returns a typed stale conflict. You can also use two tabs and approve a newer base version before continuing an older edit.
 - From the development user menu, choose “Reset mock data” to clear the persisted workflow store and return to seed courses. Reset also clears the one-time stale simulation flag.
@@ -60,3 +60,4 @@ The F5 builder media dialog reads and uploads through the typed media service. I
 ## Course-management v2 seed
 
 The schema-validated MOCK store seeds draft, pending-review, published, and archived courses, a pending revision, published slug history, and an enrollment. Older mock.db.v1 or invalid v2 payloads are discarded with a DEV-only warning. The Admin course list requires slug confirmation for deletion and preserves courses with enrollment or payment history. The current page manager supports Hero, Text, and Registration Form section insertion, visibility, ordering, and preview; the complete F5 field kit and editing controls for all 20 section types remain unfinished.
+

@@ -52,7 +52,6 @@ export function CourseSectionBuilder({
   basePath,
   onSave,
   onPrimaryAction,
-  assistant = false,
 }: {
   course: Course;
   snapshot: Snapshot;
@@ -61,7 +60,6 @@ export function CourseSectionBuilder({
   basePath: string;
   onSave: () => Promise<boolean>;
   onPrimaryAction: () => void;
-  assistant?: boolean;
 }) {
   const { t } = useTranslation('courses');
   const { language } = useLanguage();
@@ -226,7 +224,7 @@ export function CourseSectionBuilder({
     </header>
     {sections.length === 0 ? <div className="grid gap-3 rounded-md border border-dashed border-border bg-surface p-8 text-center"><Layers className="mx-auto text-muted" /><p className="font-semibold">{t('builder.emptySections')}</p><Button className="mx-auto" onClick={() => setPaletteOpen(true)}>{t('builder.addFirst')}</Button></div> : <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={dragEnd}><SortableContext items={sections.map((section) => section.id)} strategy={verticalListSortingStrategy}><ul className="grid gap-2">{sections.map((section, index) => <SortableSectionRow key={section.id} section={section} index={index} label={titleFor(section)} selected={false} highlighted={highlightId === section.id} issueCount={issueCount(section)} onSelect={() => navigate(`${basePath}/${section.id}`)} onMove={(direction) => move(index, direction)} onToggle={() => update(section.id, { ...section, visible: !section.visible } as Section)} onDuplicate={() => duplicate(section)} onDelete={() => confirmDelete(section)} t={t} />)}</ul></SortableContext></DndContext>}
     {paletteOpen && <div className="grid gap-3 rounded-md border border-border bg-surface p-4"><h3 className="font-semibold">{t('builder.addSection')}</h3><div className="flex flex-wrap gap-2">{EDITABLE_SECTION_TYPES.map((type) => <Button key={type} variant="secondary" size="sm" onClick={() => add(type)}>{t(`sectionTypes.${type}`)}</Button>)}</div></div>}
-    {sections.length > 0 && <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4"><Button variant="danger" size="sm" className="me-auto" onClick={() => { if (window.confirm(t('builder.confirmDeleteAll'))) commit([]); }}>{t('builder.deleteAll')}</Button><Button variant="outline" onClick={() => void onSave()}>{t('saveDraft')}</Button><Button onClick={onPrimaryAction}>{assistant ? t('submitForReview') : t('publish')}</Button></div>}
+    {sections.length > 0 && <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4"><Button variant="danger" size="sm" className="me-auto" onClick={() => { if (window.confirm(t('builder.confirmDeleteAll'))) commit([]); }}>{t('builder.deleteAll')}</Button><Button variant="outline" onClick={() => void onSave()}>{t('saveDraft')}</Button><Button onClick={onPrimaryAction}>{t('publish')}</Button></div>}
   </div>;
 
   if (!selected) return <div role="alert" className="rounded-md border border-danger/30 bg-danger/5 p-5"><p>{t('builder.sectionMissing')}</p><Button className="mt-3" onClick={() => navigate(basePath)}>{t('builder.backToSections')}</Button></div>;
@@ -245,3 +243,5 @@ export function CourseSectionBuilder({
     </div>
   </div>;
 }
+
+

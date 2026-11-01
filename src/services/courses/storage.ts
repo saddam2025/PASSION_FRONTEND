@@ -23,7 +23,6 @@ function tryRepairCourse(raw: unknown): Course | null {
   };
   repairSnapshot(item.draft);
   repairSnapshot(item.published);
-  if (Array.isArray(item.versions)) for (const version of item.versions) repairSnapshot((version as { snapshot?: unknown })?.snapshot);
 
   if (!item.id || typeof item.id !== 'string') item.id = crypto.randomUUID();
   if (!item.slug || typeof item.slug !== 'string') item.slug = `course-${item.id}`;
@@ -36,8 +35,6 @@ function tryRepairCourse(raw: unknown): Course | null {
   if (!item.createdAt || typeof item.createdAt !== 'string') item.createdAt = new Date().toISOString();
   if (!item.updatedAt || typeof item.updatedAt !== 'string') item.updatedAt = new Date().toISOString();
   if (typeof item.version !== 'number') item.version = 1;
-  if (typeof item.publishedVersion !== 'number') item.publishedVersion = 0;
-  if (!Array.isArray(item.versions)) item.versions = [];
 
   const parsed = CourseSchema.safeParse(item);
   return parsed.success ? parsed.data : null;
@@ -125,3 +122,5 @@ export function resetCourses(): Course[] {
   writeCourses(seed);
   return seed;
 }
+
+

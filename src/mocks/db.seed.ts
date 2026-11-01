@@ -3,7 +3,6 @@ import { mockCourseRecords } from './courses';
 import type { MockCourseRecord, MockDatabase } from './db';
 import { CourseDetailsSchema } from '@/schemas/course';
 import { PageConfigSchema } from '@/schemas/sections';
-import type { Revision } from '@/schemas/revision';
 import type { Lead, Enrollment } from '@/schemas/lead';
 import type { BilingualRichText } from '@/schemas/sections';
 import { clearEnglishContent } from './arabicOnly';
@@ -60,7 +59,6 @@ export function createInitialMockDatabase(): MockDatabase {
     }),
     pageConfig: PageConfigSchema.parse(course.pageConfig),
     status: 'published' as const,
-    publishedVersion: 1,
     slugHistory: [],
     createdAt: now,
     updatedAt: now,
@@ -69,7 +67,6 @@ export function createInitialMockDatabase(): MockDatabase {
     ...baseCourses[0]!,
     id: 'mock-course-draft',
     status: 'draft',
-    publishedVersion: 0,
     slugHistory: [],
     createdAt: now,
     updatedAt: now,
@@ -77,20 +74,6 @@ export function createInitialMockDatabase(): MockDatabase {
       ...baseCourses[0]!.details,
       title: { ar: 'مسودة كورس تجريبية', en: 'Sample draft course' },
       slug: 'sample-draft-course',
-    },
-  };
-  const reviewCourse: MockCourseRecord = {
-    ...baseCourses[0]!,
-    id: 'mock-course-review',
-    status: 'pending_review',
-    publishedVersion: 0,
-    slugHistory: [],
-    createdAt: now,
-    updatedAt: now,
-    details: {
-      ...baseCourses[0]!.details,
-      title: { ar: 'كورس قيد المراجعة', en: 'الكورس awaiting review' },
-      slug: 'course-awaiting-review',
     },
   };
   const archivedCourse: MockCourseRecord = {
@@ -110,28 +93,8 @@ export function createInitialMockDatabase(): MockDatabase {
     baseCourses[0]!,
     baseCourses[1]!,
     draftCourse,
-    reviewCourse,
     archivedCourse,
   ]);
-  const sampleRevision: Revision = {
-    id: 'mock-revision-pending',
-    courseId: baseCourses[0]!.id,
-    kind: 'update',
-    status: 'pending_review',
-    authorId: 'mock-assistant-001',
-    baseVersion: 1,
-    createdAt: now,
-    submittedAt: now,
-    snapshot: { details: baseCourses[0]!.details, pageConfig: baseCourses[0]!.pageConfig },
-    summary: { detailsChanged: 0, sectionsChanged: 0 },
-  };
-  const newCourseRevision: Revision = {
-    ...sampleRevision,
-    id: 'mock-revision-new-course',
-    courseId: reviewCourse.id,
-    kind: 'new_course',
-    snapshot: { details: reviewCourse.details, pageConfig: reviewCourse.pageConfig },
-  };
   const sampleLead: Lead = {
     id: 'mock-lead-course-enrollment',
     fullName: 'Mock الكورس Learner',
@@ -164,27 +127,7 @@ export function createInitialMockDatabase(): MockDatabase {
     courses: courses.map((course, index) =>
       index === 1 ? { ...course, slugHistory: ['learning-basics-old'] } : course,
     ),
-    revisions: [sampleRevision, newCourseRevision],
-    notifications: [
-      {
-        id: 'mock-notification-pending-course',
-        type: 'course_submitted',
-        entityId: sampleRevision.id,
-        courseId: baseCourses[0]!.id,
-        recipientRole: 'admin',
-        createdAt: now,
-        readAt: null,
-      },
-      {
-        id: 'mock-notification-new-course',
-        type: 'course_submitted',
-        entityId: newCourseRevision.id,
-        courseId: reviewCourse.id,
-        recipientRole: 'admin',
-        createdAt: now,
-        readAt: null,
-      },
-    ],
+    notifications: [],
     audit: [],
     leads: [sampleLead],
     enrollments: [sampleEnrollment],
@@ -206,3 +149,4 @@ export function createInitialMockDatabase(): MockDatabase {
     },
   };
 }
+

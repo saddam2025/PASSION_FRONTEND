@@ -38,8 +38,7 @@ const live = (): CoursePageDetail[] =>
         deliveryMethod:
           d.delivery.method === 'in_person' ? ('inPerson' as const) : d.delivery.method,
         publishedAt:
-          record.versions.find((version) => version.version === record.publishedVersion)?.publishedAt ??
-          record.createdAt,
+          record.updatedAt,
         featured: record.featured,
         accreditationVerified: d.accreditation.verifiedByAcademy,
         instructor: d.instructor,
@@ -114,3 +113,4 @@ export const mockCoursesService: CoursesService = {
     return mockCoursesService.getPublishedBySlug(slug);
   },
 };
+

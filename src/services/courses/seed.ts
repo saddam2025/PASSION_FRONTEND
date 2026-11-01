@@ -126,21 +126,11 @@ export function createSeedCourses(): Course[] {
     createdAt: pastTwoDays,
     updatedAt: now,
     version: 2,
-    publishedVersion: 1,
     published: seed1Published,
     draft: seed1Draft,
-    review: { state: 'none' },
-    versions: [
-      {
-        version: 1,
-        snapshot: seed1Published,
-        publishedBy: 'user-admin-001',
-        publishedAt: pastDay,
-      },
-    ],
   };
 
-  // 2. Pending review (Assistant submitted)
+  // 2. Draft course
   const seed2Draft = createSnapshot({
     title: { ar: 'مهارات التواصل والإقناع', en: 'Communication & Persuasion Skills' },
     shortDescription: {
@@ -160,22 +150,15 @@ export function createSeedCourses(): Course[] {
     slugHistory: [],
     status: 'draft',
     featured: false,
-    createdBy: 'user-assistant-001',
+    createdBy: 'user-admin-001',
     createdAt: pastDay,
     updatedAt: now,
     version: 1,
-    publishedVersion: 0,
     published: null,
     draft: seed2Draft,
-    review: {
-      state: 'pending',
-      submittedBy: 'user-assistant-001',
-      submittedAt: pastDay,
-    },
-    versions: [],
   };
 
-  // 3. Rejected course
+  // 3. Additional draft course
   const seed3Draft = createSnapshot({
     title: { ar: 'مقدمة في الكوتشينج الشخصي', en: 'Introduction to Personal Coaching' },
     shortDescription: {
@@ -195,22 +178,12 @@ export function createSeedCourses(): Course[] {
     slugHistory: [],
     status: 'draft',
     featured: false,
-    createdBy: 'user-assistant-001',
+    createdBy: 'user-admin-001',
     createdAt: pastTwoDays,
     updatedAt: pastDay,
     version: 1,
-    publishedVersion: 0,
     published: null,
     draft: seed3Draft,
-    review: {
-      state: 'rejected',
-      submittedBy: 'user-assistant-001',
-      submittedAt: pastTwoDays,
-      reviewedBy: 'user-admin-001',
-      reviewedAt: pastDay,
-      reason: 'من فضلك كمّل محاور المنهج وحدد المواعيد بدقة قبل ما تبعت الطلب تاني.',
-    },
-    versions: [],
   };
 
   // 4. Clean Draft
@@ -237,11 +210,8 @@ export function createSeedCourses(): Course[] {
     createdAt: now,
     updatedAt: now,
     version: 1,
-    publishedVersion: 0,
     published: null,
     draft: seed4Draft,
-    review: { state: 'none' },
-    versions: [],
   };
 
   // 5. Archived course
@@ -268,18 +238,8 @@ export function createSeedCourses(): Course[] {
     createdAt: pastTwoDays,
     updatedAt: pastDay,
     version: 1,
-    publishedVersion: 1,
     published: seed5Snapshot,
     draft: seed5Snapshot,
-    review: { state: 'none' },
-    versions: [
-      {
-        version: 1,
-        snapshot: seed5Snapshot,
-        publishedBy: 'user-admin-001',
-        publishedAt: pastTwoDays,
-      },
-    ],
   };
 
   return clearEnglishContent([course1, course2, course3, course4, course5]);
@@ -294,3 +254,4 @@ function clearEnglishContent<T>(value: T): T {
       .map(([key, child]) => [key, clearEnglishContent(child)]),
   ) as T;
 }
+

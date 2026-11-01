@@ -1,5 +1,4 @@
 // MOCK: browser-persisted workflow store; replace with APIs in A4.
-import type { Revision } from '@/schemas/revision';
 import type { NotificationItem } from '@/services/notifications';
 import type { Enrollment, Lead } from '@/schemas/lead';
 import type { PaymentRecord } from '@/schemas/payment';
@@ -60,8 +59,7 @@ export interface MockCourseRecord {
   id: string;
   slug: string;
   slugHistory: string[];
-  status: 'draft' | 'published' | 'pending_review' | 'rejected' | 'archived';
-  publishedVersion: number;
+  status: 'draft' | 'published' | 'archived';
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -74,7 +72,6 @@ export interface MockCourseRecord {
 export interface MockDatabase {
   schemaVersion: 2;
   courses: MockCourseRecord[];
-  revisions: Revision[];
   notifications: NotificationItem[];
   audit: MockAuditEvent[];
   leads: Lead[];
@@ -166,3 +163,4 @@ export function recordMockAudit(
     metadata: redact({ action, entityId, payload }),
   });
 }
+
