@@ -2,15 +2,13 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { EmptyState } from '@/components/ui/feedback';
 import { PageHeader } from '@/features/dashboard/layout/PageHeader';
-import { useAuth } from '@/app/AuthContext';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
 import { visibleDashboardItems, type DashboardArea } from '@/features/dashboard/nav.config';
 
 export function DashboardRoutePage({ area }: { area: DashboardArea }) {
   const { pathname } = useLocation();
-  const { user } = useAuth();
   const { t } = useTranslation('dashboard');
-  const accessible = visibleDashboardItems(area, user?.permissions ?? []);
+  const accessible = visibleDashboardItems(area);
   const item = accessible.find((entry) => pathname === entry.path);
   const base = `/${area}`;
   const title = item ? t(item.labelKey) : t('nav.accessDenied');
@@ -39,3 +37,6 @@ export function DashboardRoutePage({ area }: { area: DashboardArea }) {
     </>
   );
 }
+
+
+
