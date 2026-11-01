@@ -83,8 +83,6 @@ export const SectionSettingsSchema = z
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
       .max(50)
       .optional(),
-    dividerTop: z.enum(['none', 'curve', 'wave']).default('none'),
-    dividerBottom: z.enum(['none', 'curve', 'wave']).default('none'),
     reveal: z.enum(['none', 'fadeUp']).default('none'),
   })
   .strict();
@@ -94,16 +92,6 @@ export const SectionHeadingSchema = z.object({
   titleAccent: BilingualTextSchema.optional(),
   subtitle: BilingualTextSchema.optional(),
   highlight: z.enum(['none', 'underline']).default('none'),
-}).strict();
-export const ResponsiveSectionOverrideSchema = z.object({
-  visible: z.boolean().optional(),
-  imageSide: z.enum(['start', 'end']).optional(),
-  textAlign: z.enum(['start', 'center', 'end']).optional(),
-  columns: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]).optional(),
-}).strict();
-export const ResponsiveSectionSchema = z.object({
-  tablet: ResponsiveSectionOverrideSchema.optional(),
-  mobile: ResponsiveSectionOverrideSchema.optional(),
 }).strict();
 export const createSectionSchema = <const T extends string, C extends z.ZodTypeAny>(
   type: T,
@@ -119,9 +107,8 @@ export const createSectionSchema = <const T extends string, C extends z.ZodTypeA
         spacing: 'lg',
         width: 'contained',
         align: 'start',
-        dividerTop: 'none', dividerBottom: 'none', reveal: 'none',
+        reveal: 'none',
       }),
-      responsive: ResponsiveSectionSchema.optional(),
       heading: SectionHeadingSchema.optional(),
       content,
     })

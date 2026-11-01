@@ -20,22 +20,12 @@ const renderers = {
   hero: HeroRenderer,
   imageText: lazy(() => import('./renderers/ImageTextRenderer')),
   text: lazy(() => import('./renderers/TextRenderer')),
-  gallery: lazy(() => import('./renderers/GalleryRenderer')),
   instructor: lazy(() => import('./renderers/InstructorRenderer')),
-  benefits: lazy(() => import('./renderers/BenefitsRenderer')),
   featureCards: lazy(() => import('./renderers/FeatureCardsRenderer')),
   curriculum: lazy(() => import('./renderers/CurriculumRenderer')),
-  schedule: lazy(() => import('./renderers/ScheduleRenderer')),
   pricingCta: lazy(() => import('./renderers/PricingCtaRenderer')),
-  accreditation: lazy(() => import('./renderers/AccreditationRenderer')),
-  testimonials: lazy(() => import('./renderers/TestimonialsRenderer')),
-  statistics: lazy(() => import('./renderers/StatisticsRenderer')),
-  videoEmbed: lazy(() => import('./renderers/VideoEmbedRenderer')),
   faq: lazy(() => import('./renderers/FaqRenderer')),
   contactWhatsApp: lazy(() => import('./renderers/ContactWhatsAppRenderer')),
-  cta: lazy(() => import('./renderers/CtaRenderer')),
-  divider: lazy(() => import('./renderers/DividerRenderer')),
-  partners: lazy(() => import('./renderers/PartnersRenderer')),
   registrationForm: lazy(() => import('./renderers/RegistrationFormRenderer')),
   steps: lazy(() => import('./renderers/StepsRenderer')),
   banner: lazy(() => import('./renderers/BannerRenderer')),
@@ -85,17 +75,7 @@ export function SectionRenderer({
   const parsed = result.data;
   const Renderer = renderers[parsed.type] as ComponentType<AnyRendererProps>;
   return (
-    <div
-      className="responsive-section"
-      data-tablet-visible={parsed.responsive?.tablet?.visible}
-      data-mobile-visible={parsed.responsive?.mobile?.visible}
-      data-tablet-image-side={parsed.responsive?.tablet?.imageSide}
-      data-mobile-image-side={parsed.responsive?.mobile?.imageSide}
-      data-tablet-text-align={parsed.responsive?.tablet?.textAlign}
-      data-mobile-text-align={parsed.responsive?.mobile?.textAlign}
-      data-tablet-columns={parsed.responsive?.tablet?.columns}
-      data-mobile-columns={parsed.responsive?.mobile?.columns}
-    >
+    <div>
       <SectionBoundary fallback={t('publicError')}>
         <Suspense
           fallback={
