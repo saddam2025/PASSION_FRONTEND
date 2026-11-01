@@ -19,10 +19,11 @@ import { CtaSectionSchema } from './cta';
 import { DividerSectionSchema } from './divider';
 import { PartnersSectionSchema } from './partners';
 import { RegistrationFormSectionSchema } from './registrationForm';
-import { StepsSectionSchema } from './steps';
+import { StepsSectionSchema, StepsContentSchema } from './steps';
 import { BannerSectionSchema } from './banner';
 import type { BilingualText, IconName, SectionHeadingSchema } from './common';
 import { hasRichText } from './richText';
+import type { BilingualRichText } from './richText';
 
 export type { IconName, BilingualText, ImageRef, CtaLink, SectionSettings, VideoEmbed } from './common';
 export type { BilingualRichText } from './richText';
@@ -103,10 +104,12 @@ export type ValidationResult<T> =
 export type CoursePriceContext = {
   price?: number | null;
   promoPrice?: number | null;
+  contactUs?: boolean;
+  instructor?: { name?: BilingualText; bio?: BilingualRichText };
   registrationOpen?: boolean;
   settings?: { whatsappNumber?: string; phone?: string; email?: string };
 };
-const filled = (value: BilingualText | undefined) => Boolean(value?.ar.trim() || value?.en.trim());
+const filled = (value: BilingualText | undefined) => Boolean(value?.ar.trim());
 export function isSectionEmpty(section: Section, context?: CoursePriceContext): boolean {
   switch (section.type) {
     case 'hero':
@@ -122,7 +125,7 @@ export function isSectionEmpty(section: Section, context?: CoursePriceContext): 
     case 'gallery':
       return section.content.items.length === 0;
     case 'instructor':
-      return !filled(section.content.name) || !hasRichText(section.content.bio);
+      return !((filled(context?.instructor?.name) && hasRichText(context?.instructor?.bio)) || (filled(section.content.name) && hasRichText(section.content.bio)));
     case 'benefits':
     case 'featureCards':
       return section.content.items.length === 0;
@@ -133,7 +136,7 @@ export function isSectionEmpty(section: Section, context?: CoursePriceContext): 
     case 'pricingCta':
       return (
         !filled(section.content.overrideLabel) &&
-        !(section.content.useCoursePrice && (context?.promoPrice != null || context?.price != null))
+        !(section.content.useCoursePrice && (context?.contactUs || context?.promoPrice != null || context?.price != null))
       );
     case 'accreditation':
       return section.content.items.length === 0;
@@ -378,7 +381,7 @@ export const SECTION_REGISTRY_META = {
   },
   steps: {
     labelKey: 'steps', icon: 'Compass',
-    defaultContent: () => ({ title: emptyText(), items: [], cta: undefined }),
+    defaultContent: () => StepsContentSchema.parse({}),
     layoutPresets: ['horizontal', 'vertical'],
   },
   banner: {

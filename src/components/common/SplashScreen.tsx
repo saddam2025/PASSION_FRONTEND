@@ -9,11 +9,12 @@ export function SplashScreen() {
   const reduced = useReducedMotion();
   const { t } = useTranslation('common');
   const [visible, setVisible] = useState(false);
+  const isCourseLanding = /^\/ar\/courses\/[^/]+\/?$/.test(window.location.pathname);
   const effectStarted = useRef(false);
   useEffect(() => {
     if (!effectStarted.current) {
       effectStarted.current = true;
-      if (sessionStorage.getItem(splashStorageKey)) return;
+      if (isCourseLanding || sessionStorage.getItem(splashStorageKey)) return;
       sessionStorage.setItem(splashStorageKey, '1');
       if (reduced) return;
       setVisible(true);
@@ -22,7 +23,7 @@ export function SplashScreen() {
     if (!visible) return;
     const timer = window.setTimeout(() => setVisible(false), 1500);
     return () => window.clearTimeout(timer);
-  }, [reduced, visible]);
+  }, [reduced, visible, isCourseLanding]);
   return <AnimatePresence>{visible && <motion.div className="fixed inset-0 z-[120] grid place-items-center bg-surface" initial={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.35 } }} aria-hidden="true">
     <motion.div className="grid justify-items-center gap-4" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}>
       <SmartImage slot="logo" alt="" width={assetManifest.logo.width} height={assetManifest.logo.height} className="h-12 w-36 object-contain" />

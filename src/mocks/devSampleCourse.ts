@@ -9,7 +9,7 @@ const paragraph = (ar: string, en: string) => ({
 });
 const sample = b('عينة توضيحية فقط', 'SAMPLE — demonstration only');
 const cta = {
-  label: b('استكشف نموذج التسجيل', 'Explore registration'),
+  label: b('استكشف سجّل بياناتك', 'Explore registration'),
   destination: { kind: 'action' as const, action: 'scrollToRegister' as const },
 };
 const section = (id: number, type: Section['type'], content: Record<string, unknown>): Section =>
@@ -22,7 +22,7 @@ const section = (id: number, type: Section['type'], content: Record<string, unkn
   }) as Section;
 const sections: Section[] = [
   section(1, 'hero', {
-    title: b('عينة: عنوان الدورة', 'SAMPLE: course title'),
+    title: b('عينة: عنوان الكورس', 'SAMPLE: course title'),
     subtitle: sample,
     eyebrow: sample,
     primaryCta: cta,

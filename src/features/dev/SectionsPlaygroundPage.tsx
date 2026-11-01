@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { LanguageSwitcher } from '@/i18n/LanguageSwitcher';
 import { useLanguage } from '@/i18n/useLanguage';
 import { PageRenderer } from '@/features/sections/PageRenderer';
 import { devSampleCourse } from '@/mocks/devSampleCourse';
@@ -50,7 +49,6 @@ export default function SectionsPlaygroundPage() {
               {value}px
             </button>
           ))}
-          <LanguageSwitcher />
         </div>
       </header>
       <div

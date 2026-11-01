@@ -3,27 +3,25 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/app/AuthContext';
 import { Skeleton, ErrorState, EmptyState } from '@/components/ui/feedback';
-import { useLanguage } from '@/i18n/useLanguage';
 import { overviewService } from '@/services/overview';
 import { hasPermission } from '@/schemas/permissions';
 import { academyDateKey } from '@/lib/timezone';
 import { Button } from '@/components/ui/Button';
 import { useNewCourseDialog } from '@/features/courses/newCourseDialogStore';
+import { formatDate, formatMoney } from '@/lib/formatters';
 
 const panel = 'grid content-start gap-3 rounded-sm border border-border bg-surface p-4';
 export default function OverviewPage() {
   const { t } = useTranslation(['dashboard', 'audit']);
-  const { language } = useLanguage();
   const { user } = useAuth();
   const newCourse = useNewCourseDialog();
   const result = useQuery({ queryKey: ['admin-overview'], queryFn: () => overviewService.get() });
-  const name =
-    user?.name[language] || user?.name[language === 'ar' ? 'en' : 'ar'] || user?.email || '';
+  const name = user?.name.ar || user?.email || '';
   const now = new Date();
-  const date = new Intl.DateTimeFormat(language === 'ar' ? 'ar-EG' : 'en-GB', {
+  const date = formatDate(now, {
     dateStyle: 'full',
     timeZone: 'Africa/Cairo',
-  }).format(now);
+  });
   const today = academyDateKey(now);
   const greeting = t('workQueue.greeting', { name });
   if (result.isPending)
@@ -38,7 +36,7 @@ export default function OverviewPage() {
     return (
       <ErrorState
         title={t('workQueue.loadError', {
-          defaultValue: language === 'ar' ? 'تعذر تحميل الملخص' : 'Could not load overview',
+          defaultValue: 'حصلت مشكلة في تحميل الملخص، جرّب تاني.',
         })}
         onRetry={() => void result.refetch()}
       />
@@ -112,14 +110,14 @@ export default function OverviewPage() {
                 className="flex flex-wrap justify-between gap-2 border-t border-border pt-3 text-sm"
               >
                 <span className="font-semibold">
-                  {item.course[language] || item.course[language === 'ar' ? 'en' : 'ar']}
+                  {item.course.ar}
                 </span>
                 <span className="text-muted">
-                  {item.author[language] || item.author[language === 'ar' ? 'en' : 'ar']} ·{' '}
-                  {new Intl.DateTimeFormat(language, {
+                  {item.author.ar} ·{' '}
+                  {formatDate(item.at, {
                     dateStyle: 'medium',
                     timeZone: 'Africa/Cairo',
-                  }).format(new Date(item.at))}
+                  })}
                 </span>
               </Link>
             ))
@@ -138,18 +136,15 @@ export default function OverviewPage() {
               >
                 <span>
                   {item.name || t('workQueue.registration')} ·{' '}
-                  {item.course[language] || item.course[language === 'ar' ? 'en' : 'ar']}
+                  {item.course.ar}
                 </span>
                 <span className="text-muted">
                   {canPay && canFinance && item.amount !== null
-                    ? new Intl.NumberFormat(language, {
-                        style: 'currency',
-                        currency: item.currency,
-                      }).format(item.amount / 100)
-                    : new Intl.DateTimeFormat(language, {
+                    ? formatMoney(item.amount / 100, item.currency)
+                    : formatDate(item.at, {
                         dateStyle: 'medium',
                         timeZone: 'Africa/Cairo',
-                      }).format(new Date(item.at))}
+                      })}
                 </span>
               </Link>
             ))
@@ -193,7 +188,7 @@ export default function OverviewPage() {
               >
                 <span>
                   {item.name || t('workQueue.registration')} ·{' '}
-                  {item.course[language] || item.course[language === 'ar' ? 'en' : 'ar']}
+                  {item.course.ar}
                 </span>
                 <span className="text-muted">
                   {t(`workQueue.enrollmentStatus.${item.enrollmentStatus}`)} ·{' '}
@@ -216,11 +211,11 @@ export default function OverviewPage() {
                   })}
                 </span>
                 <time className="ms-2 text-xs text-muted">
-                  {new Intl.DateTimeFormat(language, {
+                  {formatDate(item.at, {
                     dateStyle: 'short',
                     timeStyle: 'short',
                     timeZone: 'Africa/Cairo',
-                  }).format(new Date(item.at))}
+                  })}
                 </time>
               </p>
             ))

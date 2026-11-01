@@ -22,14 +22,9 @@ export function Footer() {
   const { t } = useTranslation('footer');
   const settings = usePublicSettings();
   const { user } = useAuth();
-  const name =
-    settings.academyName[language].trim() ||
-    settings.academyName[language === 'ar' ? 'en' : 'ar'].trim();
-  const description =
-    settings.description[language].trim() ||
-    settings.description[language === 'ar' ? 'en' : 'ar'].trim();
-  const address =
-    settings.address[language].trim() || settings.address[language === 'ar' ? 'en' : 'ar'].trim();
+  const name = settings.academyName.ar.trim();
+  const description = settings.description.ar.trim();
+  const address = settings.address.ar.trim();
   const whatsappHref = whatsappUrl(settings.whatsappNumber, nav('whatsappGreeting'));
   const home = `/${language}`;
   const socials = socialNames

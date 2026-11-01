@@ -16,6 +16,7 @@ export const LeadSchema = z
       source: z.string().optional(),
       medium: z.string().optional(),
       campaign: z.string().optional(),
+      referrer: z.string().optional(),
       referrerPath: z.string().optional(),
       landingSlug: z.string().optional(),
     }),
@@ -51,6 +52,7 @@ export const EnrollmentSchema = z
     assignedToUserId: z.string().optional(),
     registeredAt: z.string(),
     idempotencyKey: z.string(),
+    idempotencyPayloadHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
     cancelledReason: z.string().optional(),
     history: z.array(
       z.object({

@@ -5,12 +5,13 @@ export const InstructorSectionSchema = createSectionSchema(
   'instructor',
   z
     .object({
-      name: BilingualTextSchema,
+      name: BilingualTextSchema.default({ ar: '', en: '' }),
       title: BilingualTextSchema.optional(),
       photo: ImageRefSchema.optional(),
-      bio: BilingualRichTextSchema,
-      credentials: z.array(z.object({ text: BilingualTextSchema, details: z.array(ExpandableDetailSchema).default([]), detailsMode: z.enum(['inline', 'modal']).default('inline') }).strict()).default([]),
+      bio: BilingualRichTextSchema.default({ ar: [], en: [] }),
+      credentials: z.array(z.object({ text: BilingualTextSchema.default({ ar: '', en: '' }), details: z.array(ExpandableDetailSchema).default([]), detailsMode: z.enum(['inline', 'modal']).default('inline') }).strict()).default([]),
       layout: z.enum(['photoStart', 'photoEnd']).default('photoStart'),
     })
-    .strict(),
+    .strict()
+    .default({ name: { ar: '', en: '' }, bio: { ar: [], en: [] }, credentials: [], layout: 'photoStart' }),
 );

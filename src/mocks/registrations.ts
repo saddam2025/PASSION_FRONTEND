@@ -3,7 +3,7 @@ import type { PublicRegistrationConfirmation } from '@/services/registrations.ty
 export const mockConfirmations: PublicRegistrationConfirmation[] = [
   {
     reference: 'MOCK-REF-001',
-    courseTitle: { ar: 'دورة تجريبية', en: 'Sample course' },
-    firstName: 'Sample',
+    courseTitle: { ar: 'كورس تجريبي' },
+    status: 'received',
   },
 ];

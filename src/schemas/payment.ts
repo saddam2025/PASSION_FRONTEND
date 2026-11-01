@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BilingualTextSchema } from './sections/common';
 export const PaymentStatusSchema = z.enum([
   'unpaid',
   'pending',
@@ -24,7 +25,7 @@ export const PaymentRecordSchema = z
       .object({
         assetId: z.string().optional(),
         src: z.string(),
-        alt: z.object({ ar: z.string(), en: z.string() }),
+        alt: BilingualTextSchema,
         decorative: z.boolean().optional(),
       })
       .optional(),

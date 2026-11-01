@@ -19,10 +19,11 @@ export const RegistrationFieldSchema = z
   })
   .strict()
   .superRefine((field, ctx) => {
-    if (['select', 'radio'].includes(field.type) && (!field.options || field.options.length === 0))
+    if (!field.label.ar.trim()) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'عنوان الحقل مطلوب.', path: ['label', 'ar'] });
+    if (['select', 'radio'].includes(field.type) && (!field.options || field.options.length < 2))
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Select and radio fields need options.',
+        message: 'أضف اختيارين على الأقل.',
         path: ['options'],
       });
     if (
@@ -36,10 +37,14 @@ export const RegistrationFieldSchema = z
       });
   });
 export const FormDefinitionSchema = z
-  .object({ fields: z.array(RegistrationFieldSchema).max(12) })
+  .object({
+    fields: z.array(RegistrationFieldSchema).max(12),
+    consentText: BilingualTextSchema.optional(),
+  })
   .strict()
   .superRefine((definition, ctx) => {
     const ids = definition.fields.map((field) => field.id);
+    if (definition.consentText && !definition.consentText.ar.trim()) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'نص الموافقة مطلوب.', path: ['consentText', 'ar'] });
     if (new Set(ids).size !== ids.length)
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

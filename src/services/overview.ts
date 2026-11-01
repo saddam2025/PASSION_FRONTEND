@@ -1,6 +1,7 @@
 // MOCK: bounded admin overview aggregates; replace with the overview API in A4.
 import { mockAuthService } from './auth.mock';
 import { readMockDb } from '@/mocks/db';
+import { readCourses } from '@/services/courses/storage';
 import { hasPermission } from '@/schemas/permissions';
 import { computePaymentStatus } from '@/schemas/payment';
 import { ACADEMY_TIME_ZONE, academyDateKey, addCalendarDays } from '@/lib/timezone';
@@ -10,17 +11,10 @@ export const overviewService = {
     const user = await mockAuthService.getCurrentUser();
     if (!user || user.role !== 'admin') throw new Error('Not permitted');
     const db = readMockDb();
+    const courses = readCourses().filter((c) => !c.deletedAt);
     const now = Date.now();
-    const pending = db.revisions
-      .filter((item) => item.status === 'pending_review')
-      .sort(
-        (a, b) =>
-          Date.parse(b.submittedAt ?? b.createdAt) - Date.parse(a.submittedAt ?? a.createdAt),
-      );
-    const courseTitle = (courseId: string) => {
-      const course = db.courses.find((item) => item.id === courseId);
-      return course?.details.title ?? { ar: '', en: '' };
-    };
+    const pendingCourses = courses.filter((c) => c.review.state === 'pending');
+    const rejectedCourses = courses.filter((c) => c.review.state === 'rejected');
     const waitingLeads = db.enrollments.filter(
       (item) =>
         item.followUpStatus === 'new' && now - Date.parse(item.registeredAt) >= 24 * 60 * 60 * 1000,
@@ -51,18 +45,18 @@ export const overviewService = {
     const authors = new Map(db.users.map((record) => [record.id, record.name]));
     return {
       counts: {
-        pendingReviews: pending.length,
+        pendingReviews: pendingCourses.length,
         newLeads: waitingLeads.length,
         awaitingPayment: waitingPayment.length,
-        drafts: db.courses.filter((item) => item.status === 'draft').length,
-        rejected: db.revisions.filter((item) => item.status === 'rejected').length,
+        drafts: courses.filter((item) => item.status === 'draft').length,
+        rejected: rejectedCourses.length,
       },
-      pending: pending.slice(0, 5).map((item) => ({
+      pending: pendingCourses.slice(0, 5).map((item) => ({
         id: item.id,
-        courseId: item.courseId,
-        course: courseTitle(item.courseId),
-        author: authors.get(item.authorId) ?? { ar: '', en: '' },
-        at: item.submittedAt ?? item.createdAt,
+        courseId: item.id,
+        course: item.draft.details.title,
+        author: authors.get(item.createdBy) ?? { ar: '', en: '' },
+        at: item.review.submittedAt ?? item.updatedAt,
       })),
       registrations: db.enrollments
         .slice()

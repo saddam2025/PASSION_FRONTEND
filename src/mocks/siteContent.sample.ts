@@ -23,7 +23,7 @@ export const sampleSections: HomeSection[] = [
           name: { ar: 'اعتماد تجريبي', en: 'Sample accreditation' },
           description: {
             ar: 'بيانات تجريبية للمعاينة فقط وليست اعتماداً حقيقياً.',
-            en: 'Preview data only; this is not a real accreditation.',
+            en: 'معاينة data only; this is not a real accreditation.',
           },
           sample: true,
         },

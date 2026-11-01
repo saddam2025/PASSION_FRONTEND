@@ -2,6 +2,7 @@
   container-type: inline-size;
   container-name: section-content;
 }
+.responsive-section { container-type: inline-size; container-name: responsive-section; }
 .section-split {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -112,3 +113,44 @@
 .section-title-accent { color: var(--color-primary-strong); text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: .14em; text-underline-offset: .16em; animation: title-underline .7s ease-out both; }
 @keyframes title-underline { from { text-decoration-color: transparent; } to { text-decoration-color: var(--color-accent); } }
 @media (prefers-reduced-motion: reduce) { .section-title-accent { animation: none; } }
+
+@container responsive-section (min-width: 40rem) and (max-width: 63.99rem) {
+  .responsive-section[data-tablet-visible='false'] .section-container { display: none; }
+  .responsive-section[data-tablet-image-side='end'] .section-split > :first-child { order: 2; }
+  .responsive-section[data-tablet-image-side='end'] .section-split > :last-child { order: 1; }
+  .responsive-section[data-tablet-text-align='start'] .section-container > div { text-align: start !important; }
+  .responsive-section[data-tablet-text-align='center'] .section-container > div { text-align: center !important; }
+  .responsive-section[data-tablet-text-align='end'] .section-container > div { text-align: end !important; }
+  .responsive-section[data-tablet-columns='1'] .section-columns-2,
+  .responsive-section[data-tablet-columns='1'] .section-columns-3,
+  .responsive-section[data-tablet-columns='1'] .section-columns-4 { grid-template-columns: minmax(0, 1fr); }
+  .responsive-section[data-tablet-columns='2'] .section-columns-2,
+  .responsive-section[data-tablet-columns='2'] .section-columns-3,
+  .responsive-section[data-tablet-columns='2'] .section-columns-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .responsive-section[data-tablet-columns='3'] .section-columns-2,
+  .responsive-section[data-tablet-columns='3'] .section-columns-3,
+  .responsive-section[data-tablet-columns='3'] .section-columns-4 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .responsive-section[data-tablet-columns='4'] .section-columns-2,
+  .responsive-section[data-tablet-columns='4'] .section-columns-3,
+  .responsive-section[data-tablet-columns='4'] .section-columns-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@container responsive-section (max-width: 39.99rem) {
+  .responsive-section[data-mobile-visible='false'] .section-container { display: none; }
+  .responsive-section[data-mobile-image-side='end'] .section-split > :first-child { order: 2; }
+  .responsive-section[data-mobile-image-side='end'] .section-split > :last-child { order: 1; }
+  .responsive-section[data-mobile-text-align='start'] .section-container > div { text-align: start !important; }
+  .responsive-section[data-mobile-text-align='center'] .section-container > div { text-align: center !important; }
+  .responsive-section[data-mobile-text-align='end'] .section-container > div { text-align: end !important; }
+  .responsive-section[data-mobile-columns='1'] .section-columns-2,
+  .responsive-section[data-mobile-columns='1'] .section-columns-3,
+  .responsive-section[data-mobile-columns='1'] .section-columns-4 { grid-template-columns: minmax(0, 1fr); }
+  .responsive-section[data-mobile-columns='2'] .section-columns-2,
+  .responsive-section[data-mobile-columns='2'] .section-columns-3,
+  .responsive-section[data-mobile-columns='2'] .section-columns-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .responsive-section[data-mobile-columns='3'] .section-columns-2,
+  .responsive-section[data-mobile-columns='3'] .section-columns-3,
+  .responsive-section[data-mobile-columns='3'] .section-columns-4 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .responsive-section[data-mobile-columns='4'] .section-columns-2,
+  .responsive-section[data-mobile-columns='4'] .section-columns-3,
+  .responsive-section[data-mobile-columns='4'] .section-columns-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

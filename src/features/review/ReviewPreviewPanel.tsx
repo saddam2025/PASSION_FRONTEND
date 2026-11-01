@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { PageRenderer } from '@/features/sections/PageRenderer';
 import type { PageConfig } from '@/schemas/sections';
 import type { CoursePageContextValue } from '@/features/sections/CoursePageContext';
-import { useLanguage } from '@/i18n/useLanguage';
 type Context = Omit<CoursePageContextValue, 'mode'>;
 export function ReviewPreviewPanel({
   live,
@@ -19,7 +18,6 @@ export function ReviewPreviewPanel({
   const { t } = useTranslation('review');
   const [mode, setMode] = useState<'live' | 'proposed' | 'side'>('proposed');
   const [width, setWidth] = useState(1200);
-  const { language, setLanguage } = useLanguage();
   return (
     <section className="grid gap-4 rounded-md border border-border bg-surface p-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -28,13 +26,6 @@ export function ReviewPreviewPanel({
           <p className="mt-1 text-sm text-muted">{t('previewNotice')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className="min-h-11 rounded-sm border border-border px-3 text-sm"
-            onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-          >
-            {language === 'ar' ? t('switchEnglish') : t('switchArabic')}
-          </button>
           <select
             aria-label={t('preview')}
             className="min-h-11 rounded-sm border border-border px-3"

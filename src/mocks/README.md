@@ -13,7 +13,7 @@ The assistant mock uses the default permission set: it can view leads, update fo
 
 ## Registration and lead workflow
 
-Register on a currently published mock course with registration enabled, wait at least two seconds after the form appears, then submit. The service creates/updates the visitor's lead and a separate enrollment in `mock.db.v2`, stores form-label snapshots, and redirects to a PAS-XXXXXX confirmation reference. Use the same email and course again to exercise duplicate protection; submit twice with the same browser form to exercise idempotency. The lead and enrollment appear in the shared Admin/Assistant Leads page. A different email with the same normalized phone is flagged as a possible duplicate and is not merged.
+Register on a currently published mock course with registration enabled, wait at least two seconds after the form appears, then submit. The service creates/updates the visitor's lead and a separate enrollment in `mock.db.v2`, stores form-label snapshots, and replaces the form with an in-place success panel. The panel provides a PAS-XXXXXX reference; `/ar/register-confirmation/{reference}` remains available as a reload/share fallback and shows only the Arabic course title, reference and received status. Use the same email and course again to exercise duplicate protection; submit twice with the same browser form to exercise idempotency. The lead and enrollment appear in the shared Admin/Assistant Leads page. A different email with the same normalized phone is flagged as a possible duplicate and is not merged.
 
 ## Invitation links and lockout
 
@@ -25,7 +25,7 @@ Admins can generate a one-hour reset link from the users page. Its raw token is 
 
 ### Public registration confirmation
 
-Registration references are generated dynamically as `PAS-XXXXXX` and live in `mock.db.v2`; use the visitor registration flow above to create one. Unknown references show the generic not-found state. Duplicate submissions return a neutral confirmation without customer details.
+Registration references are generated dynamically as `PAS-XXXXXX` and live in `mock.db.v2`; use the visitor registration flow above to create one. Unknown references show the generic not-found state. The confirmation projection contains only the Arabic course title, reference and received status; duplicate submissions return the same neutral response without revealing customer details.
 
 ## Resetting the mock database
 
@@ -37,7 +37,7 @@ Payments are manual MOCK records in the same DB as enrollments. The amount input
 
 ## Course detail and section preview (F4)
 
-- Published mock courses: `/ar/courses/communication-skills` (registration open) and `/ar/courses/learning-basics` (registration closed); replace `ar` with `en` for English.
+- Published mock courses: `/ar/courses/communication-skills` (registration open) and `/ar/courses/learning-basics` (registration closed).
 - Archived course: `/ar/courses/archived-course` shows the generic not-found state.
 - Legacy slug: `/ar/courses/old-course-name` redirects to the current `learning-basics` slug.
 - Development playground: `/dev/sections` renders the clearly labelled sample course with all 20 section types; its width controls and language switcher are development-only.

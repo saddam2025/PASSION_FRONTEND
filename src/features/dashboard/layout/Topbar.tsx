@@ -4,11 +4,11 @@ import { Bell, Menu, UserRound, LogOut } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/dataDisplay';
-import { LanguageSwitcher } from '@/i18n/LanguageSwitcher';
 import { useLanguage } from '@/i18n/useLanguage';
 import { useAuth } from '@/app/AuthContext';
 import { visibleDashboardItems, type DashboardArea } from '@/features/dashboard/nav.config';
 import { cn } from '@/lib/cn';
+import { formatDate } from '@/lib/formatters';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { notificationsService, type NotificationItem } from '@/services/notifications';
 import { resetMockDb, simulateStaleOnce } from '@/mocks/db';
@@ -39,8 +39,7 @@ export function Topbar({ area, onOpenDrawer }: { area: DashboardArea; onOpenDraw
     queryFn: () => notificationsService.unreadCount(),
   });
   const unread = unreadQuery.data ?? 0;
-  const userName =
-    user?.name[language] || user?.name[language === 'ar' ? 'en' : 'ar'] || user?.email || '';
+  const userName = user?.name.ar || user?.email || '';
 
   return (
     <header className="sticky top-0 z-30 flex min-h-16 shrink-0 items-center justify-between gap-3 border-b border-border bg-surface/95 ps-4 pe-4 shadow-soft backdrop-blur-md md:ps-6 md:pe-6">
@@ -75,7 +74,6 @@ export function Topbar({ area, onOpenDrawer }: { area: DashboardArea; onOpenDraw
 
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         <NotificationsMenu area={area} unread={unread} />
-        <LanguageSwitcher />
         <Dropdown.Root>
           <Dropdown.Trigger asChild>
             <button
@@ -171,7 +169,6 @@ export function Topbar({ area, onOpenDrawer }: { area: DashboardArea; onOpenDraw
 }
 
 function NotificationsMenu({ area, unread }: { area: DashboardArea; unread: number }) {
-  const { language } = useLanguage();
   const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -238,10 +235,10 @@ function NotificationsMenu({ area, unread }: { area: DashboardArea; unread: numb
                     {t(`notificationTypes.${item.type}`, { ns: 'notifications' })}
                   </span>
                   <span className="text-xs text-muted">
-                    {new Intl.DateTimeFormat(language, {
+                    {formatDate(item.createdAt, {
                       dateStyle: 'short',
                       timeStyle: 'short',
-                    }).format(new Date(item.createdAt))}
+                    })}
                   </span>
                 </Dropdown.Item>
               ))}

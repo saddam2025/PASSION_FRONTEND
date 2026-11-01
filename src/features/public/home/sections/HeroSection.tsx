@@ -17,11 +17,9 @@ export function HeroSection({ section }: { section: HomeSection }) {
     <Frame>
       <div className="grid items-center gap-10 py-12 md:grid-cols-2 md:py-20">
         <div className="grid content-start gap-6">
-          {(settings.academyName[language] ||
-            settings.academyName[language === 'ar' ? 'en' : 'ar']) && (
+          {settings.academyName.ar && (
             <p className="text-sm font-semibold uppercase tracking-wide text-primary-strong">
-              {settings.academyName[language] ||
-                settings.academyName[language === 'ar' ? 'en' : 'ar']}
+              {settings.academyName.ar}
             </p>
           )}
           <h1 className="font-display text-4xl font-bold leading-tight text-ink sm:text-6xl">

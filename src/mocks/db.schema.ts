@@ -1,6 +1,5 @@
 // MOCK: versioned local workflow database validation; replace with API DTO validation in A4.
 import { z } from 'zod';
-import { CourseSchema } from '@/schemas/course';
 import { RevisionSchema } from '@/schemas/revision';
 import { LeadSchema, EnrollmentSchema } from '@/schemas/lead';
 import { PaymentRecordSchema } from '@/schemas/payment';
@@ -9,7 +8,7 @@ import { PermissionKeySchema } from '@/schemas/permissions';
 export const MockDatabaseSchema = z
   .object({
     schemaVersion: z.literal(2),
-    courses: z.array(CourseSchema),
+    courses: z.array(z.any()),
     revisions: z.array(RevisionSchema),
     notifications: z.array(
       z
@@ -17,8 +16,14 @@ export const MockDatabaseSchema = z
           id: z.string(),
           type: z.enum([
             'course_submitted',
+            'course_withdrawn',
+            'course_published',
+            'course_unpublished',
             'revision_approved',
             'revision_rejected',
+            'course_deletion_requested',
+            'course_deletion_approved',
+            'course_deletion_rejected',
             'new_registration',
             'payment_recorded',
           ]),

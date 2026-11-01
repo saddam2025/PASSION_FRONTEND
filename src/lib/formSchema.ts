@@ -24,18 +24,18 @@ export function buildSubmissionSchema(definition: FormDefinition) {
         (value) => isLikelyValidPhone(value.replace(/\D/g, '')),
         'Enter a valid international phone number.',
       ),
-    consent: z.literal(true, { errorMap: () => ({ message: 'Consent is required.' }) }),
+    consent: z.literal(true, { errorMap: () => ({ message: 'الموافقة مطلوبة.' }) }),
   };
   for (const field of definition.fields) {
     const limit = field.maxLength ?? (field.type === 'textarea' ? 4000 : 300);
     let value: z.ZodTypeAny;
-    if (field.type === 'checkbox') value = field.required ? z.literal(true) : z.boolean();
+    if (field.type === 'checkbox') value = z.boolean().default(false).refine((checked) => !field.required || checked, 'الحقل ده مطلوب.');
     else if (field.type === 'select' || field.type === 'radio')
       value = z
         .string()
         .refine(
           (entry) => Boolean(field.options?.some((option) => option.value === entry)),
-          'Choose one of the available options.',
+          'اختار قيمة من الاختيارات المتاحة.',
         );
     else if (field.type === 'email') value = z.string().trim().email().max(limit);
     else if (field.type === 'phone')
@@ -47,14 +47,14 @@ export function buildSubmissionSchema(definition: FormDefinition) {
         .transform(normalizePhone)
         .refine(
           (entry) => isLikelyValidPhone(entry.replace(/\D/g, '')),
-          'Enter a valid international phone number.',
+        'اكتب رقم تليفون صحيح.',
         );
     else value = z.string().trim().max(limit);
     if (!field.required && field.type !== 'checkbox') value = value.optional().or(z.literal(''));
     else if (field.required && field.type !== 'checkbox')
       value = value.refine(
         (entry) => entry !== '' && entry !== undefined,
-        'This field is required.',
+        'الحقل ده مطلوب.',
       );
     shape[field.id] = value;
   }

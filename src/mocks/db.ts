@@ -1,5 +1,4 @@
 // MOCK: browser-persisted workflow store; replace with APIs in A4.
-import type { CourseRecord } from '@/schemas/course';
 import type { Revision } from '@/schemas/revision';
 import type { NotificationItem } from '@/services/notifications';
 import type { Enrollment, Lead } from '@/schemas/lead';
@@ -7,6 +6,8 @@ import type { PaymentRecord } from '@/schemas/payment';
 import type { AuditAction } from '@/schemas/audit';
 import { redact } from '@/schemas/audit';
 import type { UserPermission, AuthUser } from '@/services/auth.types';
+import type { CourseDetails, Snapshot } from '@/schemas/course';
+import type { PageConfig } from '@/schemas/sections';
 import { MockDatabaseSchema } from './db.schema';
 import { createInitialMockDatabase } from './db.seed';
 
@@ -55,9 +56,24 @@ export interface MockSettings {
   policyVersion: number;
 }
 
+export interface MockCourseRecord {
+  id: string;
+  slug: string;
+  slugHistory: string[];
+  status: 'draft' | 'published' | 'pending_review' | 'rejected' | 'archived';
+  publishedVersion: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
+  featured?: boolean;
+  details: CourseDetails;
+  pageConfig: PageConfig;
+  draft?: Snapshot;
+}
+
 export interface MockDatabase {
   schemaVersion: 2;
-  courses: CourseRecord[];
+  courses: MockCourseRecord[];
   revisions: Revision[];
   notifications: NotificationItem[];
   audit: MockAuditEvent[];

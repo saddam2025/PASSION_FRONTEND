@@ -69,7 +69,7 @@ function build(input: AnalyticsInput): AnalyticsResult {
     defaultCurrency: 'EGP',
     courseOptions: input.courses
       .filter((course) => !course.deletedAt)
-      .map((course) => ({ id: course.id, title: course.details.title })),
+      .map((course) => ({ id: course.id, title: course.draft?.details.title ?? course.details?.title ?? { ar: '', en: '' } })),
     hasAttribution: selectCohort(
       input.leads,
       input.enrollments,

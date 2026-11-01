@@ -1,39 +1,31 @@
 import { ACADEMY_TIME_ZONE } from '@/lib/timezone';
-import type { AppLanguage } from '@/i18n';
+import { formatDate, formatMoney, formatNumber, formatPercent } from '@/lib/formatters';
 
-const locale = (language: AppLanguage) =>
-  language === 'ar' ? 'ar-EG-u-nu-arab' : 'en-US-u-nu-latn';
-export function formatAnalyticsNumber(value: number, language: AppLanguage): string {
-  return new Intl.NumberFormat(locale(language), { maximumFractionDigits: 1 }).format(value);
+export function formatAnalyticsNumber(value: number, _language?: 'ar' | 'en'): string {
+  void _language;
+  return formatNumber(value, 1);
 }
-export function formatAnalyticsPercent(value: number, language: AppLanguage): string {
-  return new Intl.NumberFormat(locale(language), {
-    style: 'percent',
-    maximumFractionDigits: 0,
-  }).format(value);
+export function formatAnalyticsPercent(value: number, _language?: 'ar' | 'en'): string {
+  void _language;
+  return formatPercent(value, 0);
 }
 export function formatAnalyticsMoney(
   minor: number,
   currency: string,
-  language: AppLanguage,
+  _language?: 'ar' | 'en',
 ): string {
-  const safeCurrency = ['EGP', 'USD', 'SAR', 'AED', 'EUR'].includes(currency) ? currency : 'EGP';
-  return new Intl.NumberFormat(locale(language), {
-    style: 'currency',
-    currency: safeCurrency,
-    maximumFractionDigits: 2,
-  }).format(minor / 100);
+  void _language;
+  return formatMoney(minor / 100, currency);
 }
 export function formatBucketLabel(
   key: string,
   bucket: 'day' | 'week' | 'month',
-  language: AppLanguage,
+  _language?: 'ar' | 'en',
 ): string {
+  void _language;
   const date = new Date(`${key.length === 7 ? `${key}-01` : key}T12:00:00Z`);
-  return new Intl.DateTimeFormat(
-    locale(language),
-    bucket === 'month'
-      ? { month: 'short', year: 'numeric', timeZone: ACADEMY_TIME_ZONE }
-      : { month: 'short', day: 'numeric', timeZone: ACADEMY_TIME_ZONE },
-  ).format(date);
+  return formatDate(date, {
+    ...(bucket === 'month' ? { month: 'short', year: 'numeric' } : { month: 'short', day: 'numeric' }),
+    timeZone: ACADEMY_TIME_ZONE,
+  });
 }

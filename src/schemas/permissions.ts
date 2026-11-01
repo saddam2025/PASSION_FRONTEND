@@ -6,6 +6,7 @@ export const PermissionKey = {
   exportCsv: 'exportCsv',
   viewFinancialReports: 'viewFinancialReports',
   manageNotes: 'manageNotes',
+  viewSettings: 'viewSettings',
 } as const;
 export type PermissionKey = (typeof PermissionKey)[keyof typeof PermissionKey];
 export const PermissionKeySchema = z.enum([
@@ -16,8 +17,9 @@ export const PermissionKeySchema = z.enum([
   PermissionKey.exportCsv,
   PermissionKey.viewFinancialReports,
   PermissionKey.manageNotes,
+  PermissionKey.viewSettings,
 ]);
-export const PermissionListSchema = z.array(PermissionKeySchema).max(7);
+export const PermissionListSchema = z.array(PermissionKeySchema).max(8);
 export const permissionCatalog: Record<
   PermissionKey,
   { labelKey: string; descriptionKey: string }
@@ -49,6 +51,10 @@ export const permissionCatalog: Record<
   manageNotes: {
     labelKey: 'permissions.manageNotes',
     descriptionKey: 'permissions.manageNotesDescription',
+  },
+  viewSettings: {
+    labelKey: 'permissions.viewSettings',
+    descriptionKey: 'permissions.viewSettingsDescription',
   },
 };
 export const rolePermissionDefaults = {

@@ -14,6 +14,7 @@ import { paymentsService } from '@/services/payments.mock';
 import { readMockDb } from '@/mocks/db';
 import { formatPrice } from '@/features/public/courses/format';
 import CustomerActions from './CustomerActions';
+import { formatDate, formatPhone } from '@/lib/formatters';
 
 export default function CustomerPage() {
   const { leadId = '' } = useParams();
@@ -75,19 +76,17 @@ export default function CustomerPage() {
   if (!q.data) return <EmptyState title={t('notFound')} />;
   const { lead, enrollments, notes } = q.data;
   return (
-    <main className="grid gap-5" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <main className="grid gap-5" dir="rtl">
       <header className="grid gap-2">
         <h1 className="text-3xl font-bold">{lead.fullName}</h1>
         <p dir="ltr" className="text-start text-muted">
           <a href={`mailto:${lead.email}`}>{lead.email}</a> ·{' '}
-          <a href={`tel:+${lead.phoneNormalized}`}>+{lead.phoneNormalized}</a>
+          <a href={`tel:+${lead.phoneNormalized}`} className="latin-text">+{formatPhone(lead.phoneNormalized)}</a>
         </p>
         <p className="text-sm text-muted">
           {t('createdAt')}:{' '}
           <time dir="ltr">
-            {new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(
-              new Date(lead.createdAt),
-            )}
+            {formatDate(lead.createdAt)}
           </time>
         </p>
         {lead.possibleDuplicateOf && (
@@ -120,14 +119,12 @@ export default function CustomerPage() {
             >
               <header className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-bold">{enrollment.courseSnapshot.title[language]}</h2>
+                  <h2 className="text-xl font-bold">{enrollment.courseSnapshot.title.ar}</h2>
                   <p dir="ltr">
                     {t('reference')}: {enrollment.reference}
                   </p>
                   <time dir="ltr" className="text-sm text-muted">
-                    {new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(
-                      new Date(enrollment.registeredAt),
-                    )}
+                    {formatDate(enrollment.registeredAt)}
                   </time>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -199,9 +196,7 @@ export default function CustomerPage() {
           <p key={item.id} className="whitespace-pre-wrap">
             {item.body}
             <small className="ms-2 text-muted">
-              {new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(
-                new Date(item.createdAt),
-              )}
+              {formatDate(item.createdAt)}
             </small>
           </p>
         ))}

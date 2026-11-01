@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const BilingualTextSchema = z
-  .object({ ar: z.string().trim().max(6000), en: z.string().trim().max(6000) })
+  .object({ ar: z.string().trim().max(6000), en: z.unknown().optional().transform(() => '') })
   .strict();
 export const SafeUrlSchema = z
   .string()
@@ -41,10 +41,10 @@ export const ImageRefSchema = z
   })
   .strict()
   .superRefine((image, ctx) => {
-    if (!image.decorative && (!image.alt.ar.trim() || !image.alt.en.trim())) {
+    if (!image.decorative && !image.alt.ar.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Provide alt text in Arabic and English or mark the image decorative.',
+        message: 'Provide Arabic alt text or mark the image decorative.',
         path: ['alt'],
       });
     }
@@ -95,6 +95,16 @@ export const SectionHeadingSchema = z.object({
   subtitle: BilingualTextSchema.optional(),
   highlight: z.enum(['none', 'underline']).default('none'),
 }).strict();
+export const ResponsiveSectionOverrideSchema = z.object({
+  visible: z.boolean().optional(),
+  imageSide: z.enum(['start', 'end']).optional(),
+  textAlign: z.enum(['start', 'center', 'end']).optional(),
+  columns: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]).optional(),
+}).strict();
+export const ResponsiveSectionSchema = z.object({
+  tablet: ResponsiveSectionOverrideSchema.optional(),
+  mobile: ResponsiveSectionOverrideSchema.optional(),
+}).strict();
 export const createSectionSchema = <const T extends string, C extends z.ZodTypeAny>(
   type: T,
   content: C,
@@ -111,6 +121,7 @@ export const createSectionSchema = <const T extends string, C extends z.ZodTypeA
         align: 'start',
         dividerTop: 'none', dividerBottom: 'none', reveal: 'none',
       }),
+      responsive: ResponsiveSectionSchema.optional(),
       heading: SectionHeadingSchema.optional(),
       content,
     })

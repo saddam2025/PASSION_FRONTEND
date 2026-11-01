@@ -12,6 +12,7 @@ import { leadsService } from '@/services/leads.mock';
 import { readMockDb } from '@/mocks/db';
 import { toCsv } from '@/lib/csv';
 import { DateRangePicker } from '@/components/common/DateRangePicker';
+import { formatDate } from '@/lib/formatters';
 
 const statuses = [
   'new',
@@ -443,9 +444,7 @@ export default function LeadsPage() {
                       </td>
                       <td className="p-3">{enrollment.courseSnapshot.title[language]}</td>
                       <td className="p-3" dir="ltr">
-                        {new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(
-                          new Date(enrollment.registeredAt),
-                        )}
+                        {formatDate(enrollment.registeredAt)}
                       </td>
                       <td className="p-3">
                         {t(`enrollmentStatuses.${enrollment.enrollmentStatus}`)}

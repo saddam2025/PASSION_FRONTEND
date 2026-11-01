@@ -85,20 +85,32 @@ export function SectionRenderer({
   const parsed = result.data;
   const Renderer = renderers[parsed.type] as ComponentType<AnyRendererProps>;
   return (
-    <SectionBoundary fallback={t('publicError')}>
-      <Suspense
-        fallback={
-          <div className="ps-container pe-container py-8">
-            <RouteSkeleton />
-          </div>
-        }
-      >
-      <SectionModeContext.Provider value={mode}>
-        <SectionHeadingContext.Provider value={parsed.heading}>
-          <Renderer section={parsed as Section} mode={mode} />
-        </SectionHeadingContext.Provider>
-      </SectionModeContext.Provider>
-      </Suspense>
-    </SectionBoundary>
+    <div
+      className="responsive-section"
+      data-tablet-visible={parsed.responsive?.tablet?.visible}
+      data-mobile-visible={parsed.responsive?.mobile?.visible}
+      data-tablet-image-side={parsed.responsive?.tablet?.imageSide}
+      data-mobile-image-side={parsed.responsive?.mobile?.imageSide}
+      data-tablet-text-align={parsed.responsive?.tablet?.textAlign}
+      data-mobile-text-align={parsed.responsive?.mobile?.textAlign}
+      data-tablet-columns={parsed.responsive?.tablet?.columns}
+      data-mobile-columns={parsed.responsive?.mobile?.columns}
+    >
+      <SectionBoundary fallback={t('publicError')}>
+        <Suspense
+          fallback={
+            <div className="ps-container pe-container py-8">
+              <RouteSkeleton />
+            </div>
+          }
+        >
+          <SectionModeContext.Provider value={mode}>
+            <SectionHeadingContext.Provider value={parsed.heading}>
+              <Renderer section={parsed as Section} mode={mode} />
+            </SectionHeadingContext.Provider>
+          </SectionModeContext.Provider>
+        </Suspense>
+      </SectionBoundary>
+    </div>
   );
 }

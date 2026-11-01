@@ -1,6 +1,6 @@
 import type { BilingualRichText } from '@/schemas/sections';
-import { useLanguage } from '@/i18n/useLanguage';
 import { SafeUrlSchema } from '@/schemas/sections';
+import { renderHighlightMarkup } from './renderers/highlightText';
 function Inline({
   items,
 }: {
@@ -10,11 +10,11 @@ function Inline({
     <>
       {items.map((item, index) => {
         const content = item.bold ? (
-          <strong>{item.text}</strong>
+          <strong>{renderHighlightMarkup(item.text)}</strong>
         ) : item.italic ? (
-          <em>{item.text}</em>
+          <em>{renderHighlightMarkup(item.text)}</em>
         ) : (
-          item.text
+          renderHighlightMarkup(item.text)
         );
         return item.link && SafeUrlSchema.safeParse(item.link).success ? (
           <a
@@ -40,8 +40,7 @@ export function RichTextRenderer({
   value: BilingualRichText;
   className?: string;
 }) {
-  const { language } = useLanguage();
-  const blocks = value[language]?.length ? value[language] : value[language === 'ar' ? 'en' : 'ar'];
+  const blocks = value.ar;
   return (
     <div className={`grid gap-4 leading-relaxed ${className}`}>
       {blocks.map((block, index) => {

@@ -46,7 +46,7 @@ export function calculateCoursePerformance(input: AnalyticsInput): CoursePerform
       const paid = cohort.filter((row) => row.status === 'paid').length;
       return {
         courseId,
-        title: course.details.title,
+        title: course.draft?.details.title ?? course.details?.title ?? { ar: '', en: '' },
         registrations: cohort.length,
         uniqueCustomers: new Set(cohort.map((row) => row.enrollment.leadId)).size,
         paid,

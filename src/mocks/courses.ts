@@ -31,11 +31,11 @@ const pageConfig = (title: { ar: string; en: string }) =>
         visible: true,
         settings: { background: 'subtle', spacing: 'xl', width: 'contained', align: 'start' },
         content: {
-          eyebrow: text('دورة تدريبية', 'Training course'),
+          eyebrow: text('كورس تدريبي', 'Training course'),
           title,
-          subtitle: text('معلومات الدورة وطريقة التسجيل.', 'Course details and how to register.'),
+          subtitle: text('شوف تفاصيل الكورس وطريقة التسجيل.', 'الكورس details and how to register.'),
           primaryCta: {
-            label: text('سجل الآن', 'Register now'),
+          label: text('سجّل دلوقتي', 'Register now'),
             destination: { kind: 'action', action: 'scrollToRegister' },
           },
           layout: 'splitStart',
@@ -47,8 +47,8 @@ const pageConfig = (title: { ar: string; en: string }) =>
         visible: true,
         settings: { background: 'none', spacing: 'lg', width: 'contained', align: 'start' },
         content: {
-          title: text('عن الدورة', 'About this course'),
-          richText: rich('تفاصيل الدورة متاحة هنا.', 'Course details are available here.'),
+          title: text('إيه هو الكورس ده؟', 'About this course'),
+          richText: rich('هتلاقي تفاصيل الكورس هنا.', 'الكورس details are available here.'),
           layout: 'single',
         },
       },
@@ -64,8 +64,8 @@ const pageConfig = (title: { ar: string; en: string }) =>
           anchorId: 'register',
         },
         content: {
-          title: text('نموذج التسجيل', 'Registration form'),
-          subtitle: text('سيتواصل معك فريق الأكاديمية.', 'The academy team will contact you.'),
+          title: text('سجّل بياناتك', 'نموذج التسجيل'),
+          subtitle: text('هنتواصل معاك على واتساب في أقرب وقت.', 'The academy team will contact you.'),
           layout: 'card',
         },
       },
@@ -81,7 +81,7 @@ const makeCourse = (
   id,
   slug,
   title,
-  shortDescription: text('تعرف على تفاصيل الدورة.', 'Explore the course details.'),
+  shortDescription: text('شوف تفاصيل الكورس.', 'Explore the course details.'),
   category: text('مهارات', 'Skills'),
   instructorName: text('فريق الأكاديمية', 'Academy team'),
   coverImage: { src: '/images/course-cover-default.webp', alt: title, decorative: false },
@@ -95,7 +95,7 @@ const makeCourse = (
   featured: false,
   registrationOpen,
   whatsappMessageTemplate: text(
-    'أرغب في الاستفسار عن دورة {{courseTitle}}',
+    'أرغب في الاستفسار عن كورس {course}',
     'I would like to ask about {{courseTitle}}',
   ),
   pageConfig: pageConfig(title),
@@ -115,6 +115,19 @@ export const mockCourseRecords = [
     false,
   ),
 ];
+function clearEnglishContent(value: unknown): void {
+  if (Array.isArray(value)) {
+    value.forEach(clearEnglishContent);
+    return;
+  }
+  if (!value || typeof value !== 'object') return;
+  for (const [key, child] of Object.entries(value)) {
+    const record = value as Record<string, unknown>;
+    if (key === 'en') record[key] = Array.isArray(child) ? [] : '';
+    else clearEnglishContent(child);
+  }
+}
+mockCourseRecords.forEach(clearEnglishContent);
 export const mockArchivedCourse = { slug: 'archived-course', status: 'archived' as const };
 export const mockRedirects: Record<string, string> = { 'old-course-name': 'learning-basics' };
 export const mockCourses: CourseSummary[] = mockCourseRecords.map((course) => ({

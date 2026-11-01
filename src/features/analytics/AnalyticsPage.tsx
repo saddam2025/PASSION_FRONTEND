@@ -16,6 +16,7 @@ import { useLanguage } from '@/i18n/useLanguage';
 import { useToast } from '@/components/ui/feedback';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
 import { ACADEMY_TIME_ZONE } from '@/lib/timezone';
+import { formatDate } from '@/lib/formatters';
 import { buildAnalyticsCsv } from './buildAnalyticsCsv';
 import { analyticsBucketValues, isAnalyticsDate } from './pageFilters';
 
@@ -149,11 +150,11 @@ export default function AnalyticsPage() {
           <p className="mt-1 text-sm text-muted">
             {t('lastUpdated')}:{' '}
             {query.dataUpdatedAt
-              ? new Intl.DateTimeFormat(language === 'ar' ? 'ar-EG-u-nu-arab' : 'en-US-u-nu-latn', {
+              ? formatDate(query.dataUpdatedAt, {
                   dateStyle: 'medium',
                   timeStyle: 'short',
                   timeZone: ACADEMY_TIME_ZONE,
-                }).format(query.dataUpdatedAt)
+                })
               : '—'}
           </p>
         </div>

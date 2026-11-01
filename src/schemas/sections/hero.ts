@@ -6,7 +6,7 @@ export const HeroSectionSchema = createSectionSchema(
     .object({
       eyebrow: BilingualTextSchema.optional(),
       title: BilingualTextSchema.superRefine((value, ctx) => {
-        for (const language of ['ar', 'en'] as const) if (value[language].split('\n').length > 3) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Headlines must fit within three lines.', path: [language] });
+        if (value.ar.split('\n').length > 3) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'العنوان ما ينفعش يزيد عن 3 سطور.', path: ['ar'] });
       }),
       subtitle: BilingualTextSchema.optional(),
       primaryCta: CtaLinkSchema.optional(),

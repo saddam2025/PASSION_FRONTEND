@@ -93,6 +93,8 @@ function Input({
   ) : (
     <input
       {...common}
+      lang={field.kind === 'email' || field.kind === 'url' || field.kind === 'phone' ? undefined : 'ar'}
+      dir={field.kind === 'email' || field.kind === 'url' || field.kind === 'phone' ? 'ltr' : 'rtl'}
       type={
         field.kind === 'email'
           ? 'email'
@@ -131,7 +133,7 @@ function ImageField({
           />
         )}
         <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
-          {t('chooseImage')}
+          {t('builder:chooseImage')}
         </Button>
       </div>
       <MediaLibraryDialog
@@ -154,7 +156,7 @@ export function SettingsSectionEditor({
   value: Record<string, unknown>;
   onChange: (key: string, value: unknown) => void;
 }) {
-  const { t } = useTranslation(['settings', 'users']);
+  const { t } = useTranslation(['settings', 'users', 'builder']);
   const setObject = (key: string, child: string, next: unknown) =>
     onChange(key, { ...settingsObject(value[key]), [child]: next });
   return (
@@ -192,7 +194,7 @@ export function SettingsSectionEditor({
                     />
                     <span className="grid">
                       <strong>
-                        {t(`users:permissions.${permission}`, { defaultValue: permission })}
+                {t(`users:permissions.${permission}`, { defaultValue: permission })}
                       </strong>
                       <small className="text-muted">
                         {t(`users:permissions.${permission}Description`)}
@@ -215,23 +217,17 @@ export function SettingsSectionEditor({
               />
             </fieldset>
           );
-        const bilingual = field.localized ? (['ar', 'en'] as const) : ([''] as const);
         const localized = settingsObject(value[field.key]);
         return (
           <fieldset key={field.key} className="grid gap-2">
             <legend className="text-sm font-semibold">{label}</legend>
-            {bilingual.map((locale) => (
-              <label key={locale || field.key} className="grid gap-1 text-sm">
-                {locale && <span className="text-muted">{t(`language.${locale}`)}</span>}
+            <label className="grid gap-1 text-sm">
                 <Input
                   field={field}
-                  value={locale ? localized[locale] : value[field.key]}
-                  onChange={(next) =>
-                    locale ? setObject(field.key, locale, next) : onChange(field.key, next)
-                  }
+                  value={field.localized ? localized.ar : value[field.key]}
+                  onChange={(next) => field.localized ? setObject(field.key, 'ar', next) : onChange(field.key, next)}
                 />
               </label>
-            ))}
           </fieldset>
         );
       })}

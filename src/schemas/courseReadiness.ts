@@ -1,93 +1,92 @@
-import { CourseDetailsSchema, type CourseDetails } from './course';
-import { isSectionEmpty, validatePage, type PageConfig } from './sections';
+import { FormDefinitionSchema, type FormDefinition } from './registrationForm';
+import { isSectionEmpty, validateSection, type PageConfig, type Section } from './sections';
+import type { CourseDetails, CourseSeo, Snapshot } from './course';
 
 export interface ReadinessIssue {
   path: string;
   message: string;
   sectionId?: string;
+  tab: 'page' | 'details' | 'form' | 'seo';
+  value?: unknown;
 }
-export interface CourseSnapshot {
+
+export type CourseSnapshot = Snapshot | {
   details: CourseDetails;
-  pageConfig: PageConfig;
-}
-const reserved = new Set([
-  'admin',
-  'api',
-  'courses',
-  'login',
-  'invite',
-  'dev',
-  'assistant',
-  'review',
-]);
-export function checkReadiness(snapshot: CourseSnapshot): {
+  pageConfig?: PageConfig;
+  page?: PageConfig;
+  form?: FormDefinition;
+  seo?: CourseSeo;
+};
+
+const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export function checkReadiness(snapshot: CourseSnapshot, slug?: string): {
   errors: ReadinessIssue[];
   warnings: ReadinessIssue[];
 } {
-  const { details, pageConfig } = snapshot;
+  const details = snapshot.details;
+  const page = snapshot.page ?? ('pageConfig' in snapshot ? snapshot.pageConfig : undefined);
   const errors: ReadinessIssue[] = [];
   const warnings: ReadinessIssue[] = [];
-  const issue = (path: string, message: string) => errors.push({ path, message });
-  for (const lang of ['ar', 'en'] as const) {
-    if (!details.title[lang].trim()) issue(`title.${lang}`, 'Required title translation');
-    if (!details.shortDescription[lang].trim())
-      issue(`shortDescription.${lang}`, 'Required description translation');
+  const issue = (tab: ReadinessIssue['tab'], path: string, message: string, value: unknown, sectionId?: string) =>
+    errors.push({ tab, path, message, value, sectionId });
+
+  if (!details.title.ar?.trim()) issue('details', 'details.title.ar', 'اكتب عنوان الكورس بالعربي.', details.title.ar);
+  if (!details.shortDescription.ar?.trim()) issue('details', 'details.shortDescription.ar', 'اكتب وصف مختصر للكورس بالعربي.', details.shortDescription.ar);
+  if (!details.category?.trim()) issue('details', 'details.category', 'اختار تصنيف للكورس.', details.category);
+  const checkedSlug = slug ?? details.slug;
+  if (checkedSlug !== undefined && (!slugPattern.test(checkedSlug) || checkedSlug.length < 3 || checkedSlug.length > 80)) issue('details', 'slug', 'اكتب رابط مختصر صالح للكورس.', checkedSlug);
+  if (!details.coverImage?.src?.trim()) issue('details', 'details.coverImage.src', 'اختار صورة غلاف للكورس.', details.coverImage?.src);
+
+  const price = details.pricing.price;
+  if (price === null && details.pricing.contactUs !== true) {
+    issue('details', 'details.pricing.price', 'السعر مطلوب — اكتب السعر أو اختار تواصل لمعرفة السعر.', price);
+  } else if (price !== null && price < 0) {
+    issue('details', 'details.pricing.price', 'السعر لازم يكون صفر أو أكتر.', price);
   }
-  if (
-    details.slug.length < 3 ||
-    details.slug.length > 80 ||
-    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(details.slug) ||
-    reserved.has(details.slug.split('-')[0] ?? '')
-  )
-    issue('slug', 'Invalid or reserved slug');
-  if (!details.category.trim()) issue('category', 'Choose a category');
-  if (
-    !details.coverImage.src ||
-    (!details.coverImage.decorative &&
-      (!details.coverImage.alt.ar.trim() || !details.coverImage.alt.en.trim()))
-  )
-    issue('coverImage', 'Cover image needs bilingual alt text');
-  if (!details.delivery.method) issue('delivery.method', 'Choose a delivery method');
-  if (details.pricing.price === null && !details.pricing.contactUs)
-    issue('pricing.price', 'Set a price or explicitly mark contact us');
-  if (
-    details.pricing.price !== null &&
-    details.pricing.promoPrice != null &&
-    details.pricing.promoPrice >= details.pricing.price
-  )
-    issue('pricing.promoPrice', 'Promo price must be lower than price');
-  const visible = pageConfig.sections.filter(
-    (section) =>
-      section.visible &&
-      !isSectionEmpty(section, {
-        price: details.pricing.price,
-        promoPrice: details.pricing.promoPrice ?? null,
-      }),
-  );
-  if (!visible.length) issue('pageConfig.sections', 'Add a visible non-empty page section');
-  const pageResult = validatePage(pageConfig);
-  if (!pageResult.success)
-    pageResult.errors.forEach((error) =>
-      errors.push({
-        path: error.path,
-        message: error.message,
-        sectionId: error.path.split('.')[1],
-      }),
-    );
-  const parsed = CourseDetailsSchema.safeParse(details);
-  if (!parsed.success)
-    parsed.error.issues.forEach((entry) =>
-      errors.push({ path: entry.path.join('.'), message: entry.message }),
-    );
-  if (!details.seo.description?.ar || !details.seo.description.en)
-    warnings.push({ path: 'seo.description', message: 'SEO description is incomplete' });
-  if (!details.instructor.name.ar && !details.instructor.name.en)
-    warnings.push({ path: 'instructor', message: 'Instructor details are missing' });
-  if (!details.gallery?.length) warnings.push({ path: 'gallery', message: 'Gallery is empty' });
-  if (details.enrollment.registrationOpen && !details.enrollment.capacity)
-    warnings.push({
-      path: 'enrollment.capacity',
-      message: 'Registration is open without capacity information',
-    });
+  const promo = details.pricing.promo ?? details.pricing.promoPrice;
+  if (price !== null && promo != null && promo >= price) {
+    issue('details', 'details.pricing.promo', 'سعر الخصم لازم يكون أقل من السعر الأساسي.', promo);
+  }
+
+  const visible = (page?.sections ?? []).filter((section: Section) => section.visible);
+  const filled = visible.filter((section) => !isSectionEmpty(section, { price, promoPrice: promo ?? null, contactUs: details.pricing.contactUs === true, instructor: details.instructor }));
+  if (!filled.length) {
+    if (!visible.length) issue('page', 'page.sections', 'أضف قسم ظاهر واكتب محتواه.', []);
+    else visible.forEach((section) => issue('page', `page.sections.${section.id}.content`, 'اكتب محتوى في القسم عشان يظهر للزوار.', section.content, section.id));
+  }
+  for (const section of visible) {
+    const result = validateSection(section);
+    if (!result.success) {
+      result.errors.forEach((entry) => {
+        const message = entry.path.includes('alt')
+          ? 'اكتب وصف الصورة بالعربي أو اختار إنها للزينة.'
+          : entry.path.includes('options')
+            ? 'أضف اختيار واحد على الأقل.'
+            : entry.path.includes('title')
+              ? 'اكتب عنوان القسم بالعربي.'
+              : 'راجع القيمة واكتب بيانات صحيحة.';
+        issue('page', `page.sections.${section.id}.${entry.path}`, message, entry.path, section.id);
+      });
+    }
+  }
+
+  const form = 'form' in snapshot ? snapshot.form : details.registrationForm;
+  const formResult = FormDefinitionSchema.safeParse(form ?? { fields: [] });
+  if (!formResult.success) {
+    formResult.error.issues.forEach((entry) => issue('form', `form.${entry.path.join('.')}`, 'راجع إعدادات نموذج التسجيل.', entry.message));
+  }
+
+  const seo = snapshot.seo ?? details.seo;
+  if (!seo?.description?.ar?.trim()) {
+    warnings.push({ tab: 'seo', path: 'seo.description.ar', message: 'ضيف وصف بالعربي عشان الكورس يظهر بشكل أوضح في البحث.' });
+  }
+  if (!details.instructor.name.ar?.trim()) {
+    warnings.push({ tab: 'details', path: 'details.instructor.name.ar', message: 'ضيف اسم المدرب بالعربي.' });
+  }
+
+  if (import.meta.env?.DEV && errors.length) {
+    console.info('[جاهزية الكورس] قواعد لم تكتمل:', errors.map(({ path, value }) => ({ path, value })));
+  }
   return { errors, warnings };
 }

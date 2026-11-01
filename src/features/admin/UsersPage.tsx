@@ -102,7 +102,7 @@ export default function UsersPage() {
             className="flex flex-wrap items-center justify-between gap-3 rounded-sm border border-border bg-surface p-4"
           >
             <div>
-              <strong>{member.name.en}</strong>
+              <strong>{member.name.ar}</strong>
               <p dir="ltr">{member.email}</p>
               <p>
                 {t(`roles.${member.role}`)} · {member.active ? t('active') : t('deactivated')}
@@ -336,7 +336,7 @@ export default function UsersPage() {
               className="inline-flex min-h-11 items-center rounded-xs border px-4"
               target="_blank"
               rel="noopener noreferrer"
-              href={`https://wa.me/?text=${encodeURIComponent(`Hello / مرحبًا ${window.location.origin}${link}`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`رابط الدعوة: ${window.location.origin}${link}`)}`}
             >
               {t('shareWhatsApp')}
             </a>
@@ -364,7 +364,7 @@ export default function UsersPage() {
               className="inline-flex min-h-11 items-center rounded-xs border px-4"
               target="_blank"
               rel="noopener noreferrer"
-              href={`https://wa.me/?text=${encodeURIComponent(`Hello / مرحبًا ${window.location.origin}${resetLink}`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`رابط إعادة تعيين كلمة المرور: ${window.location.origin}${resetLink}`)}`}
             >
               {t('shareWhatsApp')}
             </a>

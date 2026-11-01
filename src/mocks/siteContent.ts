@@ -8,9 +8,9 @@ export const mockSiteContent: SiteContent = {
       visible: true,
       order: 0,
       content: {
-        title: { ar: 'مساحة للتعلّم والتطوّر', en: 'A space to learn and grow' },
+        title: { ar: 'مكان تتعلم فيه وتطوّر مهاراتك', en: 'A space to learn and grow' },
         intro: {
-          ar: 'اكتشف البرامج التعليمية المتاحة واختر ما يناسبك.',
+          ar: 'شوف البرامج المتاحة واختار اللي يناسبك.',
           en: 'Explore available learning programs and choose what fits you.',
         },
       },
@@ -23,7 +23,7 @@ export const mockSiteContent: SiteContent = {
       content: {
         title: { ar: 'عن الأكاديمية', en: 'About the academy' },
         text: {
-          ar: 'تعرّف على البرامج والمحتوى المتاح عبر المنصة.',
+          ar: 'اتعرف على البرامج والمحتوى المتاح عبر المنصة.',
           en: 'Explore the programs and information available on this platform.',
         },
         highlights: [],
@@ -35,7 +35,7 @@ export const mockSiteContent: SiteContent = {
       type: 'featuredCourses',
       visible: true,
       order: 3,
-      content: { title: { ar: 'الدورات المتاحة', en: 'Available courses' } },
+      content: { title: { ar: 'الكورسات المتاحة', en: 'Available courses' } },
     },
     {
       id: 'why',
@@ -43,12 +43,12 @@ export const mockSiteContent: SiteContent = {
       visible: true,
       order: 4,
       content: {
-        title: { ar: 'ماذا ستجد هنا؟', en: 'What you will find here' },
+        title: { ar: 'هتلاقي إيه هنا؟', en: 'What you will find here' },
         items: [
           {
             title: { ar: 'محتوى واضح', en: 'Clear information' },
             text: {
-              ar: 'تفاصيل البرامج معروضة لمساعدتك على الاختيار.',
+          ar: 'هتلاقي تفاصيل البرامج عشان تختار اللي يناسبك.',
               en: 'Program details are presented to help you choose.',
             },
           },
@@ -63,15 +63,15 @@ export const mockSiteContent: SiteContent = {
       content: {
         title: { ar: 'خطوات التسجيل', en: 'Registration steps' },
         steps: [
-          { ar: 'اختر الدورة المناسبة.', en: 'Choose a course.' },
-          { ar: 'أرسل طلب التسجيل.', en: 'Submit the registration request.' },
+          { ar: 'اختار الكورس اللي يناسبك.', en: 'Choose a course.' },
+          { ar: 'سجّل دلوقتي.', en: 'ابعت the registration request.' },
           {
-            ar: 'تواصل مع مساعد الأكاديمية عبر واتساب.',
+            ar: 'هنتواصل معاك على واتساب في أقرب وقت.',
             en: 'Continue with an academy assistant on WhatsApp.',
           },
-          { ar: 'رتّب الدفع مع المساعد.', en: 'Arrange payment with the assistant.' },
+          { ar: 'الدفع بيتم بالتنسيق مع مساعد الأكاديمية.', en: 'Arrange payment with the assistant.' },
           {
-            ar: 'استلم تفاصيل الدورة بعد التأكيد.',
+            ar: 'هتلاقي تفاصيل الكورس بعد ما يتأكد مكانك.',
             en: 'Receive course details after confirmation.',
           },
         ],
@@ -87,12 +87,12 @@ export const mockSiteContent: SiteContent = {
       visible: true,
       order: 10,
       content: {
-        title: { ar: 'الأسئلة الشائعة', en: 'Frequently asked questions' },
+        title: { ar: 'أسئلة شائعة', en: 'Frequently asked questions' },
         items: [
           {
             question: { ar: 'كيف أبدأ؟', en: 'How do I get started?' },
             answer: {
-              ar: 'اختر دورة ثم أرسل طلب التسجيل.',
+              ar: 'اختار كورس وابعت طلب التسجيل.',
               en: 'Choose a course, then submit a registration request.',
             },
           },

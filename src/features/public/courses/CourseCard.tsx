@@ -5,6 +5,7 @@ import { MicroInteraction } from '@/components/common/motion';
 import { useLanguage, getBilingualText } from '@/i18n/useLanguage';
 import type { CourseSummary } from '@/services/courses.types';
 import { formatPrice } from './format';
+import { formatDate } from '@/lib/formatters';
 export function CourseCard({ course }: { course: CourseSummary }) {
   const { language } = useLanguage();
   const { t } = useTranslation('courses');
@@ -35,10 +36,10 @@ export function CourseCard({ course }: { course: CourseSummary }) {
               )}
             </div>
             <h3 className="line-clamp-2 text-lg font-bold">{text(course.title)}</h3>
-            {course.shortDescription.en || course.shortDescription.ar ? (
+            {course.shortDescription.ar ? (
               <p className="line-clamp-3 text-sm text-muted">{text(course.shortDescription)}</p>
             ) : null}
-            {(course.instructorName.en || course.instructorName.ar) && (
+            {course.instructorName.ar && (
               <p className="text-sm text-muted">
                 {t('instructor')}: {text(course.instructorName)}
               </p>
@@ -56,12 +57,10 @@ export function CourseCard({ course }: { course: CourseSummary }) {
             <div className="flex flex-wrap gap-3 text-xs text-muted">
               {course.startDate && (
                 <time dateTime={course.startDate}>
-                  {new Intl.DateTimeFormat(language === 'ar' ? 'ar-EG' : 'en-US').format(
-                    new Date(course.startDate),
-                  )}
+                  {formatDate(course.startDate)}
                 </time>
               )}
-              {(course.duration.ar || course.duration.en) && <span>{text(course.duration)}</span>}
+              {course.duration.ar && <span>{text(course.duration)}</span>}
             </div>
             <span className="mt-1 font-semibold text-primary-strong">{t('viewDetails')}</span>
           </div>

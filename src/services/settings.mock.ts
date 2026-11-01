@@ -16,6 +16,8 @@ export const mockSettingsService: SettingsService = {
         }
       | undefined;
     const social = db.values.social as Partial<PublicSettings['socials']> | undefined;
+    const registration = db.values.registration as { privacyUrl?: string } | undefined;
+    const seo = db.values.seo as { allowSearchEngines?: boolean } | undefined;
     return {
       ...mockPublicSettings,
       ...contact,
@@ -23,6 +25,8 @@ export const mockSettingsService: SettingsService = {
       logo: academy?.logo ?? '',
       favicon: academy?.favicon ?? '',
       description: academy?.tagline ?? mockPublicSettings.description,
+      privacyUrl: registration?.privacyUrl ?? '',
+      allowSearchEngines: seo?.allowSearchEngines ?? true,
       socials: { ...mockPublicSettings.socials, ...social },
     };
   },

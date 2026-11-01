@@ -6,7 +6,6 @@ import { IconButton } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Overlay';
 import { SmartImage } from '@/components/common/SmartImage';
 import { useAuth } from '@/app/AuthContext';
-import { useLanguage } from '@/i18n/useLanguage';
 import { NavItem } from '@/features/dashboard/layout/NavItem';
 import {
   visibleDashboardItems,
@@ -33,12 +32,11 @@ export function Sidebar({
   drawer?: boolean;
 }) {
   const { user } = useAuth();
-  const { language } = useLanguage();
   const { t } = useTranslation(['dashboard', 'nav']);
   const settings = usePublicSettings();
   const newCourse = useNewCourseDialog();
   const items = visibleDashboardItems(area, user?.permissions ?? []);
-  const academyName = settings.academyName[language].trim();
+  const academyName = settings.academyName.ar.trim();
   const grouped = sections
     .map((section) => ({ section, items: items.filter((item) => item.section === section) }))
     .filter((group) => group.items.length > 0);
@@ -129,12 +127,12 @@ export function Sidebar({
         {user && (
           <div className={cn('flex min-w-0 items-center gap-3', isCollapsed && 'justify-center')}>
             <Avatar
-              name={user.name[language] || user.name[language === 'ar' ? 'en' : 'ar'] || user.email}
+              name={user.name.ar || user.email}
             />
             {!isCollapsed && (
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-ink">
-                  {user.name[language] || user.name[language === 'ar' ? 'en' : 'ar']}
+                  {user.name.ar}
                 </p>
                 <p className="truncate text-xs text-muted">{user.email}</p>
               </div>

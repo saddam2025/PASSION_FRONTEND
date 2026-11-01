@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
+import { formatNumber } from '@/lib/formatters';
 export function CountUp({value,language}:{value:string;language:'ar'|'en'}) {
   const reduced=useReducedMotion();
   const numeric=Number(value);
@@ -7,7 +8,7 @@ export function CountUp({value,language}:{value:string;language:'ar'|'en'}) {
   useEffect(()=>{
     if(reduced||!Number.isFinite(numeric)){setShown(value);return}
     let frame=0;const start=performance.now();
-    const format=(number:number)=>new Intl.NumberFormat(language==='ar'?'ar-EG':'en-US',{maximumFractionDigits:Number.isInteger(numeric)?0:2,numberingSystem:language==='ar'?'arab':'latn'}).format(number);
+    const format=(number:number)=>formatNumber(number, Number.isInteger(numeric) ? 0 : 2);
     const animate=(now:number)=>{const progress=Math.min(1,(now-start)/700);setShown(format(numeric*progress));if(progress<1)frame=requestAnimationFrame(animate)};
     frame=requestAnimationFrame(animate);return()=>cancelAnimationFrame(frame);
   },[language,numeric,reduced,value]);

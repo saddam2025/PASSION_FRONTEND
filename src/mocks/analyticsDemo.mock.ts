@@ -73,7 +73,7 @@ export function generateAnalyticsDemo(now = new Date()): number {
       reference: `PAS-${ref}`,
       leadId,
       courseId: course.id,
-      courseSnapshot: { title: course.details.title, slug: course.details.slug },
+      courseSnapshot: { title: course.details.title, slug: course.slug },
       priceSnapshot: { amount, currency },
       formSnapshot: { fields: [] },
       answers: {},

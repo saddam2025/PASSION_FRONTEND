@@ -74,7 +74,7 @@ export const revisionsService = {
   async get(id: string) {
     const user = await actor();
     const revision = readMockDb().revisions.find((item) => item.id === id);
-    if (!revision) throw new RevisionError('not_found', 'Revision not found');
+    if (!revision) throw new RevisionError('not_found', 'المراجعة مش موجودة.');
     if (user.role !== 'admin' && revision.authorId !== user.id)
       throw new RevisionError('forbidden', 'Not permitted');
     return revision;
@@ -83,9 +83,9 @@ export const revisionsService = {
     const user = await actor();
     const db = readMockDb();
     const storedCourse = db.courses.find((item) => item.id === course.id && !item.deletedAt);
-    if (!storedCourse) throw new RevisionError('not_found', 'Course not found');
+    if (!storedCourse) throw new RevisionError('not_found', 'ما لقيناش الكورس.');
     if (
-      storedCourse.status === 'pending_review' ||
+      (storedCourse.status as string) === 'pending_review' ||
       db.revisions.some(
         (item) => item.courseId === storedCourse.id && item.status === 'pending_review',
       )
@@ -105,6 +105,8 @@ export const revisionsService = {
       writeMockDb(db);
     }
     if (!revision) {
+      const details = storedCourse.details || storedCourse.draft?.details;
+      const pageConfig = storedCourse.pageConfig || storedCourse.draft?.page;
       revision = {
         id: crypto.randomUUID(),
         courseId: course.id,
@@ -113,8 +115,8 @@ export const revisionsService = {
         authorId: user.id,
         baseVersion: storedCourse.publishedVersion,
         createdAt: new Date().toISOString(),
-        snapshot: { details: storedCourse.details, pageConfig: storedCourse.pageConfig },
-        summary: summary(storedCourse.details, storedCourse.pageConfig),
+        snapshot: { details: details!, pageConfig: pageConfig! },
+        summary: summary(details!, pageConfig!),
       };
       db.revisions.unshift(revision);
       recordMockAudit(db, user.id, 'revision.created', revision.id);
@@ -125,15 +127,15 @@ export const revisionsService = {
   async save(id: string, details: CourseDetails, pageConfig: PageConfig, baseVersion: number) {
     const user = await actor();
     if (consumeStaleSimulation())
-      throw new RevisionError('stale', 'Course changed since editing began');
+      throw new RevisionError('stale', 'الكورس changed since editing began');
     const db = readMockDb();
     const revision = db.revisions.find((item) => item.id === id);
     const course = db.courses.find((item) => item.id === revision?.courseId);
-    if (!revision || !course) throw new RevisionError('not_found', 'Revision not found');
+    if (!revision || !course) throw new RevisionError('not_found', 'المراجعة مش موجودة.');
     if (revision.authorId !== user.id && user.role !== 'admin')
       throw new RevisionError('forbidden', 'Not permitted');
     if (revision.baseVersion !== baseVersion || course.publishedVersion !== baseVersion)
-      throw new RevisionError('stale', 'Course changed since editing began');
+      throw new RevisionError('stale', 'الكورس changed since editing began');
     if (revision.status !== 'draft' && revision.status !== 'rejected')
       throw new RevisionError('invalid', 'Revision is read only');
     const validatedDetails = CourseDetailsSchema.parse(details);
@@ -143,11 +145,11 @@ export const revisionsService = {
     if (
       user.role !== 'admin' &&
       validatedDetails.accreditation.verifiedByAcademy !==
-        course.details.accreditation.verifiedByAcademy
+        (course.details?.accreditation.verifiedByAcademy ?? false)
     )
       throw new RevisionError('forbidden', 'Only Admin can verify accreditation');
     revision.snapshot = { details: validatedDetails, pageConfig: validatedPage };
-    revision.summary = summary(validatedDetails, validatedPage, course.details, course.pageConfig);
+    revision.summary = summary(validatedDetails, validatedPage, course.details || course.draft?.details, course.pageConfig || course.draft?.page);
     revision.status = 'draft';
     revision.rejectionReason = undefined;
     recordMockAudit(db, user.id, 'revision.saved', id);
@@ -169,9 +171,10 @@ export const revisionsService = {
       )
     )
       throw new RevisionError('invalid', 'A revision is already pending review');
-    const readiness = checkReadiness(revision.snapshot);
+    const sourceCourse = db.courses.find((item) => item.id === revision.courseId);
+    const readiness = checkReadiness(revision.snapshot, sourceCourse?.slug);
     if (readiness.errors.length)
-      throw new RevisionError('invalid', 'Course readiness checks failed');
+      throw new RevisionError('invalid', 'الكورس readiness checks failed');
     revision.status = 'pending_review';
     revision.submittedAt = new Date().toISOString();
     const course = db.courses.find((item) => item.id === revision.courseId);
@@ -195,20 +198,20 @@ export const revisionsService = {
     const db = readMockDb();
     const revision = db.revisions.find((item) => item.id === id);
     const course = db.courses.find((item) => item.id === revision?.courseId);
-    if (!revision || !course) throw new RevisionError('not_found', 'Revision not found');
+    if (!revision || !course) throw new RevisionError('not_found', 'المراجعة مش موجودة.');
     if (revision.status !== 'pending_review')
       throw new RevisionError('invalid', 'Only pending revisions can be approved');
     if (user.role === 'assistant' && revision.authorId === user.id)
       throw new RevisionError('forbidden', 'Self approval is not allowed');
     if (revision.baseVersion !== course.publishedVersion)
       throw new RevisionError('stale', 'Revision is stale');
-    if (checkReadiness(revision.snapshot).errors.length)
-      throw new RevisionError('invalid', 'Course readiness checks failed');
+    if (checkReadiness(revision.snapshot, course.slug).errors.length)
+      throw new RevisionError('invalid', 'الكورس readiness checks failed');
     revision.status = 'approved';
     revision.reviewerId = user.id;
     revision.reviewedAt = new Date().toISOString();
-    if (course.details.slug !== revision.snapshot.details.slug)
-      course.slugHistory.push(course.details.slug);
+    if (course.slug !== (revision.snapshot.details.slug || course.slug))
+      course.slugHistory.push(course.slug);
     course.details = revision.snapshot.details;
     course.pageConfig = revision.snapshot.pageConfig;
     if (publishImmediately || revision.kind === 'update') {
@@ -236,7 +239,7 @@ export const revisionsService = {
       throw new RevisionError('invalid', 'Rejection reason must be 10-1000 characters');
     const db = readMockDb();
     const revision = db.revisions.find((item) => item.id === id);
-    if (!revision) throw new RevisionError('not_found', 'Revision not found');
+    if (!revision) throw new RevisionError('not_found', 'المراجعة مش موجودة.');
     if (revision.status !== 'pending_review')
       throw new RevisionError('invalid', 'Only pending revisions can be rejected');
     revision.status = 'rejected';
@@ -264,7 +267,7 @@ export const revisionsService = {
     const db = readMockDb();
     const source = db.revisions.find((item) => item.id === id);
     const course = db.courses.find((item) => item.id === source?.courseId);
-    if (!source || !course) throw new RevisionError('not_found', 'Version not found');
+    if (!source || !course) throw new RevisionError('not_found', 'الإصدار مش موجود.');
     const revision: Revision = {
       id: crypto.randomUUID(),
       courseId: course.id,
@@ -285,8 +288,8 @@ export const revisionsService = {
     };
     db.revisions.unshift(revision);
     if (publishNow) {
-      if (course.details.slug !== source.snapshot.details.slug)
-        course.slugHistory.push(course.details.slug);
+      if (course.slug !== (source.snapshot.details.slug || course.slug))
+        course.slugHistory.push(course.slug);
       course.details = source.snapshot.details;
       course.pageConfig = source.snapshot.pageConfig;
       course.publishedVersion += 1;

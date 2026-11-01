@@ -1,20 +1,23 @@
 // MOCK: seed data for the browser-persisted workflow store.
 import { mockCourseRecords } from './courses';
-import type { MockDatabase } from './db';
-import type { CourseRecord } from '@/schemas/course';
+import type { MockCourseRecord, MockDatabase } from './db';
+import { CourseDetailsSchema } from '@/schemas/course';
+import { PageConfigSchema } from '@/schemas/sections';
 import type { Revision } from '@/schemas/revision';
 import type { Lead, Enrollment } from '@/schemas/lead';
 import type { BilingualRichText } from '@/schemas/sections';
+import { clearEnglishContent } from './arabicOnly';
 
 const emptyRich: BilingualRichText = { ar: [], en: [] };
 export function createInitialMockDatabase(): MockDatabase {
   const now = new Date().toISOString();
-  const baseCourses: CourseRecord[] = mockCourseRecords.map((course) => ({
+  const baseCourses: MockCourseRecord[] = mockCourseRecords.map((course) => ({
     id: course.id,
-    details: {
+    slug: course.slug,
+    details: CourseDetailsSchema.parse({
       title: course.title,
       slug: course.slug,
-      category: course.category.en,
+      category: course.category.ar,
       shortDescription: course.shortDescription,
       featured: course.featured,
       targetAudience: emptyRich,
@@ -54,15 +57,15 @@ export function createInitialMockDatabase(): MockDatabase {
       registrationForm: course.formDefinition,
       contact: { whatsappMessageTemplate: course.whatsappMessageTemplate },
       seo: { title: course.title, description: course.shortDescription },
-    },
-    pageConfig: course.pageConfig,
-    status: 'published',
+    }),
+    pageConfig: PageConfigSchema.parse(course.pageConfig),
+    status: 'published' as const,
     publishedVersion: 1,
     slugHistory: [],
     createdAt: now,
     updatedAt: now,
   }));
-  const draftCourse: CourseRecord = {
+  const draftCourse: MockCourseRecord = {
     ...baseCourses[0]!,
     id: 'mock-course-draft',
     status: 'draft',
@@ -72,11 +75,11 @@ export function createInitialMockDatabase(): MockDatabase {
     updatedAt: now,
     details: {
       ...baseCourses[0]!.details,
-      title: { ar: 'مسودة دورة تجريبية', en: 'Sample draft course' },
+      title: { ar: 'مسودة كورس تجريبية', en: 'Sample draft course' },
       slug: 'sample-draft-course',
     },
   };
-  const reviewCourse: CourseRecord = {
+  const reviewCourse: MockCourseRecord = {
     ...baseCourses[0]!,
     id: 'mock-course-review',
     status: 'pending_review',
@@ -86,11 +89,11 @@ export function createInitialMockDatabase(): MockDatabase {
     updatedAt: now,
     details: {
       ...baseCourses[0]!.details,
-      title: { ar: 'دورة قيد المراجعة', en: 'Course awaiting review' },
+      title: { ar: 'كورس قيد المراجعة', en: 'الكورس awaiting review' },
       slug: 'course-awaiting-review',
     },
   };
-  const archivedCourse: CourseRecord = {
+  const archivedCourse: MockCourseRecord = {
     ...baseCourses[1]!,
     id: 'mock-course-archived',
     status: 'archived',
@@ -99,11 +102,17 @@ export function createInitialMockDatabase(): MockDatabase {
     updatedAt: now,
     details: {
       ...baseCourses[1]!.details,
-      title: { ar: 'دورة مؤرشفة تجريبية', en: 'Sample archived course' },
+      title: { ar: 'كورس مؤرشفة تجريبية', en: 'Sample archived course' },
       slug: 'sample-archived-course',
     },
   };
-  const courses = [baseCourses[0]!, baseCourses[1]!, draftCourse, reviewCourse, archivedCourse];
+  const courses: MockCourseRecord[] = clearEnglishContent([
+    baseCourses[0]!,
+    baseCourses[1]!,
+    draftCourse,
+    reviewCourse,
+    archivedCourse,
+  ]);
   const sampleRevision: Revision = {
     id: 'mock-revision-pending',
     courseId: baseCourses[0]!.id,
@@ -125,7 +134,7 @@ export function createInitialMockDatabase(): MockDatabase {
   };
   const sampleLead: Lead = {
     id: 'mock-lead-course-enrollment',
-    fullName: 'Mock Course Learner',
+    fullName: 'Mock الكورس Learner',
     email: 'learner@example.test',
     phone: '+201000000000',
     phoneNormalized: '+201000000000',
@@ -139,7 +148,7 @@ export function createInitialMockDatabase(): MockDatabase {
     reference: 'PAS-234567',
     leadId: sampleLead.id,
     courseId: baseCourses[0]!.id,
-    courseSnapshot: { title: baseCourses[0]!.details.title, slug: baseCourses[0]!.details.slug },
+    courseSnapshot: { title: baseCourses[0]!.details.title, slug: baseCourses[0]!.slug },
     priceSnapshot: { amount: baseCourses[0]!.details.pricing.price, currency: 'EGP' },
     formSnapshot: { fields: [] },
     answers: {},
@@ -186,6 +195,14 @@ export function createInitialMockDatabase(): MockDatabase {
     notes: [],
     alreadyRegisteredRefs: [],
     demoIds: { leads: [], enrollments: [], payments: [] },
-    settings: { version: 1, policyVersion: 1, values: {} },
+    settings: {
+      version: 1,
+      policyVersion: 1,
+      values: {
+        categories: {
+          items: [...new Set(baseCourses.map((course) => course.details.category))].map((name) => ({ name: { ar: name, en: '' }, active: true })),
+        },
+      },
+    },
   };
 }

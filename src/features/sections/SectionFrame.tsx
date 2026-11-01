@@ -15,10 +15,12 @@ export function SectionFrame({
   id,
   children,
   className = '',
-}: PropsWithChildren<{ settings: SectionSettings; id: string; className?: string }>) {
+  registrationTarget = false,
+}: PropsWithChildren<{ settings: SectionSettings; id: string; className?: string; registrationTarget?: boolean }>) {
   return (
     <section
       id={id}
+      data-registration-form={registrationTarget ? '' : undefined}
       className={`section-container relative ps-container pe-container ${spacing[settings.spacing]} ${backgrounds[settings.background]} ${className}`}
     >
       {settings.dividerTop !== 'none' && <DividerShape kind={settings.dividerTop} position="top" />}

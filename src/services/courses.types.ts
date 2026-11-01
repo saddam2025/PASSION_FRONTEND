@@ -7,6 +7,10 @@ export interface CourseSummary {
   slug: string;
   title: BilingualText;
   shortDescription: BilingualText;
+  seoTitle?: BilingualText;
+  seoDescription?: BilingualText;
+  noindex?: boolean;
+  ogImage?: ImageRef;
   category: BilingualText;
   instructorName: BilingualText;
   coverImage: ImageRef;
@@ -59,6 +63,8 @@ export interface CourseListResult {
 export interface CoursePageDetail extends CourseSummary {
   id: string;
   registrationOpen: boolean;
+  whatsappNumber?: string;
+  whatsappUrl?: string;
   whatsappMessageTemplate: BilingualText;
   pageConfig: PageConfig;
   formDefinition: FormDefinition;
@@ -73,5 +79,6 @@ export interface CoursesService {
   getFeatured(limit: number): Promise<CourseSummary[]>;
   listPublished(): Promise<CourseSummary[]>;
   findPublishedBySlug(slug: string): Promise<CourseSummary | null>;
+  getPublishedBySlug(slug: string): Promise<GetCourseBySlugResult>;
   getBySlug(slug: string): Promise<GetCourseBySlugResult>;
 }

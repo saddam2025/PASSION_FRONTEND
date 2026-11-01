@@ -33,7 +33,7 @@ function SubmissionsPage() {
           to={`/assistant/courses/${item.courseId}`}
           className="rounded-sm border border-border bg-surface p-4"
         >
-          <strong>{item.snapshot.details.title.en || item.snapshot.details.slug}</strong>
+          <strong>{item.snapshot.details.title.ar || item.snapshot.details.slug}</strong>
           <span className="ms-3 text-sm text-muted">{t(`revisionStatuses.${item.status}`)}</span>
           {item.rejectionReason && (
             <p className="mt-2 text-sm text-danger">{item.rejectionReason}</p>

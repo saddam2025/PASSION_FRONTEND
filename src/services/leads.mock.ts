@@ -84,7 +84,7 @@ export const leadsService = {
                 db.leads.find((l) => l.id === b.leadId)?.fullName ?? '',
               )
             : filters.sort === 'course'
-              ? a.courseSnapshot.title.en.localeCompare(b.courseSnapshot.title.en)
+              ? a.courseSnapshot.title.ar.localeCompare(b.courseSnapshot.title.ar)
               : b.registeredAt.localeCompare(a.registeredAt),
       );
     const page = Math.max(filters.page ?? 1, 1),
@@ -188,7 +188,7 @@ export const leadsService = {
               db.leads.find((l) => l.id === b.leadId)?.fullName ?? '',
             )
           : filters.sort === 'course'
-            ? a.courseSnapshot.title.en.localeCompare(b.courseSnapshot.title.en)
+            ? a.courseSnapshot.title.ar.localeCompare(b.courseSnapshot.title.ar)
             : b.registeredAt.localeCompare(a.registeredAt),
     );
     recordMockAudit(db, user.id, 'export.csv', 'leads', { filters, rowCount: rows.length });

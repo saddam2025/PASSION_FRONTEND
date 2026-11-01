@@ -14,6 +14,7 @@ import { paymentsService } from '@/services/payments.mock';
 import { readMockDb } from '@/mocks/db';
 import { formatPrice } from '@/features/public/courses/format';
 import { DateRangePicker } from '@/components/common/DateRangePicker';
+import { formatDate } from '@/lib/formatters';
 
 const paymentStatuses = ['pending', 'confirmed', 'voided'] as const;
 const methods = ['cash', 'bank_transfer', 'e_wallet', 'instapay', 'other'] as const;
@@ -59,7 +60,7 @@ export default function PaymentsPage() {
     mutationFn: () =>
       action?.paymentId
         ? paymentsService.void(action.paymentId, reason)
-        : Promise.reject(new Error('Payment not found')),
+        : Promise.reject(new Error('المدفوعة مش موجودة.')),
     onSuccess: () => {
       closeAction();
       void client.invalidateQueries({ queryKey: ['payments'] });
@@ -75,7 +76,7 @@ export default function PaymentsPage() {
             'cash',
             reason,
           )
-        : Promise.reject(new Error('Enrollment not found')),
+        : Promise.reject(new Error('التسجيل مش موجود.')),
     onSuccess: () => {
       closeAction();
       void client.invalidateQueries({ queryKey: ['payments'] });
@@ -211,7 +212,7 @@ export default function PaymentsPage() {
               <option value="">{t('allCourses')}</option>
               {db.courses.map((course) => (
                 <option key={course.id} value={course.id}>
-                  {course.details.title[language]}
+                  {course.details?.title?.[language] || course.slug}
                 </option>
               ))}
             </select>
@@ -298,9 +299,7 @@ export default function PaymentsPage() {
                     )}
                     <p dir="ltr">{record.reference}</p>
                     <time dir="ltr">
-                      {new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(
-                        new Date(record.receivedAt),
-                      )}
+                      {formatDate(record.receivedAt)}
                     </time>
                     {user?.role === 'admin' && record.status !== 'voided' && (
                       <div className="flex gap-2">

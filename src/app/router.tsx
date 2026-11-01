@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import {
   BrowserRouter,
@@ -10,12 +10,11 @@ import {
   useParams,
 } from 'react-router-dom';
 import { RouteSkeleton } from '@/components/ui/feedback';
-import { useLanguage } from '@/i18n/useLanguage';
-import { getPreferredLanguage } from '@/i18n/LanguageProvider';
 import { RequireAuth, RequireRole } from '@/app/AuthContext';
 import { DashboardLayout } from '@/features/dashboard/layout/DashboardLayout';
 import { PublicLayout } from '@/features/public/layout/PublicLayout';
 import { AuthLayout } from '@/features/auth/AuthLayout';
+import { arabicCoursePath } from '@/lib/courseLinks';
 
 const HomePage = lazy(() => import('@/features/pages/HomePage'));
 const CoursesPage = lazy(() => import('@/features/pages/CoursesPage'));
@@ -39,19 +38,21 @@ const SectionsPlaygroundPage = import.meta.env.DEV
   : null;
 
 function RootRedirect() {
-  return <Navigate to={`/${getPreferredLanguage()}`} replace />;
+  return <Navigate to="/ar" replace />;
+}
+function CourseLinkRedirect() {
+  const location = useLocation();
+  const target = arabicCoursePath(location.pathname, location.search, location.hash) ?? '/ar/courses';
+  return <Navigate to={target} replace />;
 }
 function LanguageRoute() {
   const { lang = '' } = useParams();
   const location = useLocation();
-  const { language, setLanguage } = useLanguage();
-  const valid = lang === 'ar' || lang === 'en';
   const suffix = location.pathname.replace(/^\/[^/]+/, '');
-  useEffect(() => {
-    if (valid && language !== lang) setLanguage(lang as 'ar' | 'en');
-  }, [lang, language, setLanguage, valid]);
-  if (!valid) return <Navigate to={`/ar${suffix}`} replace />;
-  if (language !== lang) return <RouteSkeleton />;
+  if (lang === 'admin') return <AdminArea />;
+  if (lang === 'assistant') return <AssistantArea />;
+  if (lang === 'en') return <Navigate to={`/ar${suffix}${location.search}${location.hash}`} replace />;
+  if (lang !== 'ar') return <NotFoundPage />;
   return <Outlet />;
 }
 function AdminArea() {
@@ -83,6 +84,7 @@ function RouteTree() {
       <Suspense fallback={<RouteSkeleton />}>
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<RootRedirect />} />
+          <Route path="/courses/:slug" element={<CourseLinkRedirect />} />
           <Route path="/:lang" element={<LanguageRoute />}>
             <Route element={<PublicLayout />}>
               <Route index element={<HomePage />} />

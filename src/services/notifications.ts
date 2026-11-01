@@ -4,8 +4,14 @@ import { readMockDb, writeMockDb, recordMockAudit } from '@/mocks/db';
 import { hasPermission } from '@/schemas/permissions';
 export type NotificationType =
   | 'course_submitted'
+  | 'course_withdrawn'
+  | 'course_published'
+  | 'course_unpublished'
   | 'revision_approved'
   | 'revision_rejected'
+  | 'course_deletion_requested'
+  | 'course_deletion_approved'
+  | 'course_deletion_rejected'
   | 'new_registration'
   | 'payment_recorded';
 export interface NotificationItem {

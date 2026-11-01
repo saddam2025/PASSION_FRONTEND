@@ -8,6 +8,8 @@ import { useToast } from '@/components/ui/feedback';
 import { useLanguage } from '@/i18n/useLanguage';
 import { buildWhatsAppLink } from '@/lib/whatsapp';
 import { isLikelyValidPhone } from '@/lib/phone';
+import { formatRelativeTime } from '@/lib/formatters';
+import { formatDate } from '@/lib/formatters';
 import { computePaymentStatus } from '@/schemas/payment';
 import { hasPermission } from '@/schemas/permissions';
 import type { Enrollment, Lead } from '@/schemas/lead';
@@ -35,8 +37,8 @@ export default function CustomerActions({ lead, enrollment }: Props) {
   const db = readMockDb();
   const allSettings = db.settings.values;
   const messaging = allSettings.messaging as MessagingSettings | undefined;
-  const courseTemplate = db.courses.find((item) => item.id === enrollment.courseId)?.details.contact
-    .whatsappMessageTemplate;
+  const courseTemplate = db.courses.find((item) => item.id === enrollment.courseId)?.details?.contact
+    ?.whatsappMessageTemplate;
   const template =
     messaging?.postRegistration?.[language] ||
     courseTemplate?.[language] ||
@@ -130,10 +132,7 @@ export default function CustomerActions({ lead, enrollment }: Props) {
       ['minute', 60000],
     ];
     const [unit, size] = units.find(([, limit]) => ms >= limit) ?? ['second', 1000];
-    return new Intl.RelativeTimeFormat(language, { numeric: 'auto' }).format(
-      -Math.floor(ms / size),
-      unit,
-    );
+    return formatRelativeTime(-Math.floor(ms / size), unit);
   };
   const canAdmin = user?.role === 'admin';
   const canAssign = Boolean(
@@ -252,7 +251,7 @@ export default function CustomerActions({ lead, enrollment }: Props) {
                 {db.users.find((item) => item.id === event.actor)?.name[language] ??
                   (event.actor === 'visitor' ? t('visitor') : t('system'))}{' '}
                 ·{' '}
-                <time dateTime={event.at} title={new Date(event.at).toLocaleString(language)}>
+                <time dateTime={event.at} title={formatDate(event.at, { dateStyle: 'medium', timeStyle: 'short' })}>
                   {relative(event.at)}
                 </time>
               </p>

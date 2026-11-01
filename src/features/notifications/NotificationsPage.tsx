@@ -2,14 +2,21 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, BookOpen, CheckCircle2, CreditCard } from 'lucide-react';
+import { Bell, BookOpen, CheckCircle2, CreditCard, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/feedback';
 import { notificationsService, type NotificationItem } from '@/services/notifications';
+import { formatDate } from '@/lib/formatters';
 const icons = {
   course_submitted: BookOpen,
+  course_withdrawn: BookOpen,
+  course_published: CheckCircle2,
+  course_unpublished: Bell,
   revision_approved: CheckCircle2,
   revision_rejected: CheckCircle2,
+  course_deletion_requested: Trash2,
+  course_deletion_approved: CheckCircle2,
+  course_deletion_rejected: CheckCircle2,
   new_registration: Bell,
   payment_recorded: CreditCard,
 } satisfies Record<NotificationItem['type'], typeof Bell>;
@@ -85,10 +92,10 @@ export default function NotificationsPage({ assistant = false }: { assistant?: b
                   <span className="min-w-0 flex-1">
                     <span className="block font-semibold">{t(`types.${item.type}`)}</span>
                     <time className="text-sm text-muted">
-                      {new Intl.DateTimeFormat(undefined, {
+                      {formatDate(item.createdAt, {
                         dateStyle: 'medium',
                         timeStyle: 'short',
-                      }).format(new Date(item.createdAt))}
+                      })}
                     </time>
                   </span>
                   {!item.readAt && (

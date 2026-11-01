@@ -278,7 +278,7 @@ export function MediaLibraryDialog({
                   </p>
                   {usage.courseTitles.length > 0 && <span>{t('usageCourses')}:</span>}
                   {usage.courseTitles.map((course) => (
-                    <span key={`${course.en}-${course.ar}`} className="text-muted">
+                    <span key={course.ar} className="text-muted">
                       {getBilingualText(course, language)}
                     </span>
                   ))}

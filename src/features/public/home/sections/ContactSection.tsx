@@ -9,10 +9,10 @@ export function ContactSection({ section }: { section: HomeSection }) {
   const { language } = useLanguage();
   const { t } = useTranslation('home');
   const s = usePublicSettings();
-  const address = s.address[language] || s.address[language === 'ar' ? 'en' : 'ar'];
+  const address = s.address.ar;
   const wa = whatsappUrl(s.whatsappNumber, t('whatsappGreeting'));
   const openingHours =
-    s.openingHours?.[language] || s.openingHours?.[language === 'ar' ? 'en' : 'ar'];
+    s.openingHours?.ar;
   if (!s.email && !s.phone && !address && !wa && !s.mapLink && !openingHours) return null;
   return (
     <Frame id="contact" title={text(section.content.title, language) || t('contactTitle')}>

@@ -1,4 +1,3 @@
-import type { CourseRecord } from '@/schemas/course';
 import type { Enrollment, Lead } from '@/schemas/lead';
 import type { PaymentRecord, PaymentStatus } from '@/schemas/payment';
 
@@ -15,9 +14,16 @@ export interface AnalyticsInput {
   leads: readonly Lead[];
   enrollments: readonly Enrollment[];
   paymentRecords: readonly PaymentRecord[];
-  courses: readonly CourseRecord[];
+  courses: readonly AnalyticsCourse[];
   query: AnalyticsQuery;
   revisions?: readonly { status: string; courseId?: string }[];
+}
+export interface AnalyticsCourse {
+  id: string;
+  status: string;
+  deletedAt?: string;
+  details?: { title?: { ar: string; en: string } };
+  draft?: { details: { title: { ar: string; en: string } } };
 }
 export interface MoneyByCurrency {
   [currency: string]: number;

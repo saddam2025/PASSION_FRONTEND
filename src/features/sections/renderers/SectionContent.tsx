@@ -3,6 +3,7 @@ import { getBilingualText } from '@/i18n/useLanguage';
 import type { BilingualText, ImageRef } from '@/schemas/sections';
 import { useContext } from 'react';
 import { SectionHeadingContext } from './SectionHeadingContext';
+import { renderHighlightMarkup } from './highlightText';
 export function SectionHeading({
   eyebrow,
   title,
@@ -25,9 +26,9 @@ export function SectionHeading({
   const HeadingTag = as;
   return (
     <header className="mb-6 grid gap-2">
-      {eyebrowText && <p className="text-sm font-semibold tracking-wide text-primary-strong">{eyebrowText}</p>}
-      {(headingText || accentText) && <HeadingTag className={`${as === 'h1' ? 'section-hero-title' : 'section-heading-title'} font-display font-bold leading-tight`}><span>{headingText}</span>{accentText && <>{headingText ? ' ' : ''}<span className={overrides?.highlight === 'underline' ? 'section-title-accent' : 'text-primary-strong'}>{accentText}</span></>}</HeadingTag>}
-      {sub && <p className="text-muted">{sub}</p>}
+      {eyebrowText && <p className="text-sm font-semibold tracking-wide text-primary-strong">{renderHighlightMarkup(eyebrowText)}</p>}
+      {(headingText || accentText) && <HeadingTag className={`${as === 'h1' ? 'section-hero-title' : 'section-heading-title'} font-display font-bold leading-tight`}><span>{renderHighlightMarkup(headingText)}</span>{accentText && <>{headingText ? ' ' : ''}<span className={overrides?.highlight === 'underline' ? 'section-title-accent' : 'text-primary-strong'}>{renderHighlightMarkup(accentText)}</span></>}</HeadingTag>}
+      {sub && <p className="text-muted">{renderHighlightMarkup(sub)}</p>}
     </header>
   );
 }

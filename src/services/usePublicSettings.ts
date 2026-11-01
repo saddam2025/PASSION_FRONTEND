@@ -14,6 +14,8 @@ const emptySettings: PublicSettings = {
   mapLink: '',
   openingHours: { ar: '', en: '' },
   description: { ar: '', en: '' },
+  privacyUrl: '',
+  allowSearchEngines: true,
   socials: { facebook: '', instagram: '', linkedin: '', youtube: '', tiktok: '', x: '' },
 };
 
