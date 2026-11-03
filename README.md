@@ -35,6 +35,10 @@ Vite serves `http://localhost:5173` and proxies `/api` to port 4000, so browser 
 | `VITE_SITE_URL` | `http://localhost:5173` | Canonical public site origin. |
 | `VITE_MEDIA_BASE_URL` | empty | Public CDN base for relative public-media keys; never include storage credentials. |
 
+## Deploy on Vercel
+
+The project builds to `dist`. `vercel.json` rewrites client-side routes such as `/ar` and `/ar/admin/settings` to `index.html`, so refreshing a nested route stays inside the React app. The API is a separate backend service: set `VITE_API_BASE_URL` in the Vercel project's Production (and Preview, if used) environment variables to the backend API root, for example `https://<backend-domain>/api/v1`. Do not leave it as `/api/v1` in a deployment unless Vercel is also configured to proxy `/api` to the backend. Add the frontend's deployed origin to the backend's `CORS_ORIGINS` allowlist. `VITE_API_PROXY_TARGET` only affects the local Vite development server.
+
 ## Build and preview
 
 ```powershell
