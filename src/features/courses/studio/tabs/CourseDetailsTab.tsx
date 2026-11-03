@@ -91,7 +91,7 @@ export function CourseDetailsTab({ course, snapshot, onChange, assistant }: { co
     </section>
     <section className="grid gap-4 rounded-md border border-border bg-surface p-4 sm:p-5">
       <h2 className="text-lg font-bold">رابط الكورس</h2>
-      <label data-readiness-path="slug" className="grid gap-1.5 text-sm">الرابط المختصر <span dir="ltr" className="text-start text-xs text-muted">/{slug}</span><Input dir="ltr" value={slug} onChange={(e) => saveSlugToDraft(e.target.value)} aria-invalid={slugStatus !== 'available'} /></label>
+      <label data-readiness-path="slug" className="grid gap-1.5 text-sm">الرابط المختصر <span className="text-danger">مطلوب</span><span dir="ltr" className="text-start text-xs text-muted">/{slug}</span><Input dir="ltr" value={slug} onChange={(e) => saveSlugToDraft(e.target.value)} aria-invalid={slugStatus !== 'available'} /></label>
       <p role={slugStatus === 'taken' || slugStatus === 'reserved' || slugStatus === 'invalid' ? 'alert' : 'status'} className={`text-sm ${slugStatus === 'available' ? 'text-success' : 'text-muted'}`}>{slugStatus === 'checking' ? 'جاري التحقق من الرابط…' : slugStatus === 'available' ? 'الرابط متاح.' : slugStatus === 'reserved' ? 'الرابط ده محجوز.' : slugStatus === 'taken' ? 'الرابط مستخدم بالفعل.' : 'اكتب رابطًا من حروف لاتينية صغيرة وأرقام وشرطات.'}</p>
       <p className="text-sm text-muted">لو غيّرت رابط كورس منشور، الرابط القديم هيفضل شغال.</p>
     </section>

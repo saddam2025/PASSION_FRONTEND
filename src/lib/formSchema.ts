@@ -37,18 +37,6 @@ export function buildSubmissionSchema(definition: FormDefinition) {
           (entry) => Boolean(field.options?.some((option) => option.value === entry)),
           'اختار قيمة من الاختيارات المتاحة.',
         );
-    else if (field.type === 'email') value = z.string().trim().email().max(limit);
-    else if (field.type === 'phone')
-      value = z
-        .string()
-        .trim()
-        .min(7)
-        .max(24)
-        .transform(normalizePhone)
-        .refine(
-          (entry) => isLikelyValidPhone(entry.replace(/\D/g, '')),
-        'اكتب رقم تليفون صحيح.',
-        );
     else value = z.string().trim().max(limit);
     if (!field.required && field.type !== 'checkbox') value = value.optional().or(z.literal(''));
     else if (field.required && field.type !== 'checkbox')

@@ -5,10 +5,12 @@ export type RegistrationErrorCode =
   | 'REGISTRATION_CLOSED'
   | 'COURSE_FULL'
   | 'VALIDATION_ERROR'
-  | 'IDEMPOTENCY_CONFLICT';
+  | 'IDEMPOTENCY_CONFLICT'
+  | 'RATE_LIMITED'
+  | 'NETWORK_ERROR';
 
 export class RegistrationServiceError extends Error {
-  constructor(readonly code: RegistrationErrorCode, message: string) {
+  constructor(readonly code: RegistrationErrorCode, message: string, readonly fieldErrors: Record<string, string> = {}) {
     super(message);
     this.name = 'RegistrationServiceError';
   }

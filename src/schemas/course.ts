@@ -167,6 +167,7 @@ export const CourseSchema = z
     createdBy: z.string().min(1),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
+    publishedAt: z.string().datetime().optional(),
     deletedAt: z.string().datetime().optional(),
     version: z.number().int().nonnegative().default(1),
     published: SnapshotSchema.nullable(),

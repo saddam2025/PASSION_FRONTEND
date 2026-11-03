@@ -48,6 +48,7 @@ export interface CoursePageSettings {
   phone: string;
   email: string;
   privacyUrl?: string;
+  registrationWhatsappTemplate?: string;
 }
 export interface CoursePageContextValue {
   course: CoursePageData;

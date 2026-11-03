@@ -59,7 +59,25 @@ export function CourseStudioShell({ course: initialCourse, activeTab, sectionId 
   };
   const saveSection = async () => { const saved = await saveDraft(true); toast.notify({ title: saved ? 'تم حفظ القسم' : 'حصلت مشكلة، جرّب تاني.', tone: saved ? 'success' : 'danger' }); return saved; };
   const runAction = async (action: ConfirmAction) => {
-    const result = action === 'publish' ? await coursesService.publish(course.id, course.version)
+    let publishTarget = course;
+    if (action === 'publish') {
+      if (readiness.errors.length) {
+        setAttentionOpen(true);
+        return;
+      }
+      if (dirty) {
+        const saved = await coursesService.saveDraft(course.id, draft, course.version);
+        if (!saved.ok) {
+          toast.notify({ title: saved.message, tone: 'danger' });
+          return;
+        }
+        publishTarget = saved.data;
+        setCourse(saved.data);
+        setDirty(false);
+        setLastSaved(new Date(saved.data.updatedAt));
+      }
+    }
+    const result = action === 'publish' ? await coursesService.publish(publishTarget.id, publishTarget.version)
       : action === 'unpublish' ? await coursesService.unpublish(course.id, course.version)
         : action === 'archive' ? await coursesService.archive(course.id, course.version)
           : await coursesService.unarchive(course.id, course.version);

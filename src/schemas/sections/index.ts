@@ -94,16 +94,22 @@ export function isSectionEmpty(section: Section, context?: CoursePriceContext): 
     case 'instructor':
       return !((filled(context?.instructor?.name) && hasRichText(context?.instructor?.bio)) || (filled(section.content.name) && hasRichText(section.content.bio)));
     case 'featureCards':
-      return section.content.items.length === 0;
+      return !section.content.items.some((item) =>
+        filled(item.title) || filled(item.text) || Boolean(item.image?.src) ||
+        item.details.some((detail) => filled(detail.title) || filled(detail.text)),
+      );
     case 'curriculum':
-      return section.content.modules.length === 0;
+      return !section.content.modules.some((module) =>
+        filled(module.title) || filled(module.summary) || filled(module.duration) ||
+        module.lessons.some((lesson) => filled(lesson.title)),
+      );
     case 'pricingCta':
       return (
         !filled(section.content.overrideLabel) &&
         !(section.content.useCoursePrice && (context?.contactUs || context?.promoPrice != null || context?.price != null))
       );
     case 'faq':
-      return section.content.items.length === 0;
+      return !section.content.items.some((item) => filled(item.question) || hasRichText(item.answer));
     case 'contactWhatsApp':
       return (
         !filled(section.content.title) ||
@@ -116,9 +122,9 @@ export function isSectionEmpty(section: Section, context?: CoursePriceContext): 
     case 'registrationForm':
       return !filled(section.content.title);
     case 'steps':
-      return section.content.items.length === 0;
+      return !section.content.items.some((item) => filled(item.title) || filled(item.text) || Boolean(item.image?.src));
     case 'banner':
-      return !section.content.image.src;
+      return !filled(section.content.overlayTitle) && !filled(section.content.overlayText) && !filled(section.content.cta?.label);
   }
   return false;
 }

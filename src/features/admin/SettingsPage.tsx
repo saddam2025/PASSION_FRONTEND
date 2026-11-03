@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { ErrorState, Skeleton, useToast } from '@/components/ui/feedback';
-import { adminService } from '@/services/admin.mock';
+import { adminService } from '@/services/admin.service';
+import { ApiError } from '@/api/client';
 import { useAuth } from '@/app/AuthContext';
 import { SettingsSectionEditor } from './SettingsSectionEditor';
 import {
@@ -25,6 +26,7 @@ export default function SettingsPage() {
   const [section, setSection] = useState<SettingsSection>('contact');
   const [value, setValue] = useState<Record<string, unknown>>({});
   const [error, setError] = useState('');
+  const [conflict, setConflict] = useState(false);
   useEffect(() => {
     const current = {
       ...settingsSectionDefaults[section],
@@ -54,14 +56,11 @@ export default function SettingsPage() {
       toast.notify({ title: t('saved'), tone: 'success' });
       setError('');
     },
-    onError: (cause) =>
-      setError(
-        cause instanceof Error && cause.message.includes('changed')
-          ? t('conflict')
-          : cause instanceof Error
-            ? cause.message
-            : t('saveError'),
-      ),
+    onError: (cause) => {
+      const isConflict = cause instanceof ApiError && cause.status === 409 && Boolean(cause.details && typeof cause.details === 'object' && 'currentVersion' in cause.details);
+      setConflict(isConflict);
+      setError(isConflict ? t('conflict') : cause instanceof Error ? cause.message : t('saveError'));
+    },
   });
   if (query.isLoading) return <Skeleton variant="card" />;
   if (query.isError || !query.data)
@@ -115,6 +114,7 @@ export default function SettingsPage() {
           {error && (
             <p role="alert" className="text-sm text-danger">
               {error}
+              {conflict && <Button variant="secondary" className="ms-2" onClick={() => { setConflict(false); setError(''); void query.refetch(); }}>{t('reloadSettings')}</Button>}
             </p>
           )}
           <footer className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-surface py-3">

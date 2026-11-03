@@ -4,7 +4,7 @@ import { BilingualTextSchema } from './sections/common';
 export const RegistrationFieldSchema = z
   .object({
     id: z.string().regex(/^[a-z][a-z0-9-]{1,39}$/),
-    type: z.enum(['text', 'email', 'phone', 'select', 'radio', 'checkbox', 'textarea']),
+    type: z.enum(['text', 'select', 'radio', 'checkbox', 'textarea']),
     label: BilingualTextSchema,
     placeholder: BilingualTextSchema.optional(),
     helpText: BilingualTextSchema.optional(),
@@ -35,6 +35,15 @@ export const RegistrationFieldSchema = z
         message: 'Option values must be unique.',
         path: ['options'],
       });
+    field.options?.forEach((option, index) => {
+      if (!option.label.ar.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'اكتب اسم الاختيار بالعربي.',
+          path: ['options', index, 'label', 'ar'],
+        });
+      }
+    });
   });
 export const FormDefinitionSchema = z
   .object({
@@ -48,14 +57,14 @@ export const FormDefinitionSchema = z
     if (new Set(ids).size !== ids.length)
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Custom field ids must be unique.',
+        message: 'معرّفات الحقول لازم تكون مختلفة.',
         path: ['fields'],
       });
     for (const reserved of ['fullName', 'email', 'phone', 'consent'])
       if (ids.includes(reserved))
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Core fields cannot be overridden.',
+          message: 'الحقول الأساسية ثابتة ومش ممكن استبدالها.',
           path: ['fields'],
         });
   });

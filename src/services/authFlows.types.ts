@@ -6,6 +6,6 @@ export interface InviteService {
 }
 export interface PasswordResetService {
   requestReset(email: string): Promise<void>;
-  validateResetToken(token: string): Promise<boolean>;
+  validateResetToken?(token: string): Promise<boolean>;
   resetPassword(token: string, password: string): Promise<void>;
 }

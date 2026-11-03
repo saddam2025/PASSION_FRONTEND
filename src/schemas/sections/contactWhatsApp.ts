@@ -5,7 +5,7 @@ export const ContactWhatsAppSectionSchema = createSectionSchema(
   'contactWhatsApp',
   z
     .object({
-      title: BilingualTextSchema,
+      title: BilingualTextSchema.default({ ar: '', en: '' }),
       text: BilingualRichTextSchema.optional(),
       show: z
         .object({
@@ -18,5 +18,6 @@ export const ContactWhatsAppSectionSchema = createSectionSchema(
       prefilledMessage: BilingualTextSchema.optional(),
       layout: z.enum(['card', 'inline']).default('card'),
     })
-    .strict(),
+    .strict()
+    .default({ title: { ar: '', en: '' }, show: { whatsapp: true, phone: false, email: false }, layout: 'card' }),
 );

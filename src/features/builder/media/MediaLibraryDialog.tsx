@@ -6,8 +6,9 @@ import { ConfirmDialog, Modal } from '@/components/ui/Overlay';
 import type { MediaAsset, MediaUsageResult } from '@/services/media';
 import { mediaService } from '@/services/media';
 import { mediaUrl } from '@/lib/mediaUrl';
+import { apiErrorMessage } from '@/api/client';
 
-const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/avif']);
+const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const maxBytes = 5 * 1024 * 1024;
 export function MediaLibraryDialog({
   open,
@@ -38,12 +39,12 @@ export function MediaLibraryDialog({
       const result = await mediaService.list({ page, search });
       setAssets(result.items);
       setTotalPages(Math.max(1, result.pageCount));
-    } catch {
-      setError(t('uploadError'));
+    } catch (cause) {
+      setError(apiErrorMessage(cause));
     } finally {
       setLoading(false);
     }
-  }, [page, search, t]);
+  }, [page, search]);
   useEffect(() => {
     if (open) void reload();
   }, [open, reload]);
@@ -98,8 +99,8 @@ export function MediaLibraryDialog({
       setAssets((current) => [asset, ...current.filter((item) => item.id !== asset.id)]);
       setSelected(asset);
       setPage(1);
-    } catch {
-      setError(t('uploadError'));
+    } catch (cause) {
+      setError(apiErrorMessage(cause));
     } finally {
       setProgress(null);
       if (inputRef.current) inputRef.current.value = '';
@@ -120,8 +121,8 @@ export function MediaLibraryDialog({
         if (current) URL.revokeObjectURL(current);
         return null;
       });
-    } catch {
-      setError(t('deleteError'));
+    } catch (cause) {
+      setError(apiErrorMessage(cause));
     }
   };
   const changeOpen = (nextOpen: boolean) => {
@@ -177,7 +178,7 @@ export function MediaLibraryDialog({
               ref={inputRef}
               className="sr-only"
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/avif"
+              accept="image/jpeg,image/png,image/webp"
               onChange={(event) => void chooseFile(event.currentTarget.files?.[0])}
             />
             <Button

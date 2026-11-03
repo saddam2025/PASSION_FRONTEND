@@ -37,7 +37,6 @@ export const PaymentRecordSchema = z
     confirmedAt: z.string().optional(),
     createdAt: z.string(),
     idempotencyKey: z.string(),
-    isDemo: z.literal(true).optional(),
   })
   .strict();
 export type PaymentRecord = z.infer<typeof PaymentRecordSchema>;

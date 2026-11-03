@@ -5,11 +5,12 @@ export const FaqSectionSchema = createSectionSchema(
   'faq',
   z
     .object({
-      title: BilingualTextSchema,
+      title: BilingualTextSchema.default({ ar: '', en: '' }),
       layout: z.enum(['accordion', 'twoColumn']).default('accordion'),
       items: z
         .array(z.object({ question: BilingualTextSchema, answer: BilingualRichTextSchema, category: BilingualTextSchema.optional() }).strict())
         .default([]),
     })
-    .strict(),
+    .strict()
+    .default({ title: { ar: '', en: '' }, layout: 'accordion', items: [] }),
 );

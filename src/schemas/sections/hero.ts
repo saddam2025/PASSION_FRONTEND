@@ -16,5 +16,6 @@ export const HeroSectionSchema = createSectionSchema(
         .enum(['splitStart', 'splitEnd', 'centered', 'imageBackground'])
         .default('splitStart'),
     })
-    .strict(),
+    .strict()
+    .default({ title: { ar: '', en: '' }, layout: 'splitStart' }),
 );

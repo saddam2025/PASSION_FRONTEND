@@ -53,6 +53,7 @@ export function CoursePagePreview({
       phone: settings.phone,
       email: settings.email,
       privacyUrl: settings.privacyUrl,
+      registrationWhatsappTemplate: settings.registrationWhatsappTemplate,
     },
     formDefinition: snapshot.form,
   } satisfies Omit<CoursePageContextValue, 'mode'>;

@@ -13,6 +13,7 @@ export interface PublicSettings {
   description: BilingualText;
   privacyUrl?: string;
   allowSearchEngines?: boolean;
+  registrationWhatsappTemplate?: string;
   socials: {
     facebook: string;
     instagram: string;

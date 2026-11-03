@@ -32,10 +32,6 @@ const AdminPage = lazy(() => import('@/features/pages/AdminPage'));
 const AssistantPage = lazy(() => import('@/features/pages/AssistantPage'));
 const NotFoundPage = lazy(() => import('@/features/pages/NotFoundPage'));
 const NotAuthorizedPage = lazy(() => import('@/features/pages/NotAuthorizedPage'));
-const UiKitPage = import.meta.env.DEV ? lazy(() => import('@/features/dev/UiKitPage')) : null;
-const SectionsPlaygroundPage = import.meta.env.DEV
-  ? lazy(() => import('@/features/dev/SectionsPlaygroundPage'))
-  : null;
 
 function RootRedirect() {
   return <Navigate to="/ar" replace />;
@@ -109,10 +105,6 @@ function RouteTree() {
           <Route path="/not-authorized" element={<NotAuthorizedPage />} />
           <Route path="/admin/*" element={<AdminArea />} />
           <Route path="/assistant/*" element={<AssistantArea />} />
-          {UiKitPage && <Route path="/dev/ui-kit" element={<UiKitPage />} />}
-          {SectionsPlaygroundPage && (
-            <Route path="/dev/sections" element={<SectionsPlaygroundPage />} />
-          )}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>

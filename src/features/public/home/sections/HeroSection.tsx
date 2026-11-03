@@ -1,15 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { SmartImage } from '@/components/common/SmartImage';
+import { mediaUrl } from '@/lib/mediaUrl';
 import { usePublicSettings } from '@/services/usePublicSettings';
 import { useLanguage } from '@/i18n/useLanguage';
 import { whatsappUrl } from '@/features/public/layout/whatsapp';
 import { Frame } from './shared';
-import { useSectionText } from './content';
-import type { HomeSection } from '@/services/siteContent';
-export function HeroSection({ section }: { section: HomeSection }) {
+export function HeroSection({ title, intro }: { title: string; intro: string }) {
   const { language } = useLanguage();
-  const { title, intro } = useSectionText(section);
   const { t } = useTranslation('home');
   const settings = usePublicSettings();
   const wa = whatsappUrl(settings.whatsappNumber, t('whatsappGreeting'));
@@ -45,14 +42,7 @@ export function HeroSection({ section }: { section: HomeSection }) {
             )}
           </div>
         </div>
-        <SmartImage
-          slot="hero"
-          alt={title}
-          width={800}
-          height={600}
-          fetchPriority="high"
-          className="max-h-[28rem] rounded-xl object-cover shadow-soft"
-        />
+        {settings.logo && <img src={mediaUrl(settings.logo)} alt={settings.academyName.ar} width={400} height={300} fetchPriority="high" className="mx-auto max-h-64 max-w-full object-contain" />}
       </div>
     </Frame>
   );

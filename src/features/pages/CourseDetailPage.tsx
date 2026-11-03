@@ -93,6 +93,7 @@ export default function CourseDetailPage() {
               phone: settings.phone,
               email: settings.email,
               privacyUrl: settings.privacyUrl,
+              registrationWhatsappTemplate: settings.registrationWhatsappTemplate,
             },
             formDefinition: course.formDefinition,
           } satisfies Omit<CoursePageContextValue, 'mode'>)

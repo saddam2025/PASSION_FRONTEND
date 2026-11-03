@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Input, Textarea } from '@/components/ui/fields';
 import { Checkbox } from '@/components/ui/selection';
 import { ImagePickerField } from '@/features/courses/ImagePickerField';
-import { adminService } from '@/services/admin.mock';
+import { adminService } from '@/services/admin.service';
 import { mediaUrl } from '@/lib/mediaUrl';
 import type { Course, Snapshot } from '@/schemas/course';
 import { resolveCourseSeo } from '@/lib/courseSeo';
@@ -10,7 +10,7 @@ import { resolveCourseSeo } from '@/lib/courseSeo';
 export function CourseSeoTab({ course, snapshot, onChange }: { course: Course; snapshot: Snapshot; onChange: (value: Snapshot) => void }) {
   const seo = snapshot.seo;
   const [settingsDefaults, setSettingsDefaults] = useState<{ title: string; description: string; image: string; allowSearch: boolean }>({ title:'',description:'',image:'',allowSearch:true });
-  useEffect(() => { void adminService.publicSettings().then((settings) => { const value = settings.values.seo as { titleTemplate?: string; description?: { ar?: string }; ogImage?: string; allowSearchEngines?: boolean } | undefined; setSettingsDefaults({ title:value?.titleTemplate??'',description:value?.description?.ar??'',image:value?.ogImage??'',allowSearch:value?.allowSearchEngines??true }); }).catch(() => undefined); }, []);
+  useEffect(() => { void adminService.publicSettings().then((settings) => { const value = settings.values.seo as { titleTemplate?: string; description?: unknown; ogImage?: string; allowSearchEngines?: boolean } | undefined; const description = value?.description && typeof value.description === 'object' ? (value.description as { ar?: unknown }).ar : undefined; setSettingsDefaults({ title:value?.titleTemplate??'',description:typeof description === 'string' ? description : '',image:value?.ogImage??'',allowSearch:value?.allowSearchEngines??true }); }).catch(() => undefined); }, []);
   const resolved = resolveCourseSeo(snapshot, { titleTemplate: settingsDefaults.title, description: { ar: settingsDefaults.description }, ogImage: settingsDefaults.image, allowSearchEngines: settingsDefaults.allowSearch });
   const pageTitle = resolved.title.ar || course.slug;
   const pageDescription = resolved.description.ar;

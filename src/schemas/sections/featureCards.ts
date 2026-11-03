@@ -17,5 +17,6 @@ export const FeatureCardsSectionSchema = createSectionSchema(
       layout: z.enum(['grid2', 'grid3', 'bento']).default('grid3'),
       variant: z.enum(['standard', 'bonuses']).default('standard'),
     })
-    .strict(),
+    .strict()
+    .default({ items: [], columns: 3, layout: 'grid3', variant: 'standard' }),
 );

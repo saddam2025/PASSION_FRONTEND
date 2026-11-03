@@ -1,3 +1,5 @@
+import { DEFAULT_REGISTRATION_WHATSAPP_MESSAGE } from '@/schemas/settings';
+
 export type SettingsSection = 'academy' | 'contact' | 'social' | 'messaging' | 'registration' | 'categories' | 'seo';
 
 export const settingsSections: SettingsSection[] = ['academy', 'contact', 'social', 'messaging', 'registration', 'categories', 'seo'];
@@ -7,7 +9,7 @@ export const settingsSectionDefaults: Record<SettingsSection, Record<string, unk
   academy: { name: text(), logo: '' },
   contact: { whatsappNumber: '', phone: '', email: '' },
   social: { facebook: '', instagram: '', youtube: '', tiktok: '', linkedin: '', x: '' },
-  messaging: { registrationMessage: text() },
+  messaging: { registrationMessage: { ar: DEFAULT_REGISTRATION_WHATSAPP_MESSAGE, en: '' } },
   registration: { privacyUrl: '', privacyPolicy: text() },
   categories: { items: [] },
   seo: { titleTemplate: '', description: text(), ogImage: '', allowSearchEngines: true },

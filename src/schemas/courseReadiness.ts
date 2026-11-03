@@ -53,7 +53,22 @@ export function checkReadiness(snapshot: CourseSnapshot, slug?: string): {
   const filled = visible.filter((section) => !isSectionEmpty(section, { price, promoPrice: promo ?? null, contactUs: details.pricing.contactUs === true, instructor: details.instructor }));
   if (!filled.length) {
     if (!visible.length) issue('page', 'page.sections', 'أضف قسم ظاهر واكتب محتواه.', []);
-    else visible.forEach((section) => issue('page', `page.sections.${section.id}.content`, 'اكتب محتوى في القسم عشان يظهر للزوار.', section.content, section.id));
+    else visible.forEach((section) => {
+      const field = section.type === 'instructor'
+        ? 'name.ar'
+        : section.type === 'banner'
+          ? 'overlayTitle.ar'
+          : section.type === 'featureCards'
+            ? section.content.items.length ? 'items.0.title.ar' : 'items'
+            : section.type === 'curriculum'
+              ? section.content.modules.length ? 'modules.0.title.ar' : 'modules'
+              : section.type === 'faq'
+                ? section.content.items.length ? 'items.0.question.ar' : 'items'
+                : section.type === 'steps'
+                  ? section.content.items.length ? 'items.0.title.ar' : 'items'
+                  : 'title.ar';
+      issue('page', `page.sections.${section.id}.content.${field}`, 'اكتب محتوى في القسم عشان يظهر للزوار.', section.content, section.id);
+    });
   }
   for (const section of visible) {
     const result = validateSection(section);

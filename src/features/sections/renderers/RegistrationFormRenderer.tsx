@@ -64,8 +64,12 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
       });
       if (!reference.reference) throw new Error('Missing registration reference');
       setSuccess({ reference: reference.reference, name: String(values.fullName ?? ''), title: getBilingualText(course.title, language) });
-    } catch {
-      setError(t('submitError'));
+    } catch (cause) {
+      const { RegistrationServiceError } = await import('@/services/registrations.types');
+      if (cause instanceof RegistrationServiceError) {
+        for (const [field, message] of Object.entries(cause.fieldErrors)) form.setError(field as keyof SubmissionValues, { type: 'server', message });
+        setError(cause.message);
+      } else setError(t('submitError'));
     } finally {
       setSubmitting(false);
     }
@@ -73,8 +77,9 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
   if (section.type !== 'registrationForm') return null;
   if (success) {
     const defaultMessage = t('whatsappConfirmation', { name: success.name, course: success.title, reference: success.reference });
-    const whatsappMessage = course.whatsappMessageTemplate.ar.trim()
-      ? buildRegistrationMessage(course.whatsappMessageTemplate.ar, success.name, success.title, success.reference)
+    const template = course.whatsappMessageTemplate.ar.trim() || settings.registrationWhatsappTemplate || '';
+    const whatsappMessage = template.trim()
+      ? buildRegistrationMessage(template, success.name, success.title, success.reference)
       : defaultMessage;
     const whatsappHref = buildRegistrationWhatsAppLink(course.whatsappNumberOverride || settings.whatsappNumber, whatsappMessage, course.whatsappUrlOverride);
     return <SectionFrame settings={section.settings} id={registrationTarget ? 'register' : `register-${section.id}`} registrationTarget={registrationTarget}>
@@ -225,15 +230,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
                     <Input
                       {...props}
                       disabled={inert}
-                      type={
-                        fieldDefinition.type === 'email'
-                          ? 'email'
-                          : fieldDefinition.type === 'phone'
-                            ? 'tel'
-                            : 'text'
-                      }
-                      inputMode={fieldDefinition.type === 'phone' ? 'tel' : undefined}
-                      dir={fieldDefinition.type === 'phone' ? 'ltr' : undefined}
+                      type="text"
                       placeholder={
                         fieldDefinition.placeholder ? label(fieldDefinition.placeholder) : undefined
                       }
