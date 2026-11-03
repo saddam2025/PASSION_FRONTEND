@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/fields';
 import { useToast } from '@/components/ui/feedback';
 import { useLanguage } from '@/i18n/useLanguage';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
-import { mockPasswordResetService } from '@/services/authFlows.mock';
+import { passwordResetService } from '@/services/authFlows.service';
 
 const emailSchema = (message: string) => z.object({ email: z.string().trim().email(message) });
 type EmailValues = z.infer<ReturnType<typeof emailSchema>>;
@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<EmailValues>({ resolver: zodResolver(schema), defaultValues: { email: '' } });
   useDocumentTitle(t('forgotTitle'));
   const submit = handleSubmit(async ({ email }) => {
-    await mockPasswordResetService.requestReset(email);
+    await passwordResetService.requestReset(email);
     setSent(true);
     notify({ title: t('forgotSuccess'), tone: 'success' });
   });

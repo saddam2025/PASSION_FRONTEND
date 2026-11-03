@@ -1,6 +1,7 @@
 // Adapter for legacy imports forwarding to courses v2 service
 import { coursesService } from '@/services/courses';
-import { readMockDb } from '@/mocks/db';
+import { publicCoursesService } from '@/services/courses';
+import { apiAuthService } from '@/services/auth.api';
 import type { CourseListItem } from '@/services/courses/types';
 import type { CourseStatus } from '@/schemas/course';
 
@@ -14,40 +15,15 @@ export class CourseServiceError extends Error {
   }
 }
 
+async function requireAdmin() {
+  const current = await apiAuthService.getCurrentUser();
+  if (current?.role !== 'admin') throw new CourseServiceError('FORBIDDEN', 'الخدمة دي متاحة لمدير الأكاديمية بس.');
+}
+
 export const coursesAdminService = {
   async categories(): Promise<string[]> {
-    const db = readMockDb();
-    const categories = db.settings.values.categories;
-    if (categories && typeof categories === 'object' && !Array.isArray(categories)) {
-      const items = (categories as Record<string, unknown>).items;
-      if (Array.isArray(items)) {
-        const names = items.flatMap((item): string[] => {
-          if (typeof item === 'string') return [item];
-          if (item && typeof item === 'object' && 'name' in item) {
-            const name = (item as { name?: unknown }).name;
-            if (typeof name === 'string') return [name];
-            if (name && typeof name === 'object' && 'ar' in name) {
-              const arabic = (name as { ar?: unknown }).ar;
-              if (typeof arabic === 'string') return [arabic];
-            }
-          }
-          return [];
-        });
-        if (names.length) return [...new Set(names)];
-      }
-    }
-    return [];
-  },
-
-  async usage(id: string) {
-    const db = readMockDb();
-    const enrollmentIds = new Set(
-      db.enrollments.filter((item) => item.courseId === id).map((item) => item.id),
-    );
-    return {
-      enrollmentCount: enrollmentIds.size,
-      paymentCount: db.payments.filter((item) => enrollmentIds.has(item.enrollmentId)).length,
-    };
+    await requireAdmin();
+    return [...new Set((await publicCoursesService.getCategories()).map((item) => item.ar).filter(Boolean))];
   },
 
   async list(options: {
@@ -77,8 +53,10 @@ export const coursesAdminService = {
   },
 
   async checkSlug(slug: string, exceptId?: string): Promise<boolean> {
+    await requireAdmin();
     const res = await coursesService.checkSlug(slug, exceptId);
-    return res.ok ? res.data : false;
+    if (!res.ok) throw new CourseServiceError(res.code, res.message, res.details);
+    return res.data;
   },
 
   async archive(id: string) {

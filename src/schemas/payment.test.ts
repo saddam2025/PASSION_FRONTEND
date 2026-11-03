@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
+import { describe, expect, it } from 'vitest';
 import { computePaymentStatus, outstanding } from './payment';
 import type { PaymentRecord } from './payment';
 const price = { amount: 10000, currency: 'EGP' };
@@ -24,11 +23,11 @@ function record(
 }
 describe('computePaymentStatus', () => {
   it('covers unpaid, pending, partial, paid and failed enum reservation', () => {
-    assert.equal(computePaymentStatus(price, []), 'unpaid');
-    assert.equal(computePaymentStatus(price, [record('payment', 2000, 'pending')]), 'pending');
-    assert.equal(computePaymentStatus(price, [record('payment', 2000)]), 'partially_paid');
-    assert.equal(computePaymentStatus(price, [record('payment', 10000)]), 'paid');
-    assert.ok(
+    expect(computePaymentStatus(price, [])).toBe('unpaid');
+    expect(computePaymentStatus(price, [record('payment', 2000, 'pending')])).toBe('pending');
+    expect(computePaymentStatus(price, [record('payment', 2000)])).toBe('partially_paid');
+    expect(computePaymentStatus(price, [record('payment', 10000)])).toBe('paid');
+    expect(
       [
         'unpaid',
         'pending',
@@ -39,30 +38,27 @@ describe('computePaymentStatus', () => {
         'refunded',
         'partially_refunded',
       ].includes('failed'),
-    );
+    ).toBe(true);
   });
   it('handles contact-us and cancellation', () => {
-    assert.equal(computePaymentStatus({ amount: null, currency: 'EGP' }, []), 'unpaid');
-    assert.equal(computePaymentStatus(price, [], true), 'cancelled');
-    assert.equal(computePaymentStatus(price, [record('payment', 5000)], true), 'partially_paid');
+    expect(computePaymentStatus({ amount: null, currency: 'EGP' }, [])).toBe('unpaid');
+    expect(computePaymentStatus(price, [], true)).toBe('cancelled');
+    expect(computePaymentStatus(price, [record('payment', 5000)], true)).toBe('partially_paid');
   });
   it('derives refund outcomes and ignores voided records', () => {
-    assert.equal(
+    expect(
       computePaymentStatus(price, [record('payment', 10000), record('refund', 10000)]),
-      'refunded',
-    );
-    assert.equal(
+    ).toBe('refunded');
+    expect(
       computePaymentStatus(price, [record('payment', 10000), record('refund', 2000)]),
-      'partially_refunded',
-    );
-    assert.equal(
+    ).toBe('partially_refunded');
+    expect(
       computePaymentStatus(price, [record('payment', 10000), record('payment', 1, 'voided')]),
-      'paid',
-    );
+    ).toBe('paid');
   });
   it('calculates outstanding without negative balances', () => {
-    assert.equal(outstanding(price, [record('payment', 2500)]), 7500);
-    assert.equal(outstanding(price, [record('payment', 12000)]), 0);
-    assert.equal(outstanding({ amount: null, currency: 'EGP' }, []), null);
+    expect(outstanding(price, [record('payment', 2500)])).toBe(7500);
+    expect(outstanding(price, [record('payment', 12000)])).toBe(0);
+    expect(outstanding({ amount: null, currency: 'EGP' }, [])).toBeNull();
   });
 });

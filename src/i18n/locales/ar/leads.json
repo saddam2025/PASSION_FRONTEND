@@ -40,6 +40,7 @@
   "registered": "تاريخ التسجيل",
   "enrollment": "حالة التسجيل",
   "payment": "حالة الدفع",
+  "netPaid": "صافي المدفوع",
   "results": "{{count}} نتيجة",
   "previous": "السابق",
   "next": "التالي",
@@ -59,24 +60,21 @@
   "answers": "الإجابات المرسلة",
   "payments": "المدفوعات",
   "records": "سجلات",
+  "noPaymentRecords": "مفيش دفعات مسجلة لحد دلوقتي.",
   "recordPayment": "تسجيل دفعة",
   "paymentAmount": "المبلغ بأصغر وحدة للعملة",
   "amount": "المبلغ",
   "acknowledgeOverpayment": "أؤكد إن الدفعة دي أعلى من الرصيد المستحق.",
   "cancel": "إلغاء",
   "actions": "الإجراءات",
-  "messageUnavailable": "لسه ما جهزناش قالب رسالة واتساب.",
   "openWhatsApp": "فتح واتساب",
   "phoneInvalid": "واتساب مش متاح عشان رقم الهاتف ناقص أو مش صالح.",
-  "logContact": "تسجيل أنني تواصلت مع العميل",
+  "logContact": "تسجيل فتح واتساب",
   "followUpNote": "ملاحظة متابعة (اختيارية)",
   "optionalNote": "اكتب ملاحظة",
-  "confirmEnrollment": "أكد التسجيل",
   "cancelEnrollment": "إلغاء التسجيل",
-  "adminOverrideReason": "يجب على المدير كتابة سبب لتأكيد التسجيل قبل اكتمال الدفع.",
-  "refundReminder": "تم استلام مبلغ. سجّل استردادًا عند الحاجة؛ الإلغاء لا يغيّر سجلات الدفع.",
+  "refundReminder": "إلغاء التسجيل مش بيغيّر سجل الدفع.",
   "reason": "السبب (مطلوب)",
-  "optionalReason": "السبب (اختياري)",
   "dismissAction": "إغلاق",
   "confirmAction": "تأكيد",
   "visitor": "زائر",
@@ -88,7 +86,7 @@
     "follow_up": "تغيير المتابعة: {{from}} ← {{to}}",
     "confirmed": "اتأكد التسجيل",
     "cancelled": "اتلغى التسجيل",
-    "whatsapp_contact_logged": "تسجيل التواصل مع العميل",
+    "whatsapp_contact_logged": "تم فتح رابط واتساب",
     "payment_payment": "تسجيل دفعة ({{status}})",
     "payment_refund": "تسجيل استرداد ({{status}})"
   },
@@ -118,6 +116,18 @@
     "cancelled": "ملغي",
     "refunded": "مسترد",
     "partially_refunded": "مسترد جزئيًا"
+  },
+  "paymentRecordStatuses": {
+    "pending": "قيد المراجعة",
+    "confirmed": "مؤكدة",
+    "voided": "ملغاة"
+  },
+  "paymentMethods": {
+    "cash": "نقدًا",
+    "bank_transfer": "تحويل بنكي",
+    "e_wallet": "محفظة إلكترونية",
+    "instapay": "إنستاباي",
+    "other": "طريقة تانية"
   },
   "otherRegistrations": "تسجيلات أخرى"
 }

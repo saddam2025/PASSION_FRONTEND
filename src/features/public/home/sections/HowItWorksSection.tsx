@@ -1,13 +1,5 @@
 import { Frame } from './shared';
-import { list, text, useSectionText } from './content';
-import { useLanguage } from '@/i18n/useLanguage';
-import type { HomeSection } from '@/services/siteContent';
-export function HowItWorksSection({ section }: { section: HomeSection }) {
-  const { language } = useLanguage();
-  const { title } = useSectionText(section);
-  const steps = list(section, 'steps')
-    .map((x) => text(x, language))
-    .filter(Boolean);
+export function HowItWorksSection({ title, steps }: { title: string; steps: string[] }) {
   if (!steps.length) return null;
   return (
     <Frame title={title}>

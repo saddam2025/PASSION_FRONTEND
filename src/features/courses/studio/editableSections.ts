@@ -11,6 +11,8 @@ export const EDITABLE_SECTION_TYPES = [
   'instructor',
   'pricingCta',
   'steps',
+  'contactWhatsApp',
+  'banner',
 ] as const satisfies readonly SectionType[];
 
 export function hasSectionEditor(type: SectionType): boolean {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BilingualTextSchema, ImageRefSchema, createSectionSchema } from './common';
+import { BilingualTextSchema, createSectionSchema } from './common';
 export const CurriculumSectionSchema = createSectionSchema(
   'curriculum',
   z
@@ -13,7 +13,6 @@ export const CurriculumSectionSchema = createSectionSchema(
               summary: BilingualTextSchema.optional(),
               lessons: z.array(z.object({ title: BilingualTextSchema.default({ ar: '', en: '' }) }).strict()).default([]),
               duration: BilingualTextSchema.optional(),
-              image: ImageRefSchema.optional(),
             })
             .strict(),
         )

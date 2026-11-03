@@ -11,7 +11,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@/i18n/useLanguage';
 import type { AuthUser, LoginInput, UserRole } from '@/services/auth.types';
-import { mockAuthService } from '@/services/auth.mock';
+import { apiAuthService } from '@/services/auth.api';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -24,21 +24,26 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const authService = apiAuthService;
   useEffect(() => {
-    void mockAuthService
+    void authService
       .getCurrentUser()
       .then(setUser)
+      .catch(() => setUser(null))
       .finally(() => setLoading(false));
-  }, []);
+    const clear = () => setUser(null);
+    window.addEventListener('passion-auth-session-cleared', clear);
+    return () => window.removeEventListener('passion-auth-session-cleared', clear);
+  }, [authService]);
   const login = useCallback(async (input: LoginInput) => {
-    const authenticated = await mockAuthService.login(input);
+    const authenticated = await authService.login(input);
     setUser(authenticated);
     return authenticated;
-  }, []);
+  }, [authService]);
   const logout = useCallback(async () => {
-    await mockAuthService.logout();
+    await authService.logout();
     setUser(null);
-  }, []);
+  }, [authService]);
   const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

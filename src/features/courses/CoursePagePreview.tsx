@@ -30,6 +30,7 @@ export function CoursePagePreview({
       slug: course.slug,
       title: d.title,
       shortDescription: d.shortDescription,
+      coverImage: d.coverImage,
       price: d.pricing.price,
       promoPrice: d.pricing.promo ?? null,
       currency: d.pricing.currency,
@@ -52,6 +53,7 @@ export function CoursePagePreview({
       phone: settings.phone,
       email: settings.email,
       privacyUrl: settings.privacyUrl,
+      registrationWhatsappTemplate: settings.registrationWhatsappTemplate,
     },
     formDefinition: snapshot.form,
   } satisfies Omit<CoursePageContextValue, 'mode'>;

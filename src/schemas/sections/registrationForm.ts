@@ -4,10 +4,11 @@ export const RegistrationFormSectionSchema = createSectionSchema(
   'registrationForm',
   z
     .object({
-      title: BilingualTextSchema,
+      title: BilingualTextSchema.default({ ar: '', en: '' }),
       subtitle: BilingualTextSchema.optional(),
       successNote: BilingualTextSchema.optional(),
       layout: z.literal('card').default('card'),
     })
-    .strict(),
+    .strict()
+    .default({ title: { ar: '', en: '' }, layout: 'card' }),
 );

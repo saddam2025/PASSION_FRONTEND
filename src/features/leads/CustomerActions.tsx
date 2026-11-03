@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/app/AuthContext';
@@ -6,66 +7,54 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Overlay';
 import { useToast } from '@/components/ui/feedback';
 import { useLanguage } from '@/i18n/useLanguage';
-import { buildWhatsAppLink } from '@/lib/whatsapp';
+import { buildRegistrationMessage, buildRegistrationWhatsAppLink } from '@/lib/registrationWhatsApp';
 import { isLikelyValidPhone } from '@/lib/phone';
 import { formatRelativeTime } from '@/lib/formatters';
 import { formatDate } from '@/lib/formatters';
-import { computePaymentStatus } from '@/schemas/payment';
 import { hasPermission } from '@/schemas/permissions';
 import type { Enrollment, Lead } from '@/schemas/lead';
-import { readMockDb } from '@/mocks/db';
-import { leadsService } from '@/services/leads.mock';
+import type { PaymentRecord } from '@/schemas/payment';
+import { leadsService } from '@/services/leads.service';
+import { settingsService } from '@/services/settings.api';
 
 interface Props {
   lead: Lead;
   enrollment: Enrollment;
+  payments: PaymentRecord[];
+  staffUsers: { id: string; name: { ar: string; en: string }; role: string; active: boolean }[];
 }
-interface MessagingSettings {
-  postRegistration?: { ar?: string; en?: string };
-  genericGreeting?: { ar?: string; en?: string };
-}
-export default function CustomerActions({ lead, enrollment }: Props) {
+export default function CustomerActions({ lead, enrollment, payments, staffUsers }: Props) {
   const { t } = useTranslation('leads');
   const { language } = useLanguage();
   const { user } = useAuth();
   const toast = useToast();
   const client = useQueryClient();
   const [openedWhatsApp, setOpenedWhatsApp] = useState(false);
-  const [dialog, setDialog] = useState<'confirm' | 'cancel' | null>(null);
+  const [dialog, setDialog] = useState<'cancel' | 'confirm' | null>(null);
   const [reason, setReason] = useState('');
   const [followUpNote, setFollowUpNote] = useState('');
-  const db = readMockDb();
-  const allSettings = db.settings.values;
-  const messaging = allSettings.messaging as MessagingSettings | undefined;
-  const courseTemplate = db.courses.find((item) => item.id === enrollment.courseId)?.details?.contact
-    ?.whatsappMessageTemplate;
-  const template =
-    messaging?.postRegistration?.[language] ||
-    courseTemplate?.[language] ||
-    messaging?.genericGreeting?.[language] ||
-    '';
-  const message = template
-    .replaceAll('{name}', lead.fullName)
-    .replaceAll('{course}', enrollment.courseSnapshot.title[language])
-    .replaceAll('{reference}', enrollment.reference);
-  const waLink = template ? buildWhatsAppLink({ phone: lead.phoneNormalized, message }) : null;
-  const waDisabledReason = !isLikelyValidPhone(lead.phoneNormalized)
-    ? t('phoneInvalid')
-    : !template
-      ? t('messageUnavailable')
-      : null;
-  const records = db.payments.filter((item) => item.enrollmentId === enrollment.id);
+  const templateQuery = useQuery({
+    queryKey: ['registration-whatsapp-template', enrollment.courseId],
+    queryFn: async () => {
+      const settings = await settingsService.getPublicSettings();
+      return { template: await leadsService.whatsappTemplate(enrollment.courseId, settings.registrationWhatsappTemplate), number: settings.whatsappNumber };
+    },
+  });
+  const template = templateQuery.data?.template ?? '';
+  const message = buildRegistrationMessage(
+    template,
+    lead.fullName,
+    enrollment.courseSnapshot.title[language],
+    enrollment.reference,
+  );
+  const whatsappNumber = templateQuery.data?.number || lead.phoneNormalized;
+  const waLink = templateQuery.isSuccess ? buildRegistrationWhatsAppLink(whatsappNumber, message) : null;
+  const waDisabledReason = !isLikelyValidPhone(whatsappNumber) ? t('phoneInvalid') : null;
+  const records = payments.filter((item) => item.enrollmentId === enrollment.id);
   const paid = records
     .filter((item) => item.status === 'confirmed')
     .reduce((sum, item) => sum + (item.kind === 'payment' ? item.amount : -item.amount), 0);
-  const paymentStatus = computePaymentStatus(
-    enrollment.priceSnapshot,
-    records,
-    enrollment.enrollmentStatus === 'cancelled',
-  );
-  const noPrice = enrollment.priceSnapshot.amount === null || enrollment.priceSnapshot.amount === 0;
-  const needsOverride = paymentStatus !== 'paid' && !noPrice;
-  const staff = db.users.filter((item) => item.active);
+  const staff = user?.role === 'admin' ? staffUsers.filter((item) => item.active) : [];
   const canManageFollow = Boolean(user && hasPermission(user, 'updateFollowUp'));
   const mutationDone = () => {
     setDialog(null);
@@ -82,18 +71,20 @@ export default function CustomerActions({ lead, enrollment }: Props) {
     mutationFn: (input: { status: Enrollment['followUpStatus']; note: string }) =>
       leadsService.updateFollowUp(enrollment.id, input.status, input.note),
     onSuccess: mutationDone,
+    onError: (error: Error) => toast.notify({ title: error.message, tone: 'danger' }),
   });
   const contact = useMutation({
-    mutationFn: () => leadsService.logContact(enrollment.id, canManageFollow),
-    onSuccess: mutationDone,
-  });
-  const confirm = useMutation({
-    mutationFn: () => leadsService.confirmEnrollment(enrollment.id, reason),
+    mutationFn: () => leadsService.logContact(enrollment.id),
     onSuccess: mutationDone,
     onError: (error: Error) => toast.notify({ title: error.message, tone: 'danger' }),
   });
   const cancel = useMutation({
     mutationFn: () => leadsService.cancelEnrollment(enrollment.id, reason),
+    onSuccess: mutationDone,
+    onError: (error: Error) => toast.notify({ title: error.message, tone: 'danger' }),
+  });
+  const confirm = useMutation({
+    mutationFn: () => leadsService.confirm(enrollment.id, reason),
     onSuccess: mutationDone,
     onError: (error: Error) => toast.notify({ title: error.message, tone: 'danger' }),
   });
@@ -135,12 +126,7 @@ export default function CustomerActions({ lead, enrollment }: Props) {
     return formatRelativeTime(-Math.floor(ms / size), unit);
   };
   const canAdmin = user?.role === 'admin';
-  const canAssign = Boolean(
-    user &&
-      (user.role === 'admin' ||
-        !enrollment.assignedToUserId ||
-        enrollment.assignedToUserId === user.id),
-  );
+  const canAssign = user?.role === 'admin';
   return (
     <section className="grid gap-4 rounded-sm border border-border bg-canvas p-4">
       <header className="flex flex-wrap items-center gap-2">
@@ -151,18 +137,14 @@ export default function CustomerActions({ lead, enrollment }: Props) {
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => setOpenedWhatsApp(true)}
+            onClick={() => { setOpenedWhatsApp(true); contact.mutate(); }}
           >
             {t('openWhatsApp')}
           </a>
         ) : (
           <span className="text-sm text-muted">{waDisabledReason}</span>
         )}
-        {openedWhatsApp && (
-          <Button variant="secondary" onClick={() => contact.mutate()} disabled={contact.isPending}>
-            {t('logContact')}
-          </Button>
-        )}
+        {openedWhatsApp && <span className="text-sm text-muted">{t('logContact')}</span>}
       </header>
       {canManageFollow && (
         <div className="grid gap-2 sm:grid-cols-2">
@@ -222,22 +204,20 @@ export default function CustomerActions({ lead, enrollment }: Props) {
         </label>
       )}
       <div className="flex flex-wrap gap-2">
-        {(noPrice || paymentStatus === 'paid' || canAdmin) &&
-          enrollment.enrollmentStatus !== 'confirmed' && (
-            <Button variant="secondary" onClick={() => setDialog('confirm')}>
-              {t('confirmEnrollment')}
-            </Button>
-          )}
-        <Button
+        {canAdmin && <Button
+          variant="secondary"
+          onClick={() => setDialog('confirm')}
+          disabled={enrollment.enrollmentStatus !== 'pending'}
+        >
+          تأكيد التسجيل
+        </Button>}
+      {canAdmin && <Button
           variant="danger"
           onClick={() => setDialog('cancel')}
           disabled={enrollment.enrollmentStatus === 'cancelled'}
         >
           {t('cancelEnrollment')}
-        </Button>
-        {needsOverride && canAdmin && (
-          <span className="self-center text-sm text-warning">{t('adminOverrideReason')}</span>
-        )}
+        </Button>}
       </div>
       {paid > 0 && <p className="text-sm text-warning">{t('refundReminder')}</p>}
       <details>
@@ -248,7 +228,7 @@ export default function CustomerActions({ lead, enrollment }: Props) {
               <span className="absolute -start-[1.4rem] top-1 size-2 rounded-full bg-primary" />
               <p>{event.label}</p>
               <p className="text-xs text-muted">
-                {db.users.find((item) => item.id === event.actor)?.name[language] ??
+                {(event as typeof event & { actorName?: string }).actorName || staffUsers.find((item) => item.id === event.actor)?.name.ar ||
                   (event.actor === 'visitor' ? t('visitor') : t('system'))}{' '}
                 ·{' '}
                 <time dateTime={event.at} title={formatDate(event.at, { dateStyle: 'medium', timeStyle: 'short' })}>
@@ -262,7 +242,7 @@ export default function CustomerActions({ lead, enrollment }: Props) {
       <Modal
         open={dialog !== null}
         onOpenChange={(open) => !open && setDialog(null)}
-        title={dialog === 'confirm' ? t('confirmEnrollment') : t('cancelEnrollment')}
+        title={dialog === 'confirm' ? 'تأكيد التسجيل' : t('cancelEnrollment')}
         description={dialog === 'cancel' && paid > 0 ? t('refundReminder') : undefined}
         footer={
           <>
@@ -271,11 +251,8 @@ export default function CustomerActions({ lead, enrollment }: Props) {
             </Button>
             <Button
               variant={dialog === 'cancel' ? 'danger' : 'primary'}
-              onClick={() => (dialog === 'confirm' ? confirm.mutate() : cancel.mutate())}
-              disabled={
-                Boolean(dialog === 'cancel' ? cancel.isPending : confirm.isPending) ||
-                ((dialog === 'cancel' || needsOverride) && reason.trim().length < 3)
-              }
+              onClick={() => dialog === 'confirm' ? confirm.mutate() : cancel.mutate()}
+              disabled={cancel.isPending || confirm.isPending || (dialog === 'cancel' && reason.trim().length < 3) || (dialog === 'confirm' && paid <= 0 && reason.trim().length < 3)}
             >
               {t('confirmAction')}
             </Button>
@@ -283,7 +260,7 @@ export default function CustomerActions({ lead, enrollment }: Props) {
         }
       >
         <label className="grid gap-1">
-          {t(dialog === 'cancel' || needsOverride ? 'reason' : 'optionalReason')}
+          {dialog === 'confirm' ? 'سبب التأكيد' : t('reason')}
           <textarea
             className="min-h-24 rounded-xs border p-3"
             value={reason}

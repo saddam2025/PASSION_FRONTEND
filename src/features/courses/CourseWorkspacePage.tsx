@@ -9,10 +9,10 @@ import { CourseStudioShell, type CourseTab } from './studio/CourseStudioShell';
 import { CoursePagePreview } from './CoursePagePreview';
 import { SnapshotSchema } from '@/schemas/course';
 
-export default function CourseWorkspacePage({ assistant = false }: { assistant?: boolean }) {
+export default function CourseWorkspacePage() {
   const { courseId: routeCourseId } = useParams();
   const { pathname, search } = useLocation();
-  const courseId = routeCourseId ?? pathname.match(/^\/(?:admin|assistant)\/courses\/([^/]+)/)?.[1] ?? '';
+  const courseId = routeCourseId ?? pathname.match(/^\/admin\/courses\/([^/]+)/)?.[1] ?? '';
   const { t, i18n } = useTranslation('courses');
   const [previewWidth, setPreviewWidth] = useState<1200 | 768 | 375>(1200);
 
@@ -25,7 +25,7 @@ export default function CourseWorkspacePage({ assistant = false }: { assistant?:
     },
   });
 
-  const rolePrefix = assistant ? 'assistant' : 'admin';
+  const rolePrefix = 'admin';
   const sectionId = pathname.match(/\/studio\/page\/([^/]+)$/)?.[1];
   const isRtl = i18n.language === 'ar';
   const BackArrow = isRtl ? ArrowRight : ArrowLeft;
@@ -104,8 +104,6 @@ export default function CourseWorkspacePage({ assistant = false }: { assistant?:
     activeTab = 'form';
   } else if (pathname.includes('/studio/seo')) {
     activeTab = 'seo';
-  } else if (pathname.includes('/studio/history') || pathname.endsWith('/history')) {
-    activeTab = 'history';
   } else if (pathname.includes('/studio/page') || pathname.endsWith('/builder')) {
     activeTab = 'page';
   } else {
@@ -118,7 +116,7 @@ export default function CourseWorkspacePage({ assistant = false }: { assistant?:
       course={course}
       activeTab={activeTab}
       sectionId={sectionId}
-      assistant={assistant}
     />
   );
 }
+

@@ -13,20 +13,15 @@ import arRegistration from './locales/ar/registration.json';
 import arBuilder from './locales/ar/builder.json';
 import arDashboard from './locales/ar/dashboard.json';
 import arErrors from './locales/ar/errors.json';
-import arReview from './locales/ar/review.json';
-import arNotifications from './locales/ar/notifications.json';
 import arLeads from './locales/ar/leads.json';
-import arPayments from './locales/ar/payments.json';
 import arUsers from './locales/ar/users.json';
 import arSettings from './locales/ar/settings.json';
-import arAudit from './locales/ar/audit.json';
-import arAnalytics from './locales/ar/analytics.json';
 import arTerms from './locales/ar/terms.json';
 
 export const namespaces = [
   'common', 'nav', 'auth', 'home', 'courses', 'confirmation', 'privacy', 'footer', 'sections',
-  'registration', 'builder', 'dashboard', 'errors', 'review', 'notifications', 'leads',
-  'payments', 'users', 'settings', 'audit', 'analytics', 'terms',
+  'registration', 'builder', 'dashboard', 'errors', 'leads',
+  'users', 'settings', 'terms',
 ] as const;
 export type Namespace = (typeof namespaces)[number];
 export type AppLanguage = 'ar';
@@ -48,14 +43,9 @@ export const i18nResources = {
     builder: arBuilder,
     dashboard: arDashboard,
     errors: arErrors,
-    review: arReview,
-    notifications: arNotifications,
     leads: arLeads,
-    payments: arPayments,
     users: arUsers,
     settings: arSettings,
-    audit: arAudit,
-    analytics: arAnalytics,
     terms: arTerms,
   },
 } as const;
@@ -72,3 +62,5 @@ void i18n.use(initReactI18next).init({
 });
 
 export default i18n;
+
+

@@ -29,9 +29,7 @@ function arabicOnly<T>(value: T): T {
   return value;
 }
 
-/**
- * Full template contains only section types whose editors are complete for Slice 2.
- */
+/** Full template uses only section types supported by the current editor. */
 const fullTemplateSections: TemplateSectionDescriptor[] = [
   {
     type: 'hero',
@@ -61,27 +59,6 @@ const fullTemplateSections: TemplateSectionDescriptor[] = [
       image: { src: '/images/course-cover-default.webp', alt: emptyText(), decorative: true },
       layout: 'imageStart',
       imageRatio: 'landscape',
-      verticalAlign: 'center',
-    }),
-  },
-  {
-    type: 'imageText',
-    customContent: () => ({
-      title: { ar: 'الكورس ده مناسب ليك لو...', en: '' },
-      richText: rich(),
-      image: { src: '/images/course-cover-default.webp', alt: emptyText(), decorative: true },
-      layout: 'imageEnd',
-      imageRatio: 'landscape',
-      verticalAlign: 'center',
-    }),
-  },
-  {
-    type: 'text',
-    customContent: () => ({
-      title: { ar: 'تفاصيل أكتر', en: '' },
-      subtitle: emptyText(),
-      richText: rich(),
-      layout: 'single',
     }),
   },
   {
@@ -95,8 +72,8 @@ const fullTemplateSections: TemplateSectionDescriptor[] = [
   },
   { type: 'curriculum', customContent: () => ({ title: { ar: 'هتتعلم إيه؟', en: '' }, modules: [], layout: 'accordion' }) },
   { type: 'instructor', customContent: () => ({ name: emptyText(), title: emptyText(), bio: rich(), credentials: [], layout: 'photoStart' }) },
-  { type: 'steps', customContent: () => SECTION_REGISTRY_META.steps.defaultContent() },
   { type: 'pricingCta', customContent: () => ({ title: { ar: 'الباقة والسعر', en: '' }, bullets: [], useCoursePrice: true, layout: 'card', includes: [], facts: [], whatsappCta: false }) },
+  { type: 'steps', customContent: () => SECTION_REGISTRY_META.steps.defaultContent() },
   {
     type: 'faq',
     customContent: () => ({
@@ -120,6 +97,7 @@ const fullTemplateSections: TemplateSectionDescriptor[] = [
       layout: 'card',
     }),
   },
+  { type: 'contactWhatsApp', customContent: () => ({ title: { ar: 'عندك سؤال؟ كلمنا على واتساب', en: '' }, show: { whatsapp: true, phone: false, email: false }, layout: 'card' }) },
 ];
 
 /**
@@ -148,6 +126,7 @@ const shortTemplateSections: TemplateSectionDescriptor[] = [
       layout: 'single',
     }),
   },
+  { type: 'pricingCta', customContent: () => ({ title: { ar: 'الباقة والسعر', en: '' }, bullets: [], useCoursePrice: true, layout: 'card' }) },
   {
     type: 'registrationForm',
     customContent: () => ({
@@ -157,6 +136,7 @@ const shortTemplateSections: TemplateSectionDescriptor[] = [
       layout: 'card',
     }),
   },
+  { type: 'contactWhatsApp', customContent: () => ({ title: { ar: 'عندك سؤال؟ كلمنا على واتساب', en: '' }, show: { whatsapp: true, phone: false, email: false }, layout: 'card' }) },
 ];
 
 /**
@@ -191,9 +171,6 @@ function buildSection(
       background: 'none',
       spacing: 'lg',
       width: 'contained',
-      align: 'start',
-      dividerTop: 'none',
-      dividerBottom: 'none',
       reveal: 'none',
     },
     content,

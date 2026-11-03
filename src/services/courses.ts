@@ -1,5 +1,7 @@
-export { coursesService } from './courses/service';
-export { mockCoursesService as publicCoursesService } from './courses.mock';
+import { apiCoursesService, apiPublicCoursesService } from './courses.api';
+
+export const coursesService = apiCoursesService;
+export const publicCoursesService = apiPublicCoursesService;
 export type * from './courses/types';
 export type { CourseTemplateId } from './courses/templates';
 export type {

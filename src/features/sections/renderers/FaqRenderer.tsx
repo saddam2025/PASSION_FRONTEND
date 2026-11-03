@@ -9,7 +9,7 @@ export default function FaqRenderer({ section }: AnyRendererProps) {
   if (section.type !== 'faq') return null;
   const c = section.content;
   return (
-    <SectionFrame settings={section.settings} id={section.settings.anchorId ?? section.id}>
+    <SectionFrame settings={section.settings} id={section.id}>
       <SectionHeading title={c.title} language={language} />
       {c.layout === 'accordion' ? <Accordion
         items={c.items.map((item, index) => ({

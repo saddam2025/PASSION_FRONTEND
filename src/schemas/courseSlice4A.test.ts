@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { CourseDetailsSchema, type Snapshot } from './course';
 import { checkReadiness } from './courseReadiness';
 import { FormDefinitionSchema, RegistrationFieldSchema, type RegistrationField } from './registrationForm';
-import { SectionSchema, SECTION_REGISTRY_META, isSectionEmpty } from './sections';
+import { SectionSchema, SECTION_REGISTRY_META, SafeUrlSchema, RichTextSchema, type SectionType, isSectionEmpty } from './sections';
 import { createTemplatePageConfig } from '@/services/courses/templates';
 import { moveRegistrationField } from '@/lib/registrationFormEditor';
+import { hasSectionEditor } from '@/features/courses/studio/editableSections';
 import { resolveCourseSeo } from '@/lib/courseSeo';
 import { buildPricingCtaModel } from '@/lib/pricingCtaModel';
 import { buildSubmissionSchema } from '@/lib/formSchema';
@@ -57,6 +58,9 @@ describe('Slice 4A course details and form schemas', () => {
     expect(RegistrationFieldSchema.safeParse({ ...valid, options: [valid.options![0]!] }).success).toBe(false);
     expect(RegistrationFieldSchema.safeParse({ ...valid, options: [valid.options![0]!, { ...valid.options![1]!, value: valid.options![0]!.value }] }).success).toBe(false);
     expect(RegistrationFieldSchema.safeParse({ ...valid, label: { ar: '  ', en: '' } }).success).toBe(false);
+    expect(RegistrationFieldSchema.safeParse({ ...valid, options: [{ value: 'choice-a', label: { ar: '', en: '' } }, valid.options![1]!] }).success).toBe(false);
+    expect(RegistrationFieldSchema.safeParse({ ...valid, type: 'email' }).success).toBe(false);
+    expect(RegistrationFieldSchema.safeParse({ ...valid, type: 'phone' }).success).toBe(false);
     const renamed = { ...valid, label: { ar: 'اختيارك', en: '' } };
     expect(renamed.id).toBe(valid.id);
     expect(renamed.options?.map((option) => option.value)).toEqual(valid.options?.map((option) => option.value));
@@ -105,6 +109,23 @@ describe('Slice 4A sections, SEO and readiness', () => {
     expect(stepsDefault.items.every((item) => item.title.ar && item.text.ar)).toBe(true);
     expect(steps.type === 'steps' && steps.content.items).toHaveLength(4);
   });
+  it('has a schema default and editor for every supported section type, rejects unsafe links and raw HTML blocks', () => {
+    const types: SectionType[] = ['hero','imageText','text','featureCards','curriculum','instructor','pricingCta','steps','faq','registrationForm','contactWhatsApp','banner'];
+    expect(Object.keys(SECTION_REGISTRY_META).sort()).toEqual([...types].sort());
+    for (const [index, type] of types.entries()) {
+      const section = SectionSchema.parse({
+        id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+        type,
+      });
+      expect(section.visible, type).toBe(true);
+      expect(hasSectionEditor(type), type).toBe(true);
+      expect(SECTION_REGISTRY_META[type].defaultContent(), type).toBeTruthy();
+      if (section.type === 'banner') expect(isSectionEmpty(section), type).toBe(true);
+    }
+    expect(SafeUrlSchema.safeParse('https://example.test/path').success).toBe(true);
+    expect(SafeUrlSchema.safeParse('javascript:alert(1)').success).toBe(false);
+    expect(RichTextSchema.safeParse([{ type: 'html', html: '<script>alert(1)</script>' }]).success).toBe(false);
+  });
   it('renders all template section types only from the editable section set', () => {
     const types = createTemplatePageConfig('full').sections.map((item) => item.type);
     expect(types).toEqual(expect.arrayContaining(['curriculum', 'instructor', 'pricingCta', 'steps']));
@@ -147,8 +168,7 @@ describe('Slice 4A sections, SEO and readiness', () => {
       const candidate = structuredClone(base);
       change(candidate);
       const result = checkReadiness(candidate, 'ready-course').errors;
-      expect(result.map((item) => item.path), path).toContain(path);
-      expect(result.filter((item) => item.path === path), path).toHaveLength(1);
+      expect(result.map((item) => item.path), path).toEqual([path]);
     }
     expect(checkReadiness(base, 'not valid').errors.map((item) => item.path)).toContain('slug');
   });

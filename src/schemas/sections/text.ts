@@ -10,5 +10,6 @@ export const TextSectionSchema = createSectionSchema(
       richText: BilingualRichTextSchema,
       layout: z.enum(['single', 'twoColumns']).default('single'),
     })
-    .strict(),
+    .strict()
+    .default({ title: { ar: '', en: '' }, subtitle: { ar: '', en: '' }, richText: { ar: [], en: [] }, layout: 'single' }),
 );

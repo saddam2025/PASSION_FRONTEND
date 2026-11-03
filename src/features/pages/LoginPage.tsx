@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/feedback';
 import { useAuth } from '@/app/AuthContext';
 import { useLanguage } from '@/i18n/useLanguage';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { ApiError } from '@/api/client';
 
 const loginSchema = (invalidEmail: string, required: string) =>
   z.object({
@@ -41,6 +42,7 @@ export default function LoginPage() {
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({
     resolver: zodResolver(schema),
@@ -64,7 +66,12 @@ export default function LoginPage() {
       navigate(safeRequested ?? (user.role === 'admin' ? '/admin' : '/assistant'), {
         replace: true,
       });
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError) {
+        for (const [field, message] of Object.entries(error.fieldErrors)) {
+          if (field === 'email' || field === 'password') setError(field, { type: 'server', message });
+        }
+      }
       notify({ title: t('auth:loginError'), tone: 'danger' });
     }
   });

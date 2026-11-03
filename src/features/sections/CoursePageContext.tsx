@@ -8,6 +8,7 @@ export interface CoursePageData {
   slug: string;
   title: BilingualText;
   shortDescription: BilingualText;
+  coverImage?: ImageRef;
   price: number | null;
   promoPrice: number | null;
   currency: string;
@@ -47,6 +48,7 @@ export interface CoursePageSettings {
   phone: string;
   email: string;
   privacyUrl?: string;
+  registrationWhatsappTemplate?: string;
 }
 export interface CoursePageContextValue {
   course: CoursePageData;

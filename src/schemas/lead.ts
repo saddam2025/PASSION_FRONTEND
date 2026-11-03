@@ -21,7 +21,6 @@ export const LeadSchema = z
       landingSlug: z.string().optional(),
     }),
     possibleDuplicateOf: z.string().optional(),
-    isDemo: z.literal(true).optional(),
   })
   .strict();
 export const EnrollmentSchema = z
@@ -64,7 +63,6 @@ export const EnrollmentSchema = z
         note: z.string().optional(),
       }),
     ),
-    isDemo: z.literal(true).optional(),
   })
   .strict();
 export type Lead = z.infer<typeof LeadSchema>;

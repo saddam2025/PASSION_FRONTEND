@@ -28,10 +28,9 @@ export const CoursePricingSchema = z
     price: minorUnits,
     promo: minorUnits.optional(),
     promoPrice: minorUnits.optional(),
-    currency: z.enum(['EGP', 'USD', 'SAR', 'AED', 'EUR']).default('EGP'),
+    currency: z.literal('EGP').default('EGP'),
     contactUs: z.boolean().optional(),
     paymentInstructions: BilingualRichTextSchema.optional(),
-    paymentMethods: z.array(z.string()).optional(),
   })
   .strict();
 export type CoursePricing = z.infer<typeof CoursePricingSchema>;
@@ -158,49 +157,6 @@ export type Snapshot = z.infer<typeof SnapshotSchema>;
 export const CourseStatusSchema = z.enum(['draft', 'published', 'archived']);
 export type CourseStatus = z.infer<typeof CourseStatusSchema>;
 
-export const ReviewStateSchema = z.enum(['none', 'pending', 'rejected']);
-export type ReviewState = z.infer<typeof ReviewStateSchema>;
-
-export const CourseReviewSchema = z
-  .object({
-    state: ReviewStateSchema,
-    submittedBy: z.string().optional(),
-    submittedAt: z.string().datetime().optional(),
-    reviewedBy: z.string().optional(),
-    reviewedAt: z.string().datetime().optional(),
-    reason: z.string().max(1000).optional(),
-  })
-  .strict();
-export type CourseReview = z.infer<typeof CourseReviewSchema>;
-
-export const CourseDeletionRequestSchema = z
-  .object({
-    requestedBy: z.string().min(1),
-    requestedAt: z.string().datetime(),
-    reason: z.string().trim().min(10).max(1000),
-  })
-  .strict();
-export type CourseDeletionRequest = z.infer<typeof CourseDeletionRequestSchema>;
-
-export const CourseDeletionRejectionSchema = z
-  .object({
-    rejectedBy: z.string().min(1),
-    rejectedAt: z.string().datetime(),
-    reason: z.string().trim().min(10).max(1000),
-  })
-  .strict();
-export type CourseDeletionRejection = z.infer<typeof CourseDeletionRejectionSchema>;
-
-export const CourseVersionRecordSchema = z
-  .object({
-    version: z.number().int().positive(),
-    snapshot: SnapshotSchema,
-    publishedBy: z.string().min(1),
-    publishedAt: z.string().datetime(),
-  })
-  .strict();
-export type CourseVersionRecord = z.infer<typeof CourseVersionRecordSchema>;
-
 export const CourseSchema = z
   .object({
     id: z.string().min(1),
@@ -211,19 +167,15 @@ export const CourseSchema = z
     createdBy: z.string().min(1),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
+    publishedAt: z.string().datetime().optional(),
     deletedAt: z.string().datetime().optional(),
-    deletionRequest: CourseDeletionRequestSchema.optional(),
-    deletionRequestRejection: CourseDeletionRejectionSchema.optional(),
     version: z.number().int().nonnegative().default(1),
-    publishedVersion: z.number().int().nonnegative().default(0),
     published: SnapshotSchema.nullable(),
     draft: SnapshotSchema,
-    review: CourseReviewSchema.default({ state: 'none' }),
-    versions: z.array(CourseVersionRecordSchema).max(20).default([]),
-    details: CourseDetailsSchema.optional(),
-    pageConfig: PageConfigSchema.optional(),
   })
   .strict();
 
 export type Course = z.infer<typeof CourseSchema>;
 export type CourseRecord = Course;
+
+

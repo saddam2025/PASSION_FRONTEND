@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { adminService } from '@/services/admin.mock';
-import { siteContentService } from '@/services/siteContent.mock';
-import type { PrivacySection } from '@/services/siteContent';
+import { adminService } from '@/services/admin.service';
 import { useLanguage, getBilingualText } from '@/i18n/useLanguage';
 import { useSeo } from '@/lib/useSeo';
+import type { BilingualText } from '@/schemas';
+
+interface PrivacySection { heading: BilingualText; paragraphs: BilingualText[] }
 
 type LegalKind = 'privacyPolicy' | 'terms';
 function isLegalSections(value: unknown): value is PrivacySection[] {
@@ -29,21 +30,30 @@ export function LegalPage({ kind }: { kind: LegalKind }) {
 
   useEffect(() => {
     let active = true;
-    void Promise.all([adminService.publicSettings(), siteContentService.get()]).then(
-      ([settings, mockContent]) => {
+    void adminService.publicSettings().then(
+      (settings) => {
         const legal = settings.values.legal;
+        const registration = settings.values.registration;
+        const privacyText = kind === 'privacyPolicy' && typeof registration === 'object' && registration !== null
+          ? (registration as { privacyPolicy?: { ar?: unknown } }).privacyPolicy?.ar
+          : undefined;
         const configured =
           typeof legal === 'object' && legal !== null && kind in legal
             ? (legal as Record<string, unknown>)[kind]
             : undefined;
-        const sections = isLegalSections(configured)
+        const legalPage = configured && typeof configured === 'object' ? configured as { body?: unknown; title?: unknown } : undefined;
+        const bodyText = typeof legalPage?.body === 'string' ? legalPage.body : legalPage?.body && typeof legalPage.body === 'object' && 'ar' in legalPage.body ? String((legalPage.body as { ar: unknown }).ar ?? '') : '';
+        const titleText = typeof legalPage?.title === 'string' ? legalPage.title : legalPage?.title && typeof legalPage.title === 'object' && 'ar' in legalPage.title ? String((legalPage.title as { ar: unknown }).ar ?? '') : '';
+        const sections = kind === 'privacyPolicy' && typeof privacyText === 'string' && privacyText.trim()
+          ? [{ heading: { ar: '', en: '' }, paragraphs: [{ ar: privacyText.trim(), en: '' }] }]
+          : bodyText.trim()
+          ? [{ heading: { ar: titleText, en: '' }, paragraphs: [{ ar: bodyText.trim(), en: '' }] }]
+          : isLegalSections(configured)
           ? configured
-          : kind === 'privacyPolicy'
-            ? mockContent.privacy
-            : [];
+          : [];
         if (active) setData(sections);
       },
-    );
+    ).catch(() => { if (active) setData([]); });
     return () => {
       active = false;
     };

@@ -9,9 +9,10 @@ import { PasswordInput } from '@/components/ui/fields';
 import { ErrorState, Skeleton, useToast } from '@/components/ui/feedback';
 import { PasswordStrength } from '@/features/auth/PasswordStrength';
 import { passwordSchema } from '@/schemas/auth';
-import { mockPasswordResetService } from '@/services/authFlows.mock';
+import { passwordResetService } from '@/services/authFlows.service';
 import { useLanguage } from '@/i18n/useLanguage';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
+import { ApiError } from '@/api/client';
 
 const resetSchema = z.object({ password: passwordSchema, confirmPassword: z.string() }).refine((values) => values.password === values.confirmPassword, { path: ['confirmPassword'], message: 'passwordMismatch' });
 type ResetValues = z.infer<typeof resetSchema>;
@@ -23,23 +24,27 @@ export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const { notify } = useToast();
   const [status, setStatus] = useState<'loading' | 'invalid' | 'valid'>('loading');
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<ResetValues>({ resolver: zodResolver(resetSchema), defaultValues: { password: '', confirmPassword: '' } });
+  const { register, handleSubmit, watch, setError, formState: { errors, isSubmitting } } = useForm<ResetValues>({ resolver: zodResolver(resetSchema), defaultValues: { password: '', confirmPassword: '' } });
   const password = watch('password', '');
   useDocumentTitle(t('resetTitle'));
 
   useEffect(() => {
     let active = true;
     setStatus('loading');
-    void mockPasswordResetService.validateResetToken(token).then((valid) => { if (active) setStatus(valid ? 'valid' : 'invalid'); }).catch(() => { if (active) setStatus('invalid'); });
+    if (!passwordResetService.validateResetToken) { setStatus('valid'); return () => { active = false; }; }
+    void passwordResetService.validateResetToken(token).then((valid) => { if (active) setStatus(valid ? 'valid' : 'invalid'); }).catch(() => { if (active) setStatus('invalid'); });
     return () => { active = false; };
   }, [token]);
 
   const submit = handleSubmit(async (values) => {
     try {
-      await mockPasswordResetService.resetPassword(token, values.password);
+      await passwordResetService.resetPassword(token, values.password);
       notify({ title: t('resetSuccess'), tone: 'success' });
       navigate(`/${language}/login`, { replace: true });
-    } catch { setStatus('invalid'); }
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) setStatus('invalid');
+      else if (error instanceof ApiError) for (const [field, message] of Object.entries(error.fieldErrors)) if (field === 'password') setError(field, { type: 'server', message });
+    }
   });
 
   if (status === 'loading') return <div className="grid gap-5" role="status" aria-label={t('resetLoading')}><Skeleton variant="title" /><Skeleton variant="text" /><Skeleton variant="card" /></div>;

@@ -17,7 +17,7 @@ import { buildRegistrationWhatsAppLink } from '@/lib/registrationWhatsApp';
 import { buildRegistrationMessage } from '@/lib/registrationWhatsApp';
 import { buildWhatsAppLink } from '@/lib/whatsapp';
 const empty: SubmissionValues = { fullName: '', email: '', phone: '', consent: false as never };
-export default function RegistrationFormRenderer({ section }: AnyRendererProps) {
+export default function RegistrationFormRenderer({ section, registrationTarget = false }: AnyRendererProps) {
   const { language } = useLanguage();
   const { t } = useTranslation('registration');
   const { course, formDefinition, settings, mode } = useCoursePage();
@@ -64,8 +64,12 @@ export default function RegistrationFormRenderer({ section }: AnyRendererProps) 
       });
       if (!reference.reference) throw new Error('Missing registration reference');
       setSuccess({ reference: reference.reference, name: String(values.fullName ?? ''), title: getBilingualText(course.title, language) });
-    } catch {
-      setError(t('submitError'));
+    } catch (cause) {
+      const { RegistrationServiceError } = await import('@/services/registrations.types');
+      if (cause instanceof RegistrationServiceError) {
+        for (const [field, message] of Object.entries(cause.fieldErrors)) form.setError(field as keyof SubmissionValues, { type: 'server', message });
+        setError(cause.message);
+      } else setError(t('submitError'));
     } finally {
       setSubmitting(false);
     }
@@ -73,11 +77,12 @@ export default function RegistrationFormRenderer({ section }: AnyRendererProps) 
   if (section.type !== 'registrationForm') return null;
   if (success) {
     const defaultMessage = t('whatsappConfirmation', { name: success.name, course: success.title, reference: success.reference });
-    const whatsappMessage = course.whatsappMessageTemplate.ar.trim()
-      ? buildRegistrationMessage(course.whatsappMessageTemplate.ar, success.name, success.title, success.reference)
+    const template = course.whatsappMessageTemplate.ar.trim() || settings.registrationWhatsappTemplate || '';
+    const whatsappMessage = template.trim()
+      ? buildRegistrationMessage(template, success.name, success.title, success.reference)
       : defaultMessage;
     const whatsappHref = buildRegistrationWhatsAppLink(course.whatsappNumberOverride || settings.whatsappNumber, whatsappMessage, course.whatsappUrlOverride);
-    return <SectionFrame settings={section.settings} id={section.settings.anchorId ?? 'register'} registrationTarget>
+    return <SectionFrame settings={section.settings} id={registrationTarget ? 'register' : `register-${section.id}`} registrationTarget={registrationTarget}>
       <section role="status" className="mx-auto grid max-w-3xl gap-4 rounded-md border border-success/30 bg-surface p-6 shadow-soft">
         <SectionHeading title={{ ar: t('requestReceived'), en: '' }} language={language} />
         <p>{t('requestNotEnrolled')}</p>
@@ -92,7 +97,7 @@ export default function RegistrationFormRenderer({ section }: AnyRendererProps) 
       message: t('inquiryMessage', { courseTitle: label(course.title) }),
     });
     return (
-      <SectionFrame settings={section.settings} id={section.settings.anchorId ?? 'register'} registrationTarget>
+      <SectionFrame settings={section.settings} id={registrationTarget ? 'register' : `register-${section.id}`} registrationTarget={registrationTarget}>
         <section className="mx-auto grid max-w-3xl gap-4 rounded-md border border-border bg-surface p-6">
           <SectionHeading title={section.content.title} language={language} />
           <p>{t('closed')}</p>
@@ -111,7 +116,7 @@ export default function RegistrationFormRenderer({ section }: AnyRendererProps) 
     );
   }
   return (
-    <SectionFrame settings={section.settings} id={section.settings.anchorId ?? 'register'} registrationTarget>
+    <SectionFrame settings={section.settings} id={registrationTarget ? 'register' : `register-${section.id}`} registrationTarget={registrationTarget}>
       <section className="mx-auto grid max-w-3xl gap-5 rounded-md border border-border bg-surface section-card-padding shadow-soft">
         <SectionHeading title={section.content.title} language={language} />
         {section.content.subtitle && (
@@ -225,15 +230,7 @@ export default function RegistrationFormRenderer({ section }: AnyRendererProps) 
                     <Input
                       {...props}
                       disabled={inert}
-                      type={
-                        fieldDefinition.type === 'email'
-                          ? 'email'
-                          : fieldDefinition.type === 'phone'
-                            ? 'tel'
-                            : 'text'
-                      }
-                      inputMode={fieldDefinition.type === 'phone' ? 'tel' : undefined}
-                      dir={fieldDefinition.type === 'phone' ? 'ltr' : undefined}
+                      type="text"
                       placeholder={
                         fieldDefinition.placeholder ? label(fieldDefinition.placeholder) : undefined
                       }

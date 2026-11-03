@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BilingualTextSchema, CtaLinkSchema, ImageRefSchema, VideoEmbedSchema, createSectionSchema } from './common';
+import { BilingualTextSchema, CtaLinkSchema, ImageRefSchema, createSectionSchema } from './common';
 export const HeroSectionSchema = createSectionSchema(
   'hero',
   z
@@ -12,15 +12,10 @@ export const HeroSectionSchema = createSectionSchema(
       primaryCta: CtaLinkSchema.optional(),
       secondaryCta: CtaLinkSchema.optional(),
       image: ImageRefSchema.optional(),
-      mediaType: z.enum(['image', 'video']).default('image'),
-      video: VideoEmbedSchema.optional(),
-      badgeImage: ImageRefSchema.optional(),
       layout: z
         .enum(['splitStart', 'splitEnd', 'centered', 'imageBackground'])
         .default('splitStart'),
     })
     .strict()
-    .superRefine((content, ctx) => {
-      if (content.mediaType === 'video' && !content.video) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Choose a video.', path: ['video'] });
-    }),
+    .default({ title: { ar: '', en: '' }, layout: 'splitStart' }),
 );

@@ -23,17 +23,11 @@ export function SectionFrame({
       data-registration-form={registrationTarget ? '' : undefined}
       className={`section-container relative ps-container pe-container ${spacing[settings.spacing]} ${backgrounds[settings.background]} ${className}`}
     >
-      {settings.dividerTop !== 'none' && <DividerShape kind={settings.dividerTop} position="top" />}
       <div
-        className={`mx-auto w-full ${widths[settings.width]} ${settings.align === 'center' ? 'text-center' : 'text-start'}`}
+        className={`mx-auto w-full ${widths[settings.width]} text-start`}
       >
         {children}
       </div>
-      {settings.dividerBottom !== 'none' && <DividerShape kind={settings.dividerBottom} position="bottom" />}
     </section>
   );
-}
-function DividerShape({ kind, position }: { kind: 'curve' | 'wave'; position: 'top' | 'bottom' }) {
-  const path = kind === 'curve' ? 'M0 0H1440V24C1080 88 360 88 0 24Z' : 'M0 18C180 70 360 70 540 18S900 -34 1080 18s180 52 360 0V0H0Z';
-  return <svg aria-hidden="true" viewBox="0 0 1440 80" preserveAspectRatio="none" className={`pointer-events-none absolute inset-x-0 h-8 w-full text-border/50 ${position === 'top' ? 'top-0' : 'bottom-0 rotate-180 rtl:-scale-x-100'}`}><path d={path} fill="currentColor" /></svg>;
 }
