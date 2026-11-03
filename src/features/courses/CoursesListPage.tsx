@@ -1,273 +1,45 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Overlay';
-import { EmptyState, ErrorState, Skeleton, useToast } from '@/components/ui/feedback';
+import { Input } from '@/components/ui/fields';
+import { EmptyState, ErrorState, Skeleton } from '@/components/ui/feedback';
+import { ConfirmDialog } from '@/components/ui/Overlay';
 import { coursesAdminService } from '@/services/courses.admin';
-import type { CourseStatus } from '@/schemas/course';
-import { mockCourseCategories } from '@/mocks/categories';
-import { CourseListEntries, type CourseListItem } from './CourseListEntries';
 import { useNewCourseDialog } from './newCourseDialogStore';
+import { CourseShareLinks } from './CourseShareLinks';
+import { useToast } from '@/components/ui/feedback';
+import type { CourseListItem } from '@/services/courses/types';
 
-const statuses: Array<CourseStatus | 'all'> = [
-  'all',
-  'draft',
-  'pending_review',
-  'published',
-  'rejected',
-  'archived',
-];
-export default function CoursesListPage({ assistant = false }: { assistant?: boolean }) {
+export default function CoursesListPage() {
   const { t } = useTranslation('courses');
-  const [params, setParams] = useSearchParams();
-  const newCourse = useNewCourseDialog();
-  const client = useQueryClient();
-  const toast = useToast();
-  const [query, setQuery] = useState(params.get('search') ?? '');
-  const [selected, setSelected] = useState<CourseListItem | null>(null);
-  const [typedSlug, setTypedSlug] = useState('');
-  const status = (params.get('status') as CourseStatus | 'all' | null) ?? 'all';
-  const page = Math.max(1, Number(params.get('page') ?? 1));
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const next = new URLSearchParams(params);
-      if (query) next.set('search', query);
-      else next.delete('search');
-      next.set('page', '1');
-      if (next.toString() !== params.toString()) setParams(next, { replace: true });
-    }, 250);
-    return () => window.clearTimeout(timer);
-  }, [params, query, setParams]);
-  useEffect(() => {
-    if (params.get('new') !== '1') return;
-    newCourse.open();
-    const next = new URLSearchParams(params);
-    next.delete('new');
-    setParams(next, { replace: true });
-  }, [newCourse, params, setParams]);
-  const result = useQuery({
-    queryKey: [
-      'admin-courses',
-      status,
-      params.get('search'),
-      params.get('category'),
-      params.get('sort'),
-      page,
-    ],
-    queryFn: () =>
-      coursesAdminService.list({
-        status,
-        search: params.get('search') ?? '',
-        category: params.get('category') ?? '',
-        sort: (params.get('sort') as 'newest' | 'oldest' | 'title' | null) ?? 'newest',
-        page,
-        pageSize: 10,
-      }),
-  });
-  const categoryQuery = useQuery({
-    queryKey: ['course-categories'],
-    queryFn: () => coursesAdminService.categories(),
-  });
-  const usageQuery = useQuery({
-    queryKey: ['course-usage', selected?.id],
-    enabled: Boolean(selected),
-    queryFn: () => coursesAdminService.usage(selected!.id),
-  });
-  const setFilter = (key: string, value: string) => {
-    const next = new URLSearchParams(params);
-    if (value) next.set(key, value);
-    else next.delete(key);
-    next.set('page', '1');
-    setParams(next);
-  };
-  const archive = async (course: CourseListItem) => {
-    try {
-      await coursesAdminService.archive(course.id);
-      await client.invalidateQueries({ queryKey: ['admin-courses'] });
-      toast.notify({ title: t('archiveSuccess'), tone: 'success' });
-    } catch {
-      toast.notify({ title: t('unknownError'), tone: 'danger' });
-    }
-  };
-  const unarchive = async (course: CourseListItem) => {
-    try {
-      await coursesAdminService.unarchive(course.id);
-      await client.invalidateQueries({ queryKey: ['admin-courses'] });
-      toast.notify({ title: t('unarchiveSuccess'), tone: 'success' });
-    } catch {
-      toast.notify({ title: t('unknownError'), tone: 'danger' });
-    }
-  };
-  const remove = async () => {
+  const [query, setQuery] = useState(''); const [status, setStatus] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams(); const [selected, setSelected] = useState<{ course: CourseListItem; action: 'archive'|'unarchive'|'delete' }|null>(null);
+  const newCourse = useNewCourseDialog(); const toast = useToast(); const client = useQueryClient();
+  const filters = useMemo(() => ({ search: query, status: status as 'all'|'draft'|'published'|'archived', pageSize: 50 }), [query,status]);
+  const result = useQuery({ queryKey: ['courses-list', filters], queryFn: () => coursesAdminService.list(filters) });
+  useEffect(() => { if (searchParams.get('new') === '1') { const next = new URLSearchParams(searchParams); next.delete('new'); setSearchParams(next, { replace: true }); newCourse.open(); } }, [searchParams, setSearchParams, newCourse]);
+  const confirm = async () => {
     if (!selected) return;
     try {
-      const outcome = await coursesAdminService.remove(selected.id);
-      await client.invalidateQueries({ queryKey: ['admin-courses'] });
-      toast.notify({
-        title: t(outcome.softDeleted ? 'softDeleteSuccess' : 'deleteSuccess'),
-        tone: 'success',
-      });
-      setSelected(null);
-      setTypedSlug('');
-    } catch {
-      toast.notify({ title: t('unknownError'), tone: 'danger' });
-    }
+      if (selected.action === 'archive') await coursesAdminService.archive(selected.course.id);
+      else if (selected.action === 'unarchive') await coursesAdminService.unarchive(selected.course.id);
+      else await coursesAdminService.remove(selected.course.id);
+      await client.invalidateQueries({ queryKey: ['courses-list'] }); setSelected(null);
+      toast.notify({ title: selected.action === 'delete' ? 'تم حذف الكورس' : 'تم تحديث حالة الكورس', tone: 'success' });
+    } catch (error) { toast.notify({ title: error instanceof Error ? error.message : 'حصلت مشكلة، جرّب تاني.', tone: 'danger' }); }
   };
-  return (
-    <section className="grid gap-5">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">
-            {t(assistant ? 'assistantCourses' : 'manageCourses')}
-          </h1>
-          <p className="mt-1 text-sm text-muted">{t('courseListIntro')}</p>
-        </div>
-        <Button onClick={newCourse.open}>{t('newCourse')}</Button>
-      </header>
-      <div className="flex flex-wrap gap-3">
-        <input
-          aria-label={t('search')}
-          className="min-h-11 min-w-56 flex-1 rounded-sm border border-border bg-surface px-3"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={t('search')}
-        />
-        <div role="group" aria-label={t('status')} className="flex flex-wrap gap-2">
-          {statuses.map((item) => (
-            <button
-              key={item}
-              type="button"
-              aria-pressed={status === item}
-              className={`min-h-11 rounded-pill border px-3 text-sm ${status === item ? 'border-primary bg-primary/10 text-primary-strong' : 'border-border bg-surface'}`}
-              onClick={() => setFilter('status', item)}
-            >
-              {t(`statuses.${item}`)}
-            </button>
-          ))}
-        </div>
-        <select
-          aria-label={t('category')}
-          className="min-h-11 rounded-sm border border-border bg-surface px-3"
-          value={params.get('category') ?? ''}
-          onChange={(event) => setFilter('category', event.target.value)}
-        >
-          <option value="">{t('allCategories')}</option>
-          {(categoryQuery.data ?? mockCourseCategories).map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label={t('sort')}
-          className="min-h-11 rounded-sm border border-border bg-surface px-3"
-          value={params.get('sort') ?? 'newest'}
-          onChange={(event) => setFilter('sort', event.target.value)}
-        >
-          <option value="newest">{t('sortNewest')}</option>
-          <option value="oldest">{t('sortOldest')}</option>
-          <option value="title">{t('sortTitle')}</option>
-        </select>
-      </div>
-      {result.isLoading ? (
-        <div className="grid gap-3">
-          {[0, 1, 2].map((item) => (
-            <Skeleton key={item} variant="card" />
-          ))}
-        </div>
-      ) : result.isError ? (
-        <ErrorState title={t('loadError')} onRetry={() => void result.refetch()} />
-      ) : !result.data?.items.length ? (
-        <EmptyState
-          title={t('emptyTitle')}
-          description={t('emptyDescription')}
-          action={<Button onClick={newCourse.open}>{t('createFirstCourse')}</Button>}
-        />
-      ) : (
-        <>
-          <CourseListEntries
-            items={result.data.items}
-            assistant={assistant}
-            onArchive={(course) => void archive(course)}
-            onUnarchive={(course) => void unarchive(course)}
-            onDelete={setSelected}
-          />
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted">
-              {t('pageOf', { page: result.data.page, pages: Math.max(1, result.data.pageCount) })}
-            </span>
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                disabled={page <= 1}
-                onClick={() => setFilter('page', String(page - 1))}
-              >
-                {t('previous')}
-              </Button>
-              <Button
-                variant="secondary"
-                disabled={page >= result.data.pageCount}
-                onClick={() => setFilter('page', String(page + 1))}
-              >
-                {t('next')}
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
-      <Modal
-        open={Boolean(selected)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelected(null);
-            setTypedSlug('');
-          }
-        }}
-        title={t('deleteCourse')}
-        description={t('typeSlugToConfirm', { slug: selected?.details.slug ?? '' })}
-        footer={
-          <>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setSelected(null);
-                setTypedSlug('');
-              }}
-            >
-              {t('cancel')}
-            </Button>
-            <Button
-              variant="danger"
-              disabled={!selected || typedSlug !== selected.details.slug || usageQuery.isLoading}
-              onClick={() => void remove()}
-            >
-              {t('confirmDelete')}
-            </Button>
-          </>
-        }
-      >
-        {selected && (
-          <>
-            <input
-              dir="ltr"
-              aria-label={t('slug')}
-              className="min-h-11 w-full rounded-sm border border-border px-3 text-start"
-              value={typedSlug}
-              onChange={(event) => setTypedSlug(event.target.value)}
-            />
-            <p className="text-sm text-muted">
-              {usageQuery.data?.enrollmentCount || usageQuery.data?.paymentCount
-                ? t('softDeleteUsage', {
-                    enrollments: usageQuery.data.enrollmentCount,
-                    payments: usageQuery.data.paymentCount,
-                  })
-                : t('hardDeleteWarning')}
-            </p>
-          </>
-        )}
-      </Modal>
-    </section>
-  );
+  if (result.isPending) return <div className="grid gap-3">{Array.from({length:3},(_,index)=><Skeleton key={index} variant="card"/>)}</div>;
+  if (result.isError || !result.data) return <ErrorState title="حصلت مشكلة في تحميل الكورسات، جرّب تاني." onRetry={()=>void result.refetch()}/>;
+  const courses = result.data.items;
+  return <main className="grid gap-5"><header className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-bold">{t('title','الكورسات')}</h1><p className="text-sm text-muted">إدارة الكورسات وصفحاتها العامة.</p></div><Button onClick={newCourse.open}><Plus size={16}/>أنشئ كورس</Button></header>
+    <div className="flex flex-wrap gap-3"><label className="relative min-w-56 flex-1"><Search size={16} className="absolute start-3 top-3 text-muted"/><Input value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="ابحث باسم الكورس أو الرابط" className="ps-9"/></label><select value={status} onChange={(event)=>setStatus(event.target.value)} className="min-h-11 rounded-xs border border-border bg-surface px-3 text-sm"><option value="all">كل الحالات</option><option value="draft">مسودة</option><option value="published">منشور</option><option value="archived">مؤرشف</option></select></div>
+    {courses.length ? <section className="grid gap-3">{courses.map((course)=><article key={course.id} className="grid gap-3 rounded-sm border border-border bg-surface p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate text-lg font-bold">{course.title.ar || course.slug}</h2><p className="text-sm text-muted">{course.category} · /{course.slug}</p><p className="mt-1 text-xs text-muted">{course.status === 'published' ? 'منشور' : course.status === 'archived' ? 'مؤرشف' : 'مسودة'}{course.hasUnpublishedChanges ? ' · فيه تعديلات غير منشورة' : ''}{course.enrollmentCount !== undefined ? ` · ${course.enrollmentCount} تسجيل` : ''}</p></div><Link className="text-sm font-semibold text-primary-strong underline" to={`/admin/courses/${course.id}/studio/page`}>افتح الاستوديو</Link></div>
+      <CourseShareLinks published={course.status === 'published'} slug={course.slug} title={course.publishedTitle?.ar ?? course.title.ar} whatsappNumber={course.publishedWhatsappNumber}/>
+      <div className="flex flex-wrap gap-2">{course.status === 'published' ? <Button size="sm" variant="outline" onClick={()=>setSelected({course,action:'archive'})}>أرشف</Button> : course.status === 'archived' ? <Button size="sm" variant="outline" onClick={()=>setSelected({course,action:'unarchive'})}>ألغِ الأرشفة</Button> : <Button size="sm" onClick={()=>setSelected({course,action:'archive'})}>أرشف</Button>}<Button size="sm" variant="danger" onClick={()=>setSelected({course,action:'delete'})}>احذف</Button></div></article>)}</section> : <EmptyState title="مفيش كورسات مطابقة." description="أنشئ كورس جديد أو غيّر البحث."/>}
+    <ConfirmDialog open={Boolean(selected)} onOpenChange={(open)=>!open&&setSelected(null)} title={selected?.action==='delete'?'حذف الكورس؟':selected?.action==='archive'?'أرشفة الكورس؟':'إلغاء الأرشفة؟'} description={selected?.action==='delete'?`هيتخفى الكورس من الموقع والقوائم، والرابط هيفضل محجوز.${selected.course.enrollmentCount !== undefined ? ` عدد التسجيلات الحالي: ${selected.course.enrollmentCount}.` : ''}`:'هتتحدّث حالة الكورس، وتقدر تغيّرها بعدين.'} confirmLabel="تأكيد" cancelLabel="إلغاء" onConfirm={()=>void confirm()}/>
+  </main>;
 }
+

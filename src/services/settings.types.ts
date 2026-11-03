@@ -11,6 +11,9 @@ export interface PublicSettings {
   mapLink?: string;
   openingHours?: BilingualText;
   description: BilingualText;
+  privacyUrl?: string;
+  allowSearchEngines?: boolean;
+  registrationWhatsappTemplate?: string;
   socials: {
     facebook: string;
     instagram: string;

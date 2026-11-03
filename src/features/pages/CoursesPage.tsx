@@ -7,7 +7,7 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { EmptyState, ErrorState, Skeleton } from '@/components/ui/feedback';
 import { CourseCard } from '@/features/public/courses/CourseCard';
-import { coursesService } from '@/services/courses';
+import { publicCoursesService as coursesService } from '@/services/courses';
 import type { CourseSummary } from '@/services/courses.types';
 import { useLanguage, getBilingualText } from '@/i18n/useLanguage';
 import { useSeo } from '@/lib/useSeo';
@@ -115,7 +115,7 @@ export default function CoursesPage() {
             {t('allCategories')}
           </button>
           {categories.map((c) => {
-            const val = c.en || c.ar;
+            const val = c.ar;
             return (
               <button
                 key={val}
@@ -134,7 +134,7 @@ export default function CoursesPage() {
             options={[
               { value: 'all', label: t('allCategories') },
               ...categories.map((c) => ({
-                value: c.en || c.ar,
+                value: c.ar,
                 label: getBilingualText(c, language),
               })),
             ]}

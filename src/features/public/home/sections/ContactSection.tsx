@@ -1,21 +1,18 @@
 import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 import { Frame } from './shared';
-import { useLanguage, text } from './content';
 import { usePublicSettings } from '@/services/usePublicSettings';
 import { useTranslation } from 'react-i18next';
 import { whatsappUrl } from '@/features/public/layout/whatsapp';
-import type { HomeSection } from '@/services/siteContent';
-export function ContactSection({ section }: { section: HomeSection }) {
-  const { language } = useLanguage();
+export function ContactSection({ title }: { title: string }) {
   const { t } = useTranslation('home');
   const s = usePublicSettings();
-  const address = s.address[language] || s.address[language === 'ar' ? 'en' : 'ar'];
+  const address = s.address.ar;
   const wa = whatsappUrl(s.whatsappNumber, t('whatsappGreeting'));
   const openingHours =
-    s.openingHours?.[language] || s.openingHours?.[language === 'ar' ? 'en' : 'ar'];
+    s.openingHours?.ar;
   if (!s.email && !s.phone && !address && !wa && !s.mapLink && !openingHours) return null;
   return (
-    <Frame id="contact" title={text(section.content.title, language) || t('contactTitle')}>
+    <Frame id="contact" title={title || t('contactTitle')}>
       <div className="flex flex-wrap gap-4">
         {wa && (
           <a

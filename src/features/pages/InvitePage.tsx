@@ -10,10 +10,11 @@ import { Input, PasswordInput } from '@/components/ui/fields';
 import { ErrorState, Skeleton, useToast } from '@/components/ui/feedback';
 import { PasswordStrength } from '@/features/auth/PasswordStrength';
 import { passwordSchema } from '@/schemas/auth';
-import { mockInviteService } from '@/services/authFlows.mock';
+import { inviteService } from '@/services/authFlows.service';
 import { useLanguage } from '@/i18n/useLanguage';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
 import type { InviteDetails } from '@/services/authFlows.types';
+import { ApiError } from '@/api/client';
 
 const invitationSchema = (required: string) => z.object({
   fullName: z.string().trim().min(1, required).max(120),
@@ -31,14 +32,14 @@ export default function InvitePage() {
   const [status, setStatus] = useState<'loading' | 'invalid' | 'valid'>('loading');
   const [invite, setInvite] = useState<InviteDetails | null>(null);
   const schema = useMemo(() => invitationSchema(t('auth:required')), [t]);
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<InvitationValues>({ resolver: zodResolver(schema), defaultValues: { fullName: '', password: '', confirmPassword: '' } });
+  const { register, handleSubmit, watch, setError, formState: { errors, isSubmitting } } = useForm<InvitationValues>({ resolver: zodResolver(schema), defaultValues: { fullName: '', password: '', confirmPassword: '' } });
   const password = watch('password', '');
   useDocumentTitle(t('auth:inviteTitle'));
 
   useEffect(() => {
     let active = true;
     setStatus('loading');
-    void mockInviteService.validate(token).then((result) => {
+    void inviteService.validate(token).then((result) => {
       if (!active) return;
       setInvite(result);
       setStatus(result ? 'valid' : 'invalid');
@@ -49,10 +50,16 @@ export default function InvitePage() {
   const submit = handleSubmit(async (values) => {
     if (!invite) return;
     try {
-      await mockInviteService.accept({ token, email: invite.email, fullName: values.fullName, password: values.password });
+      await inviteService.accept({ token, email: invite.email, fullName: values.fullName, password: values.password });
       notify({ title: t('auth:inviteSuccess'), tone: 'success' });
       navigate(`/${language}/login`, { replace: true, state: { email: invite.email } });
-    } catch { setStatus('invalid'); }
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) setStatus('invalid');
+      else if (error instanceof ApiError) for (const [field, message] of Object.entries(error.fieldErrors)) {
+        const target = field === 'name' ? 'fullName' : field;
+        if (target === 'fullName' || target === 'password') setError(target, { type: 'server', message });
+      }
+    }
   });
 
   if (status === 'loading') return <div className="grid gap-5" role="status" aria-label={t('auth:inviteLoading')}><Skeleton variant="title" /><Skeleton variant="text" /><Skeleton variant="card" /></div>;

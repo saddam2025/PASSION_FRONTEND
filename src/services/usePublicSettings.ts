@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { mockSettingsService } from '@/services/settings.mock';
+import { settingsService } from '@/services/settings.api';
 import type { PublicSettings } from '@/services/settings.types';
 import { mediaUrl } from '@/lib/mediaUrl';
 
@@ -14,6 +14,8 @@ const emptySettings: PublicSettings = {
   mapLink: '',
   openingHours: { ar: '', en: '' },
   description: { ar: '', en: '' },
+  privacyUrl: '',
+  allowSearchEngines: true,
   socials: { facebook: '', instagram: '', linkedin: '', youtube: '', tiktok: '', x: '' },
 };
 
@@ -21,7 +23,7 @@ export function usePublicSettings(): PublicSettings {
   const [settings, setSettings] = useState(emptySettings);
   useEffect(() => {
     const refresh = () =>
-      void mockSettingsService.getPublicSettings().then((next) => {
+      void settingsService.getPublicSettings().then((next) => {
         setSettings(next);
         if (next.favicon) {
           let icon = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
@@ -36,7 +38,7 @@ export function usePublicSettings(): PublicSettings {
             icon.removeAttribute('href');
           }
         }
-      });
+      }).catch(() => setSettings(emptySettings));
     refresh();
     window.addEventListener('passion-settings-updated', refresh);
     return () => window.removeEventListener('passion-settings-updated', refresh);

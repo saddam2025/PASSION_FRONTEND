@@ -11,7 +11,6 @@ import {
   UserRound,
 } from 'lucide-react';
 import { SmartImage } from '@/components/common/SmartImage';
-import { LanguageSwitcher } from '@/i18n/LanguageSwitcher';
 import { useLanguage } from '@/i18n/useLanguage';
 import { usePublicSettings } from '@/services/usePublicSettings';
 import { cn } from '@/lib/cn';
@@ -26,9 +25,7 @@ export function PublicNavbar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const settings = usePublicSettings();
-  const academyName =
-    settings.academyName[language].trim() ||
-    settings.academyName[language === 'ar' ? 'en' : 'ar'].trim();
+  const academyName = settings.academyName.ar.trim();
   const whatsappHref = whatsappUrl(settings.whatsappNumber, t('nav:whatsappGreeting'));
 
   useEffect(() => {
@@ -41,8 +38,7 @@ export function PublicNavbar() {
   const home = `/${language}`;
   const section = (id: string) => (pathname === home ? `#${id}` : `${home}#${id}`);
   const dashboardPath = user?.role === 'assistant' ? '/assistant' : '/admin';
-  const userName =
-    user?.name[language] || user?.name[language === 'ar' ? 'en' : 'ar'] || user?.email || '';
+  const userName = user?.name.ar || user?.email || '';
   return (
     <header
       className={cn(
@@ -103,7 +99,6 @@ export function PublicNavbar() {
           </a>
         </nav>
         <div className="flex shrink-0 items-center gap-2">
-          <LanguageSwitcher />
           {user ? (
             <>
               <Link

@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+export const DEFAULT_REGISTRATION_WHATSAPP_MESSAGE =
+  'أهلًا {name}، بخصوص تسجيلك في كورس {course}، رقم الطلب {reference}.';
+
 export const SafeUrlSchema = z
   .string()
   .trim()

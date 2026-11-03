@@ -20,22 +20,12 @@ const renderers = {
   hero: HeroRenderer,
   imageText: lazy(() => import('./renderers/ImageTextRenderer')),
   text: lazy(() => import('./renderers/TextRenderer')),
-  gallery: lazy(() => import('./renderers/GalleryRenderer')),
   instructor: lazy(() => import('./renderers/InstructorRenderer')),
-  benefits: lazy(() => import('./renderers/BenefitsRenderer')),
   featureCards: lazy(() => import('./renderers/FeatureCardsRenderer')),
   curriculum: lazy(() => import('./renderers/CurriculumRenderer')),
-  schedule: lazy(() => import('./renderers/ScheduleRenderer')),
   pricingCta: lazy(() => import('./renderers/PricingCtaRenderer')),
-  accreditation: lazy(() => import('./renderers/AccreditationRenderer')),
-  testimonials: lazy(() => import('./renderers/TestimonialsRenderer')),
-  statistics: lazy(() => import('./renderers/StatisticsRenderer')),
-  videoEmbed: lazy(() => import('./renderers/VideoEmbedRenderer')),
   faq: lazy(() => import('./renderers/FaqRenderer')),
   contactWhatsApp: lazy(() => import('./renderers/ContactWhatsAppRenderer')),
-  cta: lazy(() => import('./renderers/CtaRenderer')),
-  divider: lazy(() => import('./renderers/DividerRenderer')),
-  partners: lazy(() => import('./renderers/PartnersRenderer')),
   registrationForm: lazy(() => import('./renderers/RegistrationFormRenderer')),
   steps: lazy(() => import('./renderers/StepsRenderer')),
   banner: lazy(() => import('./renderers/BannerRenderer')),
@@ -62,9 +52,11 @@ class SectionBoundary extends Component<
 export function SectionRenderer({
   section,
   mode = 'public',
+  registrationTarget = false,
 }: {
   section: unknown;
   mode?: SectionMode;
+  registrationTarget?: boolean;
 }) {
   const { t } = useTranslation('sections');
   const result = validateSection(section);
@@ -85,20 +77,22 @@ export function SectionRenderer({
   const parsed = result.data;
   const Renderer = renderers[parsed.type] as ComponentType<AnyRendererProps>;
   return (
-    <SectionBoundary fallback={t('publicError')}>
-      <Suspense
-        fallback={
-          <div className="ps-container pe-container py-8">
-            <RouteSkeleton />
-          </div>
-        }
-      >
-      <SectionModeContext.Provider value={mode}>
-        <SectionHeadingContext.Provider value={parsed.heading}>
-          <Renderer section={parsed as Section} mode={mode} />
-        </SectionHeadingContext.Provider>
-      </SectionModeContext.Provider>
-      </Suspense>
-    </SectionBoundary>
+    <div>
+      <SectionBoundary fallback={t('publicError')}>
+        <Suspense
+          fallback={
+            <div className="ps-container pe-container py-8">
+              <RouteSkeleton />
+            </div>
+          }
+        >
+          <SectionModeContext.Provider value={mode}>
+            <SectionHeadingContext.Provider value={parsed.heading}>
+              <Renderer section={parsed as Section} mode={mode} registrationTarget={registrationTarget} />
+            </SectionHeadingContext.Provider>
+          </SectionModeContext.Provider>
+        </Suspense>
+      </SectionBoundary>
+    </div>
   );
 }

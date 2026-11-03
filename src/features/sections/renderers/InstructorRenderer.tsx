@@ -5,15 +5,16 @@ import { SectionImage, SectionHeading } from './SectionContent';
 import type { AnyRendererProps } from './types';
 import { useCoursePage } from '../CoursePageContext';
 import { ExpandableCard } from '../ExpandableCard';
+import { hasRichText } from '@/schemas/sections/richText';
 export default function InstructorRenderer({ section }: AnyRendererProps) {
   const { language } = useLanguage();
   const { course } = useCoursePage();
   if (section.type !== 'instructor') return null;
   const c = section.content;
-  const image = course.instructor?.photo ?? c.photo;
-  const name = course.instructor?.name ?? c.name;
-  const title = course.instructor?.title ?? c.title;
-  const bioValue = course.instructor?.bio ?? c.bio;
+  const image = c.photo ?? course.instructor?.photo;
+  const name = c.name.ar.trim() ? c.name : course.instructor?.name ?? c.name;
+  const title = c.title?.ar.trim() ? c.title : course.instructor?.title ?? c.title;
+  const bioValue = hasRichText(c.bio) ? c.bio : course.instructor?.bio ?? c.bio;
   const photo = image && (
     <SectionImage
       image={image}
@@ -33,7 +34,7 @@ export default function InstructorRenderer({ section }: AnyRendererProps) {
     </div>
   );
   return (
-    <SectionFrame settings={section.settings} id={section.settings.anchorId ?? section.id}>
+    <SectionFrame settings={section.settings} id={section.id}>
       <div className="section-split">
         {c.layout === 'photoStart' ? (
           <>

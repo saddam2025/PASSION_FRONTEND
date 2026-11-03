@@ -1,5 +1,4 @@
-import { apiRequest } from '@/services/apiClient';
-import { mockMediaService } from '@/services/media.mock';
+import { apiRequest, apiUpload } from '@/api/client';
 
 export interface MediaAsset {
   id: string;
@@ -37,30 +36,45 @@ export interface MediaService {
   remove(id: string): Promise<MediaRemovalResult>;
 }
 
-// Future backend adapter: multipart upload goes to the application API; browser code never receives R2 credentials or write URLs.
-export const backendMediaService: MediaService = {
+export const mediaService: MediaService = {
   async upload(file, onProgress) {
-    onProgress?.(5);
     const form = new FormData();
     form.append('file', file, file.name);
-    const asset = await apiRequest<MediaAsset>('media', { method: 'POST', body: form });
-    onProgress?.(100);
-    return asset;
+    return normalizeMedia(await apiUpload<unknown>('media', form, onProgress));
   },
-  list(options) {
+  async list(options) {
     const query = new URLSearchParams({
       page: String(options.page),
+      pageSize: '12',
       ...(options.search ? { search: options.search } : {}),
     });
-    return apiRequest<MediaListResult>(`media?${query.toString()}`);
+    const result = await apiRequest<{ items: unknown[]; total: number; page: number; pageSize: number }>(`media?${query.toString()}`);
+    return { ...result, items: result.items.map(normalizeMedia), pageCount: Math.ceil(result.total / result.pageSize) };
   },
-  checkUsage(id) {
-    return apiRequest<MediaUsageResult>(`media/${encodeURIComponent(id)}/usage`);
+  async checkUsage(id) {
+    const result = await apiRequest<{ id: string; usages?: { entityType: string; entityId: string; field: string }[] }>(`media/${encodeURIComponent(id)}`);
+    const usages = result.usages ?? [];
+    return { assetId: id, usageCount: usages.length, courseTitles: [] };
   },
-  remove(id) {
-    return apiRequest<MediaRemovalResult>(`media/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  async remove(id) {
+    try { await apiRequest(`media/${encodeURIComponent(id)}`, { method: 'DELETE' }); return { assetId: id, usageCount: 0, courseTitles: [], removed: true }; }
+    catch (error) {
+      if (error instanceof Error && 'code' in error && error.code === 'MEDIA_IN_USE') {
+        const details = (error as { details?: unknown }).details;
+        return { assetId: id, usageCount: Array.isArray(details) ? details.length : 1, courseTitles: [], removed: false };
+      }
+      throw error;
+    }
   },
 };
 
-// MOCK: replace with backendMediaService during API integration (A4).
-export const mediaService: MediaService = mockMediaService;
+function normalizeMedia(value: unknown): MediaAsset {
+  const item = value as { id?: string; key?: string; mime?: string; size?: number; width?: number; height?: number; variants?: Partial<Record<'thumb' | 'medium' | 'large', string>>; createdAt?: string };
+  const variants = item.variants ?? {};
+  return {
+    id: item.id ?? '', key: item.key ?? '', mime: (item.mime as MediaAsset['mime']) ?? 'image/webp',
+    size: item.size ?? 0, width: item.width ?? 0, height: item.height ?? 0,
+    variants: { thumb: variants.thumb ?? '', medium: variants.medium ?? '', large: variants.large ?? '' },
+    createdAt: item.createdAt ?? '',
+  };
+}

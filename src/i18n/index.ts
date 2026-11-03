@@ -13,64 +13,20 @@ import arRegistration from './locales/ar/registration.json';
 import arBuilder from './locales/ar/builder.json';
 import arDashboard from './locales/ar/dashboard.json';
 import arErrors from './locales/ar/errors.json';
-import enCommon from './locales/en/common.json';
-import enNav from './locales/en/nav.json';
-import enAuth from './locales/en/auth.json';
-import enHome from './locales/en/home.json';
-import enCourses from './locales/en/courses.json';
-import enConfirmation from './locales/en/confirmation.json';
-import enPrivacy from './locales/en/privacy.json';
-import enFooter from './locales/en/footer.json';
-import enSections from './locales/en/sections.json';
-import enRegistration from './locales/en/registration.json';
-import enBuilder from './locales/en/builder.json';
-import enDashboard from './locales/en/dashboard.json';
-import enErrors from './locales/en/errors.json';
-import arReview from './locales/ar/review.json';
-import enReview from './locales/en/review.json';
-import arNotifications from './locales/ar/notifications.json';
-import enNotifications from './locales/en/notifications.json';
 import arLeads from './locales/ar/leads.json';
-import enLeads from './locales/en/leads.json';
-import arPayments from './locales/ar/payments.json';
-import enPayments from './locales/en/payments.json';
 import arUsers from './locales/ar/users.json';
-import enUsers from './locales/en/users.json';
 import arSettings from './locales/ar/settings.json';
-import enSettings from './locales/en/settings.json';
-import arAudit from './locales/ar/audit.json';
-import enAudit from './locales/en/audit.json';
-import arAnalytics from './locales/ar/analytics.json';
-import enAnalytics from './locales/en/analytics.json';
 import arTerms from './locales/ar/terms.json';
-import enTerms from './locales/en/terms.json';
 
 export const namespaces = [
-  'common',
-  'nav',
-  'auth',
-  'home',
-  'courses',
-  'confirmation',
-  'privacy',
-  'footer',
-  'sections',
-  'registration',
-  'builder',
-  'dashboard',
-  'errors',
-  'review',
-  'notifications',
-  'leads',
-  'payments',
-  'users',
-  'settings',
-  'audit',
-  'analytics',
-  'terms',
+  'common', 'nav', 'auth', 'home', 'courses', 'confirmation', 'privacy', 'footer', 'sections',
+  'registration', 'builder', 'dashboard', 'errors', 'leads',
+  'users', 'settings', 'terms',
 ] as const;
 export type Namespace = (typeof namespaces)[number];
-export type AppLanguage = 'ar' | 'en';
+export type AppLanguage = 'ar';
+export const SUPPORTED_LANGUAGES = ['ar'] as const;
+export const DEFAULT_LANGUAGE: AppLanguage = 'ar';
 
 export const i18nResources = {
   ar: {
@@ -87,47 +43,18 @@ export const i18nResources = {
     builder: arBuilder,
     dashboard: arDashboard,
     errors: arErrors,
-    review: arReview,
-    notifications: arNotifications,
     leads: arLeads,
-    payments: arPayments,
     users: arUsers,
     settings: arSettings,
-    audit: arAudit,
-    analytics: arAnalytics,
     terms: arTerms,
-  },
-  en: {
-    common: enCommon,
-    nav: enNav,
-    auth: enAuth,
-    home: enHome,
-    courses: enCourses,
-    confirmation: enConfirmation,
-    privacy: enPrivacy,
-    footer: enFooter,
-    sections: enSections,
-    registration: enRegistration,
-    builder: enBuilder,
-    dashboard: enDashboard,
-    errors: enErrors,
-    review: enReview,
-    notifications: enNotifications,
-    leads: enLeads,
-    payments: enPayments,
-    users: enUsers,
-    settings: enSettings,
-    audit: enAudit,
-    analytics: enAnalytics,
-    terms: enTerms,
   },
 } as const;
 
 void i18n.use(initReactI18next).init({
   resources: i18nResources,
-  lng: 'ar',
-  fallbackLng: 'ar',
-  supportedLngs: ['ar', 'en'],
+  lng: DEFAULT_LANGUAGE,
+  fallbackLng: DEFAULT_LANGUAGE,
+  supportedLngs: [...SUPPORTED_LANGUAGES],
   defaultNS: 'common',
   ns: [...namespaces],
   interpolation: { escapeValue: false },
@@ -135,3 +62,5 @@ void i18n.use(initReactI18next).init({
 });
 
 export default i18n;
+
+

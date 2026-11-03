@@ -4,7 +4,7 @@ import { BilingualTextSchema } from './sections/common';
 export const RegistrationFieldSchema = z
   .object({
     id: z.string().regex(/^[a-z][a-z0-9-]{1,39}$/),
-    type: z.enum(['text', 'email', 'phone', 'select', 'radio', 'checkbox', 'textarea']),
+    type: z.enum(['text', 'select', 'radio', 'checkbox', 'textarea']),
     label: BilingualTextSchema,
     placeholder: BilingualTextSchema.optional(),
     helpText: BilingualTextSchema.optional(),
@@ -19,10 +19,11 @@ export const RegistrationFieldSchema = z
   })
   .strict()
   .superRefine((field, ctx) => {
-    if (['select', 'radio'].includes(field.type) && (!field.options || field.options.length === 0))
+    if (!field.label.ar.trim()) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'عنوان الحقل مطلوب.', path: ['label', 'ar'] });
+    if (['select', 'radio'].includes(field.type) && (!field.options || field.options.length < 2))
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Select and radio fields need options.',
+        message: 'أضف اختيارين على الأقل.',
         path: ['options'],
       });
     if (
@@ -34,23 +35,36 @@ export const RegistrationFieldSchema = z
         message: 'Option values must be unique.',
         path: ['options'],
       });
+    field.options?.forEach((option, index) => {
+      if (!option.label.ar.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'اكتب اسم الاختيار بالعربي.',
+          path: ['options', index, 'label', 'ar'],
+        });
+      }
+    });
   });
 export const FormDefinitionSchema = z
-  .object({ fields: z.array(RegistrationFieldSchema).max(12) })
+  .object({
+    fields: z.array(RegistrationFieldSchema).max(12),
+    consentText: BilingualTextSchema.optional(),
+  })
   .strict()
   .superRefine((definition, ctx) => {
     const ids = definition.fields.map((field) => field.id);
+    if (definition.consentText && !definition.consentText.ar.trim()) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'نص الموافقة مطلوب.', path: ['consentText', 'ar'] });
     if (new Set(ids).size !== ids.length)
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Custom field ids must be unique.',
+        message: 'معرّفات الحقول لازم تكون مختلفة.',
         path: ['fields'],
       });
     for (const reserved of ['fullName', 'email', 'phone', 'consent'])
       if (ids.includes(reserved))
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Core fields cannot be overridden.',
+          message: 'الحقول الأساسية ثابتة ومش ممكن استبدالها.',
           path: ['fields'],
         });
   });

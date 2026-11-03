@@ -15,7 +15,7 @@ export default function FeatureCardsRenderer({ section }: AnyRendererProps) {
         ? 'section-columns-4'
         : 'section-columns-3';
   return (
-    <SectionFrame settings={section.settings} id={section.settings.anchorId ?? section.id}>
+    <SectionFrame settings={section.settings} id={section.id}>
       <SectionHeading title={c.title} subtitle={c.subtitle} language={language} />
       <div className={columns}>
         {c.items.map((item, index) => <div key={index} className={c.layout === 'bento' && index === 0 ? 'row-span-2' : ''}><ExpandableCard image={item.image} badge={item.badge} icon={item.icon} title={item.title} text={item.text} details={item.details} detailsMode={item.detailsMode} ratio={item.ratio} /></div>)}

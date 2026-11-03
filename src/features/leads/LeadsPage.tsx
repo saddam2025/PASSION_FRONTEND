@@ -6,12 +6,11 @@ import { useAuth } from '@/app/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { EmptyState, ErrorState, Skeleton, useToast } from '@/components/ui/feedback';
 import { useLanguage } from '@/i18n/useLanguage';
-import { computePaymentStatus } from '@/schemas/payment';
 import { hasPermission } from '@/schemas/permissions';
-import { leadsService } from '@/services/leads.mock';
-import { readMockDb } from '@/mocks/db';
-import { toCsv } from '@/lib/csv';
+import { leadsService } from '@/services/leads.service';
 import { DateRangePicker } from '@/components/common/DateRangePicker';
+import { formatDate, formatMoney } from '@/lib/formatters';
+import { academyDateKey, addCalendarDays } from '@/lib/timezone';
 
 const statuses = [
   'new',
@@ -32,7 +31,6 @@ export default function LeadsPage() {
   const queryString = params.toString();
   const [search, setSearch] = useState(params.get('search') ?? '');
   const page = Number(params.get('page') ?? 1);
-  const view = params.get('view') === 'customers' ? 'customers' : 'registrations';
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const next = new URLSearchParams(queryString);
@@ -61,10 +59,10 @@ export default function LeadsPage() {
           | undefined,
         paymentStatus: params.get('payment') ?? undefined,
         assigned: (params.get('assigned') ?? undefined) as 'me' | 'unassigned' | undefined,
-        dateFrom: params.get('from') ? `${params.get('from')}T00:00:00.000Z` : undefined,
-        dateTo: params.get('to') ? `${params.get('to')}T23:59:59.999Z` : undefined,
-        needsAttention: params.get('attention') === '1',
+        dateFrom: params.get('from') ?? undefined,
+        dateTo: params.get('to') ?? undefined,
         sort: (params.get('sort') ?? 'newest') as 'newest' | 'oldest' | 'name' | 'course',
+        actorRole: user?.role,
       }),
   });
   type ListData = Awaited<ReturnType<typeof leadsService.list>>;
@@ -101,17 +99,17 @@ export default function LeadsPage() {
   };
   const setDatePreset = (preset: string) => {
     const today = new Date();
-    const end = today.toISOString().slice(0, 10);
-    const start = new Date(today);
-    if (preset === '7days') start.setDate(start.getDate() - 6);
-    if (preset === '30days') start.setDate(start.getDate() - 29);
-    if (preset === 'thisMonth') start.setDate(1);
+    const end = academyDateKey(today);
+    let start = end;
+    if (preset === '7days') start = addCalendarDays(end, -6);
+    if (preset === '30days') start = addCalendarDays(end, -29);
+    if (preset === 'thisMonth') start = `${end.slice(0, 8)}01`;
     const next = new URLSearchParams(params);
     if (preset === 'custom') {
       next.delete('from');
       next.delete('to');
     } else {
-      next.set('from', start.toISOString().slice(0, 10));
+      next.set('from', start);
       next.set('to', end);
     }
     next.delete('page');
@@ -132,97 +130,33 @@ export default function LeadsPage() {
           | undefined,
         paymentStatus: params.get('payment') ?? undefined,
         assigned: (params.get('assigned') ?? undefined) as 'me' | 'unassigned' | undefined,
-        dateFrom: params.get('from') ? `${params.get('from')}T00:00:00.000Z` : undefined,
-        dateTo: params.get('to') ? `${params.get('to')}T23:59:59.999Z` : undefined,
-        needsAttention: params.get('attention') === '1',
+        dateFrom: params.get('from') ?? undefined,
+        dateTo: params.get('to') ?? undefined,
         sort: (params.get('sort') ?? 'newest') as 'newest' | 'oldest' | 'name' | 'course',
       });
-      const headerKeys = [
-        'reference',
-        'name',
-        'email',
-        'phone',
-        'course',
-        'registeredAt',
-        'enrollmentStatus',
-        'paymentStatus',
-        'followUp',
-        'source',
-        'campaign',
-        'assignedTo',
-      ];
-      if (user && hasPermission(user, 'viewPayments'))
-        headerKeys.push('price', 'currency', 'paid', 'outstanding');
-      const headers = headerKeys.map((key) => t(`csv.${key}`));
-      const rows = records.map(({ enrollment, lead, paymentStatus, paid, outstanding }) => [
-        enrollment.reference,
-        lead?.fullName,
-        lead?.email,
-        lead?.phone,
-        enrollment.courseSnapshot.title[language],
-        enrollment.registeredAt,
-        enrollment.enrollmentStatus,
-        paymentStatus,
-        enrollment.followUpStatus,
-        lead?.attribution.source,
-        lead?.attribution.campaign,
-        query.data?.users?.find((staff) => staff.id === enrollment.assignedToUserId)?.name[
-          language
-        ],
-        ...(user && hasPermission(user, 'viewPayments')
-          ? [enrollment.priceSnapshot.amount, enrollment.priceSnapshot.currency, paid, outstanding]
-          : []),
-      ]);
-      const csv = toCsv(headers, rows);
-      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'registrations.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.notify({
-        title: records.length === 5000 ? t('exportCapped') : t('exportReady'),
-        tone: 'success',
-      });
-    } catch {
-      toast.notify({ title: t('loadError'), tone: 'danger' });
+      const url = URL.createObjectURL(records.blob);
+      const anchor = document.createElement('a'); anchor.href = url; anchor.download = records.filename || 'registrations.csv'; anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      toast.notify({ title: t('exportReady'), tone: 'success' });
+    } catch (error) {
+      toast.notify({ title: error instanceof Error ? error.message : t('loadError'), tone: 'danger' });
     }
   };
-  const unique = query.data?.customerRows ?? [];
+  const paymentSummaryAvailable = (query.data as typeof query.data & { paymentSummaryAvailable?: boolean } | undefined)?.paymentSummaryAvailable;
+  const showPaymentColumns = Boolean(user && hasPermission(user, 'viewPayments') && paymentSummaryAvailable === true);
   return (
     <main className="grid gap-5" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold">{t('title')}</h1>
-          <p className="text-sm text-muted">
-            {t('counts', {
-              registrations: query.data?.total ?? 0,
-              customers: query.data?.leads.length ?? 0,
-            })}
-          </p>
+          <p className="text-sm text-muted">{t('results', { count: query.data?.total ?? 0 })}</p>
         </div>
-        {canExport && view === 'registrations' && (
+        {canExport && (
           <Button variant="secondary" onClick={exportRows}>
             {t('export')}
           </Button>
         )}
       </header>
-      <nav className="flex gap-2" aria-label={t('views')}>
-        <button
-          className="min-h-11 rounded-pill border px-4"
-          aria-pressed={view === 'registrations'}
-          onClick={() => setFilter('view', 'registrations')}
-        >
-          {t('registrations')}
-        </button>
-        <button
-          className="min-h-11 rounded-pill border px-4"
-          aria-pressed={view === 'customers'}
-          onClick={() => setFilter('view', 'customers')}
-        >
-          {t('customers')}
-        </button>
-      </nav>
       <div className="grid gap-3 sm:grid-cols-[minmax(12rem,1fr)_14rem]">
         <input
           className="min-h-11 rounded-xs border border-border px-3"
@@ -246,21 +180,6 @@ export default function LeadsPage() {
         </select>
       </div>
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        <select
-          className="min-h-11 rounded-xs border px-3"
-          value={params.get('course') ?? ''}
-          onChange={(e) => setFilter('course', e.target.value)}
-          aria-label={t('course')}
-        >
-          <option value="">{t('allCourses')}</option>
-          {[...new Map((query.data?.enrollments ?? []).map((e) => [e.courseId, e])).values()].map(
-            (e) => (
-              <option key={e.courseId} value={e.courseId}>
-                {e.courseSnapshot.title[language]}
-              </option>
-            ),
-          )}
-        </select>
         <select
           className="min-h-11 rounded-xs border px-3"
           value={params.get('payment') ?? ''}
@@ -296,7 +215,7 @@ export default function LeadsPage() {
             </option>
           ))}
         </select>
-        <select
+        {user?.role === 'admin' && <select
           className="min-h-11 rounded-xs border px-3"
           value={params.get('assigned') ?? ''}
           onChange={(e) => setFilter('assigned', e.target.value)}
@@ -310,15 +229,7 @@ export default function LeadsPage() {
               {member.name[language]}
             </option>
           ))}
-        </select>
-        <label className="flex min-h-11 items-center gap-2 rounded-xs border px-3">
-          <input
-            type="checkbox"
-            checked={params.get('attention') === '1'}
-            onChange={(e) => setFilter('attention', e.target.checked ? '1' : '')}
-          />
-          {t('needsAttention')}
-        </label>
+        </select>}
         <select
           className="min-h-11 rounded-xs border px-3"
           value={params.get('sort') ?? 'newest'}
@@ -361,23 +272,6 @@ export default function LeadsPage() {
         </div>
       ) : query.isError ? (
         <ErrorState title={t('loadError')} onRetry={() => void query.refetch()} />
-      ) : view === 'customers' ? (
-        <section className="grid gap-3">
-          {unique.map(({ lead, count }) => (
-            <Link
-              className="rounded-sm border border-border bg-surface p-4"
-              to={`${location.pathname}/${lead.id}`}
-              key={lead.id}
-            >
-              <strong>{lead.fullName}</strong>
-              <p dir="ltr" className="text-start text-sm text-muted">
-                {lead.email} · {lead.phone}
-              </p>
-              <span>{t('enrollmentCount', { count })}</span>
-            </Link>
-          ))}
-          {!unique.length && <EmptyState title={t('empty')} />}
-        </section>
       ) : !query.data?.items.length ? (
         <EmptyState title={t('empty')} />
       ) : (
@@ -393,9 +287,9 @@ export default function LeadsPage() {
                     'course',
                     'registered',
                     'enrollment',
-                    'payment',
+                    ...(showPaymentColumns ? ['payment', 'netPaid'] : []),
                     'followUp',
-                    'assignedTo',
+                    ...(user?.role === 'admin' ? ['assignedTo'] : []),
                   ].map((key) => (
                     <th className="p-3" key={key}>
                       {t(key)}
@@ -405,35 +299,20 @@ export default function LeadsPage() {
               </thead>
               <tbody>
                 {query.data.items.map((enrollment) => {
-                  const lead = query.data!.leads.find((x) => x.id === enrollment.leadId);
-                  const status = computePaymentStatus(
-                    enrollment.priceSnapshot,
-                    readMockDb().payments.filter((p) => p.enrollmentId === enrollment.id),
-                    enrollment.enrollmentStatus === 'cancelled',
-                  );
+                  const lead = enrollment.lead;
+                  const status = (enrollment as typeof enrollment & { paymentSummary?: { status: string } }).paymentSummary?.status ?? '';
                   return (
                     <tr key={enrollment.id} className="border-t border-border">
                       <td className="p-3">
                         <Link
                           className="font-semibold text-primary-strong underline"
-                          to={`${location.pathname}/${enrollment.leadId}?enrollment=${enrollment.id}`}
+                          to={`${location.pathname}/${enrollment.id}?enrollment=${enrollment.id}`}
                         >
                           {lead?.fullName}
                         </Link>
                         <p className="text-xs text-muted" dir="ltr">
                           {enrollment.reference}
                         </p>
-                        {query.data!.enrollments.filter((item) => item.leadId === enrollment.leadId)
-                          .length > 1 && (
-                          <span className="rounded-pill bg-canvas px-2 py-1 text-xs">
-                            {t('otherRegistrations', {
-                              count:
-                                query.data!.enrollments.filter(
-                                  (item) => item.leadId === enrollment.leadId,
-                                ).length - 1,
-                            })}
-                          </span>
-                        )}
                       </td>
                       <td className="p-3" dir="ltr">
                         {lead?.email}
@@ -443,19 +322,12 @@ export default function LeadsPage() {
                       </td>
                       <td className="p-3">{enrollment.courseSnapshot.title[language]}</td>
                       <td className="p-3" dir="ltr">
-                        {new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(
-                          new Date(enrollment.registeredAt),
-                        )}
+                        {formatDate(enrollment.registeredAt)}
                       </td>
                       <td className="p-3">
                         {t(`enrollmentStatuses.${enrollment.enrollmentStatus}`)}
                       </td>
-                      <td className="p-3">
-                        {query.data.users.find(
-                          (member) => member.id === enrollment.assignedToUserId,
-                        )?.name[language] ?? t('unassigned')}
-                      </td>
-                      <td className="p-3">{t(`paymentStatuses.${status}`)}</td>
+                      {showPaymentColumns && <><td className="p-3">{t(`paymentStatuses.${status}`)}</td><td className="p-3">{formatMoney(minorNet(enrollment), enrollment.priceSnapshot.currency)}</td></>}
                       <td className="p-3">
                         {allowed ? (
                           <select
@@ -478,6 +350,9 @@ export default function LeadsPage() {
                           t(`followUpStatuses.${enrollment.followUpStatus}`)
                         )}
                       </td>
+                      {user?.role === 'admin' && <td className="p-3">
+                        {query.data.users.find((member) => member.id === enrollment.assignedToUserId)?.name[language] ?? t('unassigned')}
+                      </td>}
                     </tr>
                   );
                 })}
@@ -486,19 +361,15 @@ export default function LeadsPage() {
           </div>
           <div className="grid gap-3 md:hidden">
             {query.data.items.map((enrollment) => {
-              const lead = query.data!.leads.find((x) => x.id === enrollment.leadId);
-              const status = computePaymentStatus(
-                enrollment.priceSnapshot,
-                readMockDb().payments.filter((p) => p.enrollmentId === enrollment.id),
-                enrollment.enrollmentStatus === 'cancelled',
-              );
+              const lead = enrollment.lead;
+              const status = (enrollment as typeof enrollment & { paymentSummary?: { status: string } }).paymentSummary?.status ?? '';
               return (
                 <article
                   key={enrollment.id}
                   className="grid gap-2 rounded-sm border border-border bg-surface p-4"
                 >
                   <Link
-                    to={`${location.pathname}/${enrollment.leadId}?enrollment=${enrollment.id}`}
+                  to={`${location.pathname}/${enrollment.id}?enrollment=${enrollment.id}`}
                     className="font-bold text-primary-strong underline"
                   >
                     {lead?.fullName}
@@ -511,11 +382,9 @@ export default function LeadsPage() {
                     {t(`enrollmentStatuses.${enrollment.enrollmentStatus}`)} ·{' '}
                     {t(`followUpStatuses.${enrollment.followUpStatus}`)}
                   </p>
-                  <p>
-                    {t(`paymentStatuses.${status}`)} ·{' '}
-                    {query.data.users.find((member) => member.id === enrollment.assignedToUserId)
-                      ?.name[language] ?? t('unassigned')}
-                  </p>
+                  {showPaymentColumns && <p>{t(`paymentStatuses.${status}`)}</p>}
+                  {showPaymentColumns && <p>{t('netPaid')}: {formatMoney(minorNet(enrollment), enrollment.priceSnapshot.currency)}</p>}
+                  {user?.role === 'admin' && <p>{query.data.users.find((member) => member.id === enrollment.assignedToUserId)?.name[language] ?? t('unassigned')}</p>}
                 </article>
               );
             })}
@@ -556,4 +425,8 @@ export default function LeadsPage() {
       )}
     </main>
   );
+}
+function minorNet(enrollment: { id: string } & { paymentSummary?: { netMinor: number } }): number {
+  if (enrollment.paymentSummary) return enrollment.paymentSummary.netMinor;
+  return 0;
 }

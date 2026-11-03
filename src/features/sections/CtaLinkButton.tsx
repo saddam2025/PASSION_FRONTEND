@@ -50,16 +50,15 @@ export function CtaLinkButton({
       <button
         type="button"
         className={cls}
-        onClick={() =>
-          document
-            .getElementById('register')
-            ?.scrollIntoView({
+        onClick={() => {
+          const target = document.querySelector<HTMLElement>('[data-registration-form]') ?? document.getElementById('register');
+          target?.scrollIntoView({
               behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
                 ? 'auto'
                 : 'smooth',
               block: 'start',
-            })
-        }
+          });
+        }}
       >
         {label}
       </button>

@@ -16,11 +16,11 @@ export const LeadSchema = z
       source: z.string().optional(),
       medium: z.string().optional(),
       campaign: z.string().optional(),
+      referrer: z.string().optional(),
       referrerPath: z.string().optional(),
       landingSlug: z.string().optional(),
     }),
     possibleDuplicateOf: z.string().optional(),
-    isDemo: z.literal(true).optional(),
   })
   .strict();
 export const EnrollmentSchema = z
@@ -51,6 +51,7 @@ export const EnrollmentSchema = z
     assignedToUserId: z.string().optional(),
     registeredAt: z.string(),
     idempotencyKey: z.string(),
+    idempotencyPayloadHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
     cancelledReason: z.string().optional(),
     history: z.array(
       z.object({
@@ -62,7 +63,6 @@ export const EnrollmentSchema = z
         note: z.string().optional(),
       }),
     ),
-    isDemo: z.literal(true).optional(),
   })
   .strict();
 export type Lead = z.infer<typeof LeadSchema>;

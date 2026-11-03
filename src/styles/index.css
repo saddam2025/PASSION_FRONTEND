@@ -47,9 +47,10 @@
   --rgb-warning: 180 83 9;
   --rgb-danger: 185 28 28;
   --rgb-info: 3 105 161;
-  --font-sans: 'Inter';
-  --font-display: 'Inter';
+  --font-sans: 'Cairo';
+  --font-display: 'Cairo';
   --font-arabic: 'Cairo';
+  --font-latin: 'Inter';
   --font-mono: 'JetBrains Mono';
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -107,13 +108,14 @@ body {
   margin: 0;
   background: var(--color-canvas);
   color: var(--color-ink);
-  font-family: var(--font-sans), sans-serif;
+  font-family: var(--font-arabic), sans-serif;
   line-height: var(--leading-relaxed);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-html[lang='ar'] body {
-  font-family: var(--font-arabic), sans-serif;
+ :is([dir='ltr'], .latin-text, input[type='email'], input[type='url'], input[type='tel']) {
+  font-family: var(--font-latin), sans-serif;
+  font-variant-numeric: lining-nums;
 }
 button,
 input,

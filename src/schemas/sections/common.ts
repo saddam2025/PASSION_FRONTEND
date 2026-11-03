@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const BilingualTextSchema = z
-  .object({ ar: z.string().trim().max(6000), en: z.string().trim().max(6000) })
+  .object({ ar: z.string().trim().max(6000), en: z.unknown().optional().transform(() => '') })
   .strict();
 export const SafeUrlSchema = z
   .string()
@@ -41,10 +41,10 @@ export const ImageRefSchema = z
   })
   .strict()
   .superRefine((image, ctx) => {
-    if (!image.decorative && (!image.alt.ar.trim() || !image.alt.en.trim())) {
+    if (!image.decorative && !image.alt.ar.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Provide alt text in Arabic and English or mark the image decorative.',
+        message: 'Provide Arabic alt text or mark the image decorative.',
         path: ['alt'],
       });
     }
@@ -58,14 +58,6 @@ export const CtaDestinationSchema = z.discriminatedUnion('kind', [
 export const CtaLinkSchema = z
   .object({ label: BilingualTextSchema, destination: CtaDestinationSchema })
   .strict();
-export const VideoEmbedSchema = z
-  .object({
-    provider: z.enum(['youtube', 'vimeo']),
-    videoId: z.union([z.string().regex(/^[A-Za-z0-9_-]{6,20}$/), z.literal('')]),
-    title: BilingualTextSchema,
-  })
-  .strict();
-export type VideoEmbed = z.infer<typeof VideoEmbedSchema>;
 export const ExpandableDetailSchema = z.object({
   icon: IconNameSchema.optional(),
   title: BilingualTextSchema,
@@ -77,14 +69,6 @@ export const SectionSettingsSchema = z
     background: z.enum(['none', 'subtle', 'brand', 'dark', 'softGradient']).default('none'),
     spacing: z.enum(['sm', 'md', 'lg', 'xl']).default('lg'),
     width: z.enum(['contained', 'wide', 'full']).default('contained'),
-    align: z.enum(['start', 'center']).default('start'),
-    anchorId: z
-      .string()
-      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
-      .max(50)
-      .optional(),
-    dividerTop: z.enum(['none', 'curve', 'wave']).default('none'),
-    dividerBottom: z.enum(['none', 'curve', 'wave']).default('none'),
     reveal: z.enum(['none', 'fadeUp']).default('none'),
   })
   .strict();
@@ -108,8 +92,7 @@ export const createSectionSchema = <const T extends string, C extends z.ZodTypeA
         background: 'none',
         spacing: 'lg',
         width: 'contained',
-        align: 'start',
-        dividerTop: 'none', dividerBottom: 'none', reveal: 'none',
+        reveal: 'none',
       }),
       heading: SectionHeadingSchema.optional(),
       content,

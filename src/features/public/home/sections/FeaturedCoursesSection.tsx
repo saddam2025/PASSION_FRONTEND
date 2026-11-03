@@ -1,20 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Frame } from './shared';
-import { useSectionText } from './content';
-import type { HomeSection } from '@/services/siteContent';
 import type { CourseSummary } from '@/services/courses.types';
 import { CourseCard } from '@/features/public/courses/CourseCard';
 import { useLanguage } from '@/i18n/useLanguage';
 export function FeaturedCoursesSection({
-  section,
+  title,
   courses,
 }: {
-  section: HomeSection;
+  title: string;
   courses: CourseSummary[];
 }) {
   const { language } = useLanguage();
-  const { title } = useSectionText(section);
   const { t } = useTranslation('courses');
   if (!courses.length) return null;
   return (

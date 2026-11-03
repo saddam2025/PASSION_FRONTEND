@@ -23,14 +23,14 @@ const BlockSchema = z.discriminatedUnion('type', [
 ]);
 export const RichTextSchema = z.array(BlockSchema).max(100);
 export const BilingualRichTextSchema = z
-  .object({ ar: RichTextSchema, en: RichTextSchema })
+  .object({
+    ar: RichTextSchema,
+    en: z.unknown().optional().transform((): z.infer<typeof RichTextSchema> => []),
+  })
   .strict();
 export const RichTextBlockSchema = BlockSchema;
 export const RichTextInlineSchema = InlineSchema;
 export const hasRichText = (value: z.infer<typeof BilingualRichTextSchema> | undefined): boolean =>
-  Boolean(
-    value &&
-      [...value.ar, ...value.en].some((block) => block.children.some((child) => child.text.trim())),
-  );
+  Boolean(value?.ar.some((block) => block.children.some((child) => child.text.trim())));
 
 export type BilingualRichText = z.infer<typeof BilingualRichTextSchema>;

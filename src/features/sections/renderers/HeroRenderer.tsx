@@ -2,15 +2,15 @@ import { useLanguage } from '@/i18n/useLanguage';
 import { SectionFrame } from '../SectionFrame';
 import { CtaLinkButton } from '../CtaLinkButton';
 import { SectionImage, SectionHeading } from './SectionContent';
-import { LazyCourseVideo } from '../LazyCourseVideo';
 import type { AnyRendererProps } from './types';
+import { useCoursePage } from '../CoursePageContext';
 export default function HeroRenderer({ section }: AnyRendererProps) {
   const { language } = useLanguage();
+  const { course } = useCoursePage();
   if (section.type !== 'hero') return null;
   const c = section.content;
   const copy = (
     <div className="grid content-start gap-5">
-      {c.badgeImage && <SectionImage image={c.badgeImage} language={language} width={160} height={80} className="h-12 w-auto object-contain" />}
       <SectionHeading eyebrow={c.eyebrow} title={c.title} subtitle={c.subtitle} language={language} as="h1" />
       <div className="flex flex-wrap gap-3">
         {c.primaryCta && <CtaLinkButton cta={c.primaryCta} />}
@@ -18,9 +18,10 @@ export default function HeroRenderer({ section }: AnyRendererProps) {
       </div>
     </div>
   );
-  const image = c.mediaType === 'video' && c.video ? <LazyCourseVideo video={c.video} poster={c.image} /> : c.image && (
+  const heroImage = c.image ?? course.coverImage;
+  const image = heroImage && (
     <SectionImage
-      image={c.image}
+      image={heroImage}
       language={language}
       width={960}
       height={720}
@@ -31,7 +32,7 @@ export default function HeroRenderer({ section }: AnyRendererProps) {
   return (
     <SectionFrame
       settings={section.settings}
-      id={section.settings.anchorId ?? section.id}
+      id={section.id}
       className={c.layout === 'imageBackground' ? 'relative overflow-hidden' : ''}
     >
       {c.layout === 'imageBackground' ? (

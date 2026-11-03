@@ -3,7 +3,7 @@ export const ACADEMY_WEEK_START = 6; // Saturday, using JS Sunday=0.
 
 function partsAt(date: Date, timeZone = ACADEMY_TIME_ZONE): Record<string, number> {
   return Object.fromEntries(
-    new Intl.DateTimeFormat('en-US', {
+    new Intl.DateTimeFormat('ar-EG-u-ca-gregory-nu-latn', {
       timeZone,
       year: 'numeric',
       month: '2-digit',

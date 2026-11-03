@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { ErrorState, Skeleton, useToast } from '@/components/ui/feedback';
-import { adminService } from '@/services/admin.mock';
+import { adminService } from '@/services/admin.service';
+import { ApiError } from '@/api/client';
 import { useAuth } from '@/app/AuthContext';
 import { SettingsSectionEditor } from './SettingsSectionEditor';
 import {
@@ -26,6 +26,7 @@ export default function SettingsPage() {
   const [section, setSection] = useState<SettingsSection>('contact');
   const [value, setValue] = useState<Record<string, unknown>>({});
   const [error, setError] = useState('');
+  const [conflict, setConflict] = useState(false);
   useEffect(() => {
     const current = {
       ...settingsSectionDefaults[section],
@@ -55,14 +56,11 @@ export default function SettingsPage() {
       toast.notify({ title: t('saved'), tone: 'success' });
       setError('');
     },
-    onError: (cause) =>
-      setError(
-        cause instanceof Error && cause.message.includes('changed')
-          ? t('conflict')
-          : cause instanceof Error
-            ? cause.message
-            : t('saveError'),
-      ),
+    onError: (cause) => {
+      const isConflict = cause instanceof ApiError && cause.status === 409 && Boolean(cause.details && typeof cause.details === 'object' && 'currentVersion' in cause.details);
+      setConflict(isConflict);
+      setError(isConflict ? t('conflict') : cause instanceof Error ? cause.message : t('saveError'));
+    },
   });
   if (query.isLoading) return <Skeleton variant="card" />;
   if (query.isError || !query.data)
@@ -105,22 +103,8 @@ export default function SettingsPage() {
               </p>
             )}
           </header>
-          {section === 'categories' ? (
-            <div className="grid gap-3">
-              <p className="text-sm text-muted">{t('categoriesManagedWithCourses')}</p>
-              <Link to="/admin/courses" className="text-primary-strong underline">
-                {t('manageCourses')}
-              </Link>
-            </div>
-          ) : section === 'legal' ? (
-            <p className="rounded-xs border border-warning/30 bg-warning/5 p-3 text-sm text-warning">
-              {t('legalStructuredSkipped')}
-            </p>
-          ) : (
+          {section === 'categories' ? <CategoryEditor value={value} onChange={update} /> : (
             <SettingsSectionEditor section={section} value={value} onChange={update} />
-          )}
-          {section === 'payments' && (
-            <p className="text-sm text-muted">{t('manualPaymentsNote')}</p>
           )}
           {section === 'seo' && !value.allowSearchEngines && (
             <p role="alert" className="rounded-xs bg-warning/10 p-3 text-sm text-warning">
@@ -130,6 +114,7 @@ export default function SettingsPage() {
           {error && (
             <p role="alert" className="text-sm text-danger">
               {error}
+              {conflict && <Button variant="secondary" className="ms-2" onClick={() => { setConflict(false); setError(''); void query.refetch(); }}>{t('reloadSettings')}</Button>}
             </p>
           )}
           <footer className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-surface py-3">
@@ -152,15 +137,26 @@ export default function SettingsPage() {
           </footer>
         </section>
       </div>
-      <aside className="flex flex-wrap gap-3 rounded-sm border border-border bg-canvas p-4 text-sm">
-        <span>{t('courseManagementHint')}</span>
-        <Link className="text-primary-strong underline" to="/admin/courses">
-          {t('manageCourses')}
-        </Link>
-        <Link className="text-primary-strong underline" to="/admin/users">
-          {t('manageUsers')}
-        </Link>
-      </aside>
     </main>
   );
+}
+
+function CategoryEditor({ value, onChange }: { value: Record<string, unknown>; onChange: (key: string, value: unknown) => void }) {
+  const { t } = useTranslation('settings');
+  const [name, setName] = useState('');
+  const raw = Array.isArray(value.items) ? value.items : [];
+  const names = raw.map((item) => {
+    if (typeof item === 'string') return item;
+    if (item && typeof item === 'object' && 'name' in item) {
+      const categoryName = (item as { name?: unknown }).name;
+      if (typeof categoryName === 'string') return categoryName;
+      if (categoryName && typeof categoryName === 'object' && 'ar' in categoryName) return String((categoryName as { ar?: unknown }).ar ?? '');
+    }
+    return '';
+  }).filter(Boolean);
+  const save = (next: string[]) => onChange('items', next.map((item) => ({ name: { ar: item, en: '' }, active: true })));
+  return <section className="grid gap-3" aria-label={t('sections.categories')}>
+    {names.map((item, index) => <div key={`${item}-${index}`} className="flex flex-wrap gap-2"><input className="min-h-11 min-w-0 flex-1 rounded-xs border border-border px-3" aria-label={`${t('fields.category')} ${index + 1}`} value={item} onChange={(event) => save(names.map((current, at) => at === index ? event.target.value : current))} /><Button variant="danger" onClick={() => save(names.filter((_, at) => at !== index))}>{t('deleteCategory')}</Button></div>)}
+    <div className="flex flex-wrap gap-2"><input className="min-h-11 min-w-0 flex-1 rounded-xs border border-border px-3" aria-label={t('fields.category')} value={name} onChange={(event) => setName(event.target.value)} /><Button variant="secondary" disabled={!name.trim() || names.some((item) => item.trim() === name.trim())} onClick={() => { save([...names, name.trim()]); setName(''); }}>{t('addCategory')}</Button></div>
+  </section>;
 }

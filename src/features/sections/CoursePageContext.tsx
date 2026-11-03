@@ -8,11 +8,13 @@ export interface CoursePageData {
   slug: string;
   title: BilingualText;
   shortDescription: BilingualText;
+  coverImage?: ImageRef;
   price: number | null;
   promoPrice: number | null;
   currency: string;
   startDate: string;
   registrationOpen: boolean;
+  pricingContactUs?: boolean;
   accreditationVerified?: boolean;
   instructor?: {
     name: BilingualText;
@@ -36,6 +38,8 @@ export interface CoursePageData {
     statement?: BilingualText;
     accreditingBody?: BilingualText;
   };
+  whatsappNumberOverride?: string;
+  whatsappUrlOverride?: string;
   whatsappMessageTemplate: BilingualText;
 }
 export interface CoursePageSettings {
@@ -43,6 +47,8 @@ export interface CoursePageSettings {
   whatsappNumber: string;
   phone: string;
   email: string;
+  privacyUrl?: string;
+  registrationWhatsappTemplate?: string;
 }
 export interface CoursePageContextValue {
   course: CoursePageData;
@@ -59,6 +65,6 @@ export function CoursePageProvider({
 }
 export function useCoursePage() {
   const context = useContext(CoursePageContext);
-  if (!context) throw new Error('Course page context is missing.');
+  if (!context) throw new Error('سياق صفحة الكورس مش متاح.');
   return context;
 }

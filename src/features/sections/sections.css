@@ -39,16 +39,6 @@
 .section-hero-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 .section-steps { position: relative; }
 .section-step-card:not(:last-child)::after { content: ''; position: absolute; inset-inline-start: 1.92rem; top: 3.2rem; height: calc(100% + 1rem); border-inline-start: 2px solid var(--color-border); }
-.section-divider-dots {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-}
-.section-divider-dots::before,
-.section-divider-dots::after {
-  content: '• • •';
-  color: var(--color-primary);
-}
 @container section-content (min-width:40rem) {
   .section-split {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -112,3 +102,4 @@
 .section-title-accent { color: var(--color-primary-strong); text-decoration: underline; text-decoration-color: var(--color-accent); text-decoration-thickness: .14em; text-underline-offset: .16em; animation: title-underline .7s ease-out both; }
 @keyframes title-underline { from { text-decoration-color: transparent; } to { text-decoration-color: var(--color-accent); } }
 @media (prefers-reduced-motion: reduce) { .section-title-accent { animation: none; } }
+

@@ -6,8 +6,13 @@ export function useLanguage() {
   if (!value) throw new Error('useLanguage must be used inside LanguageProvider.');
   return value;
 }
-export function getBilingualText(value: { ar?: string; en?: string }, language: 'ar' | 'en'): string {
-  return value[language]?.trim() || value[language === 'ar' ? 'en' : 'ar']?.trim() || '';
+
+export function tx(value: string | { ar?: string; en?: string } | null | undefined): string {
+  if (typeof value === 'string') return value.trim();
+  return value?.ar?.trim() ?? '';
 }
 
-
+export function getBilingualText(value: { ar?: string; en?: string } | null | undefined, _language: 'ar' | 'en' = 'ar'): string {
+  void _language;
+  return tx(value);
+}

@@ -1,6 +1,6 @@
 {
   "home": "الرئيسية",
-  "courses": "الدورات",
+  "courses": "الكورسات",
   "about": "عن الأكاديمية",
   "faq": "الأسئلة الشائعة",
   "contact": "تواصل",
@@ -9,7 +9,6 @@
   "logout": "تسجيل الخروج",
   "userMenu": "قائمة المستخدم: {{name}}",
   "whatsapp": "واتساب",
-  "language": "English",
   "mainNavigation": "التنقل الرئيسي",
   "mobileNavigation": "تنقل الهاتف",
   "signIn": "دخول",
@@ -19,9 +18,9 @@
   "socialLinks": "روابط التواصل الاجتماعي",
   "contactDetails": "بيانات التواصل",
   "skipToContent": "تجاوز إلى المحتوى",
-  "whatsappUnavailable": "بيانات التواصل عبر واتساب غير متاحة بعد.",
+  "whatsappUnavailable": "بيانات التواصل عبر واتساب مش متاحة بعد.",
   "brand": "الأكاديمية",
-  "whatsappGreeting": "مرحبًا، أود التواصل مع الأكاديمية.",
+  "whatsappGreeting": "أهلاً، حابب أتواصل مع الأكاديمية.",
   "social": {
     "facebook": "فيسبوك",
     "instagram": "إنستغرام",

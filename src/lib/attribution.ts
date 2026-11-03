@@ -2,6 +2,7 @@ export interface Attribution {
   source?: string;
   medium?: string;
   campaign?: string;
+  referrer?: string;
   referrerPath?: string;
   landingSlug?: string;
 }
@@ -27,6 +28,7 @@ export function captureAttribution(
       source: params.get('utm_source') ?? undefined,
       medium: params.get('utm_medium') ?? undefined,
       campaign: params.get('utm_campaign') ?? undefined,
+      referrer: document.referrer || undefined,
       referrerPath: document.referrer ? new URL(document.referrer).pathname : undefined,
       landingSlug: match?.[1],
     };
@@ -42,4 +44,21 @@ export function getAttribution(): Attribution {
   } catch {
     return {};
   }
+}
+
+export interface RegistrationAttribution {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  referrer?: string;
+}
+
+export function getRegistrationAttribution(): RegistrationAttribution {
+  const firstTouch = getAttribution();
+  return {
+    ...(firstTouch.source ? { utm_source: firstTouch.source } : {}),
+    ...(firstTouch.medium ? { utm_medium: firstTouch.medium } : {}),
+    ...(firstTouch.campaign ? { utm_campaign: firstTouch.campaign } : {}),
+    ...(firstTouch.referrer ? { referrer: firstTouch.referrer } : {}),
+  };
 }

@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const bilingualTextSchema = z.object({
   ar: z.string().trim().default(''),
-  en: z.string().trim().default(''),
+  en: z.unknown().optional().transform(() => ''),
 });
 export const slugSchema = z
   .string()
