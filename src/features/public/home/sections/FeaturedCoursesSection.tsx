@@ -4,7 +4,7 @@ import { Frame } from './shared';
 import type { CourseSummary } from '@/services/courses.types';
 import { CourseCard } from '@/features/public/courses/CourseCard';
 import { useLanguage } from '@/i18n/useLanguage';
-import { ErrorState, Skeleton } from '@/components/ui/feedback';
+import { ErrorState } from '@/components/ui/feedback';
 export function FeaturedCoursesSection({
   title,
   courses,
@@ -21,7 +21,7 @@ export function FeaturedCoursesSection({
   const { language } = useLanguage();
   const { t } = useTranslation('courses');
   if (error) return <div className="ps-container pe-container py-8"><ErrorState title="حصلت مشكلة في تحميل الكورسات، جرّب تاني." onRetry={onRetry} /></div>;
-  if (loading) return <div className="ps-container pe-container grid grid-cols-1 gap-5 py-8 sm:grid-cols-2 lg:grid-cols-3" aria-label="جاري تحميل الكورسات">{[1, 2, 3].map((index) => <Skeleton key={index} variant="card" className="h-72" />)}</div>;
+  if (loading) return <Frame id="courses" title={title}><div role="status" aria-live="polite" className="rounded-md border border-border bg-surface p-5 text-sm text-muted">جاري تحميل الكورسات المتاحة.</div></Frame>;
   if (!courses.length) return null;
   return (
     <Frame id="courses" title={title}>
