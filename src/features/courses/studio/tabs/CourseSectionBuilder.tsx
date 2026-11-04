@@ -217,7 +217,7 @@ export function CourseSectionBuilder({
   const sectionPreview = selected ? { ...snapshot, page: { ...snapshot.page, sections: [selected] } } : previewSnapshot;
   const actions = <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={cancelEdit}>{t('builder.cancel')}</Button><Button variant="primary" onClick={() => void saveAndReturn()}><Save size={15} />{t('builder.saveSection')}</Button><Button variant="secondary" onClick={() => void saveAndReturn(true)}>{t('builder.saveAndNext')}</Button></div>;
 
-  if (!editing) return <div className="grid gap-5">
+  if (!editing) return <div className="grid grid-cols-[minmax(0,1fr)] w-full min-w-0 max-w-full gap-5">
     <header className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-surface p-3">
       <div><h2 className="font-bold">{t('builder.sectionOutline')}</h2><p className="text-xs text-muted">{t('builder.description')}</p></div>
       <div className="flex flex-wrap items-center gap-2"><Button variant="outline" size="sm" disabled={!past.length} aria-label={t('builder.undo')} onClick={undo}><Undo2 size={15} />{t('builder.undo')}</Button><Button variant="outline" size="sm" disabled={!future.length} aria-label={t('builder.redo')} onClick={redo}><Redo2 size={15} />{t('builder.redo')}</Button><Button variant="secondary" onClick={openFullPreview}>{t('builder.fullPreview')}</Button><Button onClick={() => setPaletteOpen((open) => !open)}>{t('builder.addSection')}</Button></div>
@@ -228,7 +228,7 @@ export function CourseSectionBuilder({
   </div>;
 
   if (!selected) return <div role="alert" className="rounded-md border border-danger/30 bg-danger/5 p-5"><p>{t('builder.sectionMissing')}</p><Button className="mt-3" onClick={() => navigate(basePath)}>{t('builder.backToSections')}</Button></div>;
-  return <div className="grid gap-4">
+  return <div className="grid grid-cols-[minmax(0,1fr)] w-full min-w-0 max-w-full gap-4">
     <header className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-surface p-3">
       <div className="flex min-w-0 flex-wrap items-center gap-2"><Button variant="outline" onClick={cancelEdit}><ArrowRight size={16} />{t('builder.backToSections')}</Button><h2 className="max-w-full truncate font-bold">{titleFor(selected)}</h2><span className="rounded-full bg-danger px-2 py-0.5 text-xs text-white" hidden={!issueCount(selected)}>{issueCount(selected)}</span></div>
       <div className="flex min-w-0 flex-wrap gap-2">{actions}<Button variant="outline" size="sm" disabled={!past.length} onClick={undo} aria-label={t('builder.undo')}><Undo2 size={15} /></Button><Button variant="outline" size="sm" disabled={!future.length} onClick={redo} aria-label={t('builder.redo')}><Redo2 size={15} /></Button></div>
@@ -236,9 +236,9 @@ export function CourseSectionBuilder({
     <div role="tablist" aria-label={t('builder.mobileMode')} className="grid grid-cols-2 rounded-sm bg-surface p-1 md:hidden">{(['edit', 'preview'] as const).map((pane) => <button key={pane} type="button" role="tab" aria-selected={mobilePane === pane} onClick={() => setMobilePane(pane)} className={`min-h-10 rounded-xs text-sm ${mobilePane === pane ? 'bg-primary text-white' : 'text-muted'}`}>{t(`builder.${pane === 'edit' ? 'editMode' : 'previewMode'}`)}</button>)}</div>
     <div className="grid w-full min-w-0 max-w-full gap-4 md:grid-cols-2 md:items-start">
       <div className={`${mobilePane === 'edit' ? 'grid' : 'hidden'} min-w-0 gap-4 md:grid md:max-h-[calc(100dvh-18rem)] md:overflow-y-auto md:pe-1`}><SectionPropertiesPanel section={selected} onChange={(section) => update(selected.id, section)} /><div className="flex flex-wrap gap-2 pb-4">{actions}</div></div>
-      <section className={`${mobilePane === 'preview' ? 'grid' : 'hidden'} min-w-0 content-start gap-3 md:grid md:max-h-[calc(100dvh-18rem)] md:overflow-auto`} aria-label={t('builder.preview')}>
+      <section className={`${mobilePane === 'preview' ? 'grid' : 'hidden'} min-w-0 max-w-full content-start gap-3 md:grid md:max-h-[calc(100dvh-18rem)] md:overflow-auto`} aria-label={t('builder.preview')}>
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-border bg-surface p-2"><h3 className="font-semibold">{t('builder.singleSectionPreview')}</h3><div role="group" aria-label={t('builder.previewSize')} className="flex rounded-sm border border-border p-0.5">{deviceWidths.map((width) => <button key={width} type="button" aria-pressed={device === width} onClick={() => setDevice(width)} className={`min-h-8 rounded-xs px-2 text-xs ${device === width ? 'bg-primary text-white' : 'text-muted'}`}>{width}</button>)}</div></div>
-        <div role="region" aria-label={t('builder.preview')} tabIndex={0} className="w-full min-w-0 max-w-full overscroll-x-contain overflow-x-auto overflow-y-hidden rounded-sm border border-border bg-canvas p-2"><div style={{ width: device, minWidth: device }} className="overflow-hidden rounded-sm bg-surface shadow-xs"><CoursePagePreview course={course} snapshot={sectionPreview} mode="builder" /></div></div>
+        <div role="region" aria-label={t('builder.preview')} tabIndex={0} className="studio-horizontal-scroll w-full min-w-0 max-w-full overscroll-x-contain rounded-sm border border-border bg-canvas p-2"><div style={{ width: device, minWidth: device }} className="rounded-sm bg-surface shadow-xs"><CoursePagePreview course={course} snapshot={sectionPreview} mode="builder" /></div></div>
       </section>
     </div>
   </div>;

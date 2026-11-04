@@ -161,6 +161,27 @@ button {
   background: transparent;
 }
 
+.studio-horizontal-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  scrollbar-color: var(--color-muted) var(--color-canvas);
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+}
+.studio-horizontal-scroll::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+.studio-horizontal-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: var(--color-muted);
+}
+.studio-horizontal-scroll::-webkit-scrollbar-track {
+  background: var(--color-canvas);
+}
+
 html {
   scroll-behavior: smooth;
 }

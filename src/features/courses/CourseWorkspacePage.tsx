@@ -91,7 +91,7 @@ export default function CourseWorkspacePage() {
         </header>
         <div className="grid gap-3 px-4 pb-12">
           <div role="group" aria-label="مقاس المعاينة" className="flex justify-center gap-1">{([1200, 768, 375] as const).map((width) => <button key={width} type="button" aria-pressed={previewWidth === width} onClick={() => setPreviewWidth(width)} className={`min-h-9 rounded-xs border px-3 text-xs ${previewWidth === width ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-muted'}`}>{width}</button>)}</div>
-          <div role="region" aria-label="معاينة صفحة الكورس" tabIndex={0} className="mx-auto w-full min-w-0 max-w-full overscroll-x-contain overflow-x-auto overflow-y-hidden rounded-sm border border-border bg-canvas p-2" style={{ maxWidth: previewWidth + 20 }}><div style={{ width: previewWidth, minWidth: previewWidth }}><CoursePagePreview course={previewCourse} editableOnly /></div></div>
+          <div role="region" aria-label="معاينة صفحة الكورس" tabIndex={0} className="studio-horizontal-scroll mx-auto w-full min-w-0 max-w-full overscroll-x-contain rounded-sm border border-border bg-canvas p-2" style={{ maxWidth: previewWidth + 20 }}><div style={{ width: previewWidth, minWidth: previewWidth }}><CoursePagePreview course={previewCourse} editableOnly /></div></div>
         </div>
       </section>
     );
