@@ -6,9 +6,10 @@ const variantKeyPattern =
 export type MediaVariant = 'thumb' | 'medium' | 'large';
 
 function variantKey(src: string, variant: MediaVariant): string {
-  const normalized = src.replace(/-(?:original|thumb|medium|large)\.webp$/i, '');
-  const base = normalized.slice(0, normalized.lastIndexOf('.'));
-  return `${base}-${variant}.webp`;
+  const stem = src
+    .replace(/-(?:original|thumb|medium|large)\.webp$/i, '')
+    .replace(/\.(?:avif|jpe?g|png|webp)$/i, '');
+  return `${stem}-${variant}.webp`;
 }
 function assetStem(key: string): string { return key.replace(/-(?:original|thumb|medium|large)\.webp$/i, '').replace(/\.(?:avif|jpe?g|png|webp)$/i, ''); }
 

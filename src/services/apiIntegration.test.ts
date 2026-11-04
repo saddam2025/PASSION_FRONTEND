@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetApiSessionForTests } from '@/api/client';
 import { apiAdminService } from './admin.api';
-import { mediaUrl } from '@/lib/mediaUrl';
+import { mediaUrl, mediaVariantKeys } from '@/lib/mediaUrl';
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 describe('integrated API adapters', () => {
@@ -29,7 +29,9 @@ describe('integrated API adapters', () => {
     vi.stubEnv('VITE_MEDIA_BASE_URL', 'https://media.example.test');
     const original = 'media/2026/11/0123456789abcdef.webp';
     expect(mediaUrl(original, 'thumb')).toContain('/media/2026/11/0123456789abcdef-thumb.webp');
-    expect(mediaUrl('media/2026/11/0123456789abcdef-original.webp', 'media/2026/11/0123456789abcdef-thumb.webp')).toContain('-thumb.webp');
+    expect(mediaUrl('media/2026/11/0123456789abcdef-original.webp', 'media/2026/11/0123456789abcdef-thumb.webp')).toContain('-thumb.webp');    const storedOriginal = 'media/2026/11/5990825a96164d768956c9804742a441-original.webp';
+    expect(mediaUrl(storedOriginal, 'large')).toBe('https://media.example.test/media/2026/11/5990825a96164d768956c9804742a441-large.webp');
+    expect(mediaVariantKeys(storedOriginal)?.large).toBe('media/2026/11/5990825a96164d768956c9804742a441-large.webp');
     expect(mediaUrl('', undefined)).toBe('/images/course-cover-default.webp');
   });
 
