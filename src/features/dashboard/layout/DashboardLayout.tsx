@@ -7,9 +7,11 @@ import { useSidebarPreference } from '@/features/dashboard/layout/useSidebarPref
 import { Sidebar } from '@/features/dashboard/layout/Sidebar';
 import { Topbar } from '@/features/dashboard/layout/Topbar';
 import { MobileBottomNav } from '@/features/dashboard/layout/MobileBottomNav';
+import { AssistantBottomNav } from '@/features/dashboard/layout/AssistantBottomNav';
 import { useLanguage } from '@/i18n/useLanguage';
 import type { DashboardArea } from '@/features/dashboard/nav.config';
 import { NewCourseDialogProvider } from '@/features/courses/newCourseDialog';
+import { usePublicSettings } from '@/services/usePublicSettings';
 
 export function DashboardLayout({ area, children }: PropsWithChildren<{ area: DashboardArea }>) {
   const { collapsed, toggle } = useSidebarPreference();
@@ -17,6 +19,7 @@ export function DashboardLayout({ area, children }: PropsWithChildren<{ area: Da
   const { pathname } = useLocation();
   const { language } = useLanguage();
   const { t } = useTranslation('dashboard');
+  const settings = usePublicSettings();
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -43,20 +46,22 @@ export function DashboardLayout({ area, children }: PropsWithChildren<{ area: Da
     <NewCourseDialogProvider>
       <div className="flex h-dvh min-h-0 overflow-hidden bg-canvas text-ink">
         <div className="hidden md:flex">
-          <Sidebar area={area} collapsed={collapsed} onCollapse={toggle} />
+          <Sidebar area={area} collapsed={collapsed} onCollapse={toggle} settings={settings} />
         </div>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-          <Topbar area={area} onOpenDrawer={() => setDrawerOpen(true)} />
+          <Topbar area={area} onOpenDrawer={() => setDrawerOpen(true)} settings={settings} />
           <main
             id="dashboard-main"
             tabIndex={-1}
             aria-label={t('content')}
-            className="dashboard-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ps-container pe-container pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-6 outline-none md:pb-8 md:pt-8"
+            className={`dashboard-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ps-container pe-container ${area === 'assistant' ? 'pb-6 md:pb-8' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-8'} pt-6 outline-none md:pt-8`}
           >
             <div className="ms-auto me-auto grid w-full max-w-7xl gap-8">{children}</div>
           </main>
         </div>
-        <MobileBottomNav area={area} onMore={() => setDrawerOpen(true)} />
+        {area === 'assistant'
+          ? <AssistantBottomNav />
+          : <MobileBottomNav area={area} onMore={() => setDrawerOpen(true)} />}
 
         <Dialog.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
           <Dialog.Portal>
@@ -74,6 +79,7 @@ export function DashboardLayout({ area, children }: PropsWithChildren<{ area: Da
                   collapsed={false}
                   drawer
                   onNavigate={() => setDrawerOpen(false)}
+                  settings={settings}
                 />
               </motion.div>
             </Dialog.Content>

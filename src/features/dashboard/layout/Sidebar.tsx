@@ -8,14 +8,13 @@ import { SmartImage } from '@/components/common/SmartImage';
 import { useAuth } from '@/app/AuthContext';
 import { NavItem } from '@/features/dashboard/layout/NavItem';
 import { visibleDashboardItems, type DashboardArea, type DashboardSection } from '@/features/dashboard/nav.config';
-import { usePublicSettings } from '@/services/usePublicSettings';
+import type { PublicSettings } from '@/services/settings.types';
 import { cn } from '@/lib/cn';
 
 const sections: DashboardSection[] = ['overview', 'workspace', 'operations', 'system'];
-export function Sidebar({ area, collapsed, onCollapse, onNavigate, drawer = false }: { area: DashboardArea; collapsed: boolean; onCollapse?: () => void; onNavigate?: () => void; drawer?: boolean }) {
+export function Sidebar({ area, collapsed, onCollapse, onNavigate, drawer = false, settings }: { area: DashboardArea; collapsed: boolean; onCollapse?: () => void; onNavigate?: () => void; drawer?: boolean; settings: PublicSettings }) {
   const { user } = useAuth();
   const { t } = useTranslation(['dashboard', 'nav']);
-  const settings = usePublicSettings();
   const items = visibleDashboardItems(area);
   const academyName = settings.academyName.ar.trim();
   const grouped = sections.map((section) => ({ section, items: items.filter((item) => item.section === section) })).filter((group) => group.items.length > 0);

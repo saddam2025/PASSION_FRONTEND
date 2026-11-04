@@ -5,7 +5,12 @@ import type { MediaAsset } from '@/services/media';
 import { mediaUrl } from '@/lib/mediaUrl';
 import { MediaLibraryDialog } from '@/features/builder/media/MediaLibraryDialog';
 import { Button } from '@/components/ui/Button';
-import { BilingualTextField } from './BilingualFields';
+
+function withImageDescription(value: ImageRef, label: string): ImageRef {
+  if (value.decorative || value.alt.ar.trim()) return value;
+  const description = label.split(/[·(]/, 1)[0].trim();
+  return { ...value, alt: { ...value.alt, ar: description } };
+}
 export function ImagePickerField({
   label,
   value,
@@ -20,7 +25,7 @@ export function ImagePickerField({
   const [open, setOpen] = useState(false);
   const { t } = useTranslation('courses');
   const choose = (asset: MediaAsset) => {
-    onChange({ ...value, assetId: asset.id, src: asset.key, decorative: false });
+    onChange(withImageDescription({ ...value, assetId: asset.id, src: asset.key, decorative: false }, label));
     setOpen(false);
   };
   return (
@@ -44,17 +49,11 @@ export function ImagePickerField({
             type="checkbox"
             disabled={disabled}
             checked={value.decorative ?? false}
-            onChange={(event) => onChange({ ...value, decorative: event.target.checked })}
+            onChange={(event) => onChange(withImageDescription({ ...value, decorative: event.target.checked }, label))}
           />
           {t('decorativeImage')}
         </label>
       </div>
-      <BilingualTextField
-        label={t('imageAlt')}
-        value={value.alt}
-        onChange={(alt) => onChange({ ...value, alt })}
-        disabled={disabled || Boolean(value.decorative)}
-      />
       <MediaLibraryDialog open={open} onOpenChange={setOpen} onChoose={choose} />
     </div>
   );

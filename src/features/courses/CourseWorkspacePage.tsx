@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { ErrorState, Skeleton } from '@/components/ui/feedback';
 import { coursesService } from '@/services/courses';
 import { CourseStudioShell, type CourseTab } from './studio/CourseStudioShell';
+import { initialCoursePreviewWidth, type CoursePreviewWidth } from './previewWidth';
 import { CoursePagePreview } from './CoursePagePreview';
 import { SnapshotSchema } from '@/schemas/course';
 
@@ -14,7 +15,7 @@ export default function CourseWorkspacePage() {
   const { pathname, search } = useLocation();
   const courseId = routeCourseId ?? pathname.match(/^\/admin\/courses\/([^/]+)/)?.[1] ?? '';
   const { t, i18n } = useTranslation('courses');
-  const [previewWidth, setPreviewWidth] = useState<1200 | 768 | 375>(1200);
+  const [previewWidth, setPreviewWidth] = useState<CoursePreviewWidth>(initialCoursePreviewWidth);
 
   const courseQuery = useQuery({
     queryKey: ['course', courseId],
@@ -90,7 +91,7 @@ export default function CourseWorkspacePage() {
         </header>
         <div className="grid gap-3 px-4 pb-12">
           <div role="group" aria-label="مقاس المعاينة" className="flex justify-center gap-1">{([1200, 768, 375] as const).map((width) => <button key={width} type="button" aria-pressed={previewWidth === width} onClick={() => setPreviewWidth(width)} className={`min-h-9 rounded-xs border px-3 text-xs ${previewWidth === width ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-muted'}`}>{width}</button>)}</div>
-          <div className="mx-auto w-full overflow-auto rounded-sm border border-border bg-canvas p-2" style={{ maxWidth: previewWidth + 20 }}><div style={{ width: previewWidth, minWidth: previewWidth }} className="mx-auto"><CoursePagePreview course={previewCourse} editableOnly /></div></div>
+          <div role="region" aria-label="معاينة صفحة الكورس" tabIndex={0} className="mx-auto w-full min-w-0 max-w-full overscroll-x-contain overflow-x-auto overflow-y-hidden rounded-sm border border-border bg-canvas p-2" style={{ maxWidth: previewWidth + 20 }}><div style={{ width: previewWidth, minWidth: previewWidth }}><CoursePagePreview course={previewCourse} editableOnly /></div></div>
         </div>
       </section>
     );

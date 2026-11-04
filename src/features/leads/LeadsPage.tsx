@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/app/AuthContext';
@@ -26,11 +26,16 @@ export default function LeadsPage() {
   const { language } = useLanguage();
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
+  const { hash } = useLocation();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const toast = useToast();
   const queryString = params.toString();
   const [search, setSearch] = useState(params.get('search') ?? '');
   const page = Number(params.get('page') ?? 1);
+  useEffect(() => {
+    if (hash === '#lead-search') searchInputRef.current?.focus();
+  }, [hash]);
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const next = new URLSearchParams(queryString);
@@ -159,6 +164,8 @@ export default function LeadsPage() {
       </header>
       <div className="grid gap-3 sm:grid-cols-[minmax(12rem,1fr)_14rem]">
         <input
+          id="lead-search"
+          ref={searchInputRef}
           className="min-h-11 rounded-xs border border-border px-3"
           value={search}
           onChange={(e) => setSearch(e.target.value)}

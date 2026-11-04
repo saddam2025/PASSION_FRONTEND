@@ -7,6 +7,7 @@
   "navigationTitle": "التنقل في مساحة العمل",
   "openNavigation": "فتح قائمة التنقل",
   "more": "المزيد",
+  "searchAction": "بحث",
   "userMenu": "قائمة المستخدم {{name}}",
   "logout": "تسجيل الخروج",
   "roles": { "admin": "مدير", "assistant": "مساعد" },
@@ -20,7 +21,7 @@
     "overview": "نظرة عامة",
     "courses": "الكورسات",
     "registrations": "التسجيلات",
-    "users": "المستخدمون والدعوات",
+    "users": "المستخدمون",
     "settings": "الإعدادات",
     "accessDenied": "الصفحة مش متاحة"
   },
