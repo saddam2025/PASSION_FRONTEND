@@ -2,6 +2,40 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
+      "source": "/ar/courses/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": { "re": "(?i).*(facebookexternalhit|facebot|whatsapp|twitterbot|linkedinbot|telegrambot|slackbot).*" }
+        }
+      ],
+      "destination": "https://passionbackend-production.up.railway.app/api/v1/seo/courses/:slug"
+    },
+    {
+      "source": "/courses/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": { "re": "(?i).*(facebookexternalhit|facebot|whatsapp|twitterbot|linkedinbot|telegrambot|slackbot).*" }
+        }
+      ],
+      "destination": "https://passionbackend-production.up.railway.app/api/v1/seo/courses/:slug"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://passionbackend-production.up.railway.app/api/v1/seo/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://passionbackend-production.up.railway.app/api/v1/seo/robots.txt"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://passionbackend-production.up.railway.app/api/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
