@@ -16,7 +16,7 @@ export function BilingualTextField({
 }) {
   const Component = multiline ? 'textarea' : 'input';
   return (
-    <label className="grid gap-2" dir="rtl">
+    <label className="grid min-w-0 w-full max-w-full gap-2" dir="rtl">
       <span className="text-sm font-medium">{label}</span>
       <Component
         lang="ar"
@@ -53,13 +53,13 @@ export function BilingualRichField({
         .map((paragraph) => ({ type: 'paragraph' as const, children: [{ text: paragraph }] })),
     });
   return (
-    <label className="grid gap-2" dir="rtl">
+    <label className="grid min-w-0 w-full max-w-full gap-2" dir="rtl">
       <span className="text-sm font-medium">{label}</span>
       <textarea
         lang="ar"
         dir="rtl"
         disabled={disabled}
-        className="min-h-28 rounded-sm border border-border px-3 py-2 text-start"
+        className="min-h-28 min-w-0 max-w-full w-full rounded-sm border border-border px-3 py-2 text-start"
         value={text}
         onChange={(event) => update(event.target.value)}
       />
