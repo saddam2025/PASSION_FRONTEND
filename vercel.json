@@ -7,7 +7,9 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": { "re": "(?i).*(facebookexternalhit|facebot|whatsapp|twitterbot|linkedinbot|telegrambot|slackbot).*" }
+          "value": {
+            "re": "(?i).*(facebookexternalhit|facebot|whatsapp|twitterbot|linkedinbot|telegrambot|slackbot).*"
+          }
         }
       ],
       "destination": "https://passionbackend-production.up.railway.app/api/v1/seo/courses/:slug"
@@ -18,7 +20,9 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": { "re": "(?i).*(facebookexternalhit|facebot|whatsapp|twitterbot|linkedinbot|telegrambot|slackbot).*" }
+          "value": {
+            "re": "(?i).*(facebookexternalhit|facebot|whatsapp|twitterbot|linkedinbot|telegrambot|slackbot).*"
+          }
         }
       ],
       "destination": "https://passionbackend-production.up.railway.app/api/v1/seo/courses/:slug"
@@ -38,6 +42,44 @@
     {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        {
+          "value": "no-store, no-cache, must-revalidate",
+          "key": "Cache-Control"
+        }
+      ]
+    },
+    {
+      "source": "/ar",
+      "headers": [
+        {
+          "value": "no-store, no-cache, must-revalidate",
+          "key": "Cache-Control"
+        }
+      ]
+    },
+    {
+      "source": "/ar/(.*)",
+      "headers": [
+        {
+          "value": "no-store, no-cache, must-revalidate",
+          "key": "Cache-Control"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "value": "no-store, no-cache, must-revalidate",
+          "key": "Cache-Control"
+        }
+      ]
     }
   ]
 }
