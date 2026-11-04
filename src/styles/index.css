@@ -5,7 +5,7 @@
 :root {
   --public-bottom-nav-height: calc(4.5rem + env(safe-area-inset-bottom));
   color-scheme: light;
-  --color-primary: #0284c7;
+  --color-primary: #036b9a;
   --color-on-primary: #ffffff;
   --color-on-secondary: #ffffff;
   --color-primary-hover: #036fa5;
@@ -17,7 +17,7 @@
   --color-border: #e2e8f0;
   --color-ink: #181a20;
   --color-muted: #475569;
-  --color-subtle: #9ca3af;
+  --color-subtle: #64748b;
   --color-success: #15803d;
   --color-warning: #b45309;
   --color-danger: #b91c1c;
@@ -30,7 +30,7 @@
   --chart-6: #56b4e9;
   --chart-7: #8b6f00;
   --chart-8: #333333;
-  --rgb-primary: 2 132 199;
+  --rgb-primary: 3 107 154;
   --rgb-on-primary: 255 255 255;
   --rgb-on-secondary: 255 255 255;
   --rgb-primary-hover: 3 111 165;
@@ -42,7 +42,7 @@
   --rgb-border: 226 232 240;
   --rgb-ink: 24 26 32;
   --rgb-muted: 71 85 105;
-  --rgb-subtle: 156 163 175;
+  --rgb-subtle: 100 116 139;
   --rgb-success: 21 128 61;
   --rgb-warning: 180 83 9;
   --rgb-danger: 185 28 28;
@@ -87,13 +87,13 @@
   --color-border: #2b303b;
   --color-ink: #ffffff;
   --color-muted: #cbd5e1;
-  --color-subtle: #9ca3af;
+  --color-subtle: #64748b;
   --rgb-canvas: 22 24 29;
   --rgb-surface: 30 33 40;
   --rgb-border: 43 48 59;
   --rgb-ink: 255 255 255;
   --rgb-muted: 203 213 225;
-  --rgb-subtle: 156 163 175;
+  --rgb-subtle: 100 116 139;
   --shadow-soft: 0 4px 18px rgb(0 0 0 / 18%);
   --shadow-card: 0 16px 48px rgb(0 0 0 / 24%);
   --shadow-elevated: 0 20px 60px rgb(0 0 0 / 30%);

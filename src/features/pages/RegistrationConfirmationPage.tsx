@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Check, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/feedback';
+import { ErrorState, Spinner } from '@/components/ui/feedback';
 import { registrationsService } from '@/services/registrations';
 import type { PublicRegistrationConfirmation } from '@/services/registrations.types';
 import { useToast } from '@/components/ui/feedback';
@@ -11,6 +11,8 @@ import { useSeo } from '@/lib/useSeo';
 export default function RegistrationConfirmationPage() {
   const { reference = '' } = useParams();
   const [data, setData] = useState<PublicRegistrationConfirmation | null | undefined>(undefined);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const { t } = useTranslation('confirmation');
   const toast = useToast();
   useSeo({
@@ -21,14 +23,15 @@ export default function RegistrationConfirmationPage() {
   useEffect(() => {
     let live = true;
     setData(undefined);
+    setLoadError(false);
     void registrationsService
       .getConfirmation(reference)
       .then((x) => live && setData(x))
-      .catch(() => live && setData(null));
+      .catch(() => live && setLoadError(true));
     return () => {
       live = false;
     };
-  }, [reference]);
+  }, [reference, loadAttempt]);
   const title = data?.courseTitle.ar ?? '';
   const copy = async () => {
     try {
@@ -40,7 +43,9 @@ export default function RegistrationConfirmationPage() {
   };
   return (
     <main className="mx-auto grid min-h-[65vh] w-full max-w-3xl content-center gap-5 ps-container pe-container py-section">
-      {data === undefined ? (
+      {loadError ? (
+        <ErrorState title="حصلت مشكلة في تحميل تأكيد التسجيل، جرّب تاني." onRetry={() => setLoadAttempt((attempt) => attempt + 1)} />
+      ) : data === undefined ? (
         <Spinner label={t('loading')} />
       ) : data === null ? (
         <section className="rounded-md border border-border bg-surface p-8">

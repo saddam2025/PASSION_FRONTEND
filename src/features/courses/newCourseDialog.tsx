@@ -12,7 +12,7 @@ import {
 } from '@/schemas/courseDraft';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Overlay';
-import { useToast } from '@/components/ui/feedback';
+import { ErrorState, useToast } from '@/components/ui/feedback';
 import { coursesService } from '@/services/courses';
 import { coursesAdminService } from '@/services/courses.admin';
 import type { CourseTemplateId } from '@/services/courses/templates';
@@ -258,6 +258,7 @@ function NewCourseDialog({
               </option>
             ))}
           </select>
+          {categories.isError && <ErrorState title="حصلت مشكلة في تحميل التصنيفات، جرّب تاني." onRetry={() => void categories.refetch()} />}
         </div>
 
         <div className="grid gap-1">
@@ -268,7 +269,7 @@ function NewCourseDialog({
             id="course-slug"
             dir="ltr"
             className="min-h-11 rounded-xs border border-border bg-canvas px-3 text-start font-mono text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-            placeholder="course-title"
+            placeholder="مثال: maharat-al-qiyada"
             {...form.register('slug')}
           />
           <div className="flex items-center justify-between text-xs">

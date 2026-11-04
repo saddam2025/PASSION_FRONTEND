@@ -10,8 +10,6 @@ import {
   useParams,
 } from 'react-router-dom';
 import { RouteSkeleton } from '@/components/ui/feedback';
-import { RequireAuth, RequireRole } from '@/app/AuthContext';
-import { DashboardLayout } from '@/features/dashboard/layout/DashboardLayout';
 import { PublicLayout } from '@/features/public/layout/PublicLayout';
 import { AuthLayout } from '@/features/auth/AuthLayout';
 import { arabicCoursePath } from '@/lib/courseLinks';
@@ -28,8 +26,8 @@ const LoginPage = lazy(() => import('@/features/pages/LoginPage'));
 const InvitePage = lazy(() => import('@/features/pages/InvitePage'));
 const ForgotPasswordPage = lazy(() => import('@/features/pages/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('@/features/pages/ResetPasswordPage'));
-const AdminPage = lazy(() => import('@/features/pages/AdminPage'));
-const AssistantPage = lazy(() => import('@/features/pages/AssistantPage'));
+const AdminArea = lazy(() => import('@/app/areas/AdminArea'));
+const AssistantArea = lazy(() => import('@/app/areas/AssistantArea'));
 const NotFoundPage = lazy(() => import('@/features/pages/NotFoundPage'));
 const NotAuthorizedPage = lazy(() => import('@/features/pages/NotAuthorizedPage'));
 
@@ -50,28 +48,6 @@ function LanguageRoute() {
   if (lang === 'en') return <Navigate to={`/ar${suffix}${location.search}${location.hash}`} replace />;
   if (lang !== 'ar') return <NotFoundPage />;
   return <Outlet />;
-}
-function AdminArea() {
-  return (
-    <RequireAuth>
-      <RequireRole roles={['admin']}>
-        <DashboardLayout area="admin">
-          <AdminPage />
-        </DashboardLayout>
-      </RequireRole>
-    </RequireAuth>
-  );
-}
-function AssistantArea() {
-  return (
-    <RequireAuth>
-      <RequireRole roles={['assistant', 'admin']}>
-        <DashboardLayout area="assistant">
-          <AssistantPage />
-        </DashboardLayout>
-      </RequireRole>
-    </RequireAuth>
-  );
 }
 function RouteTree() {
   const location = useLocation();

@@ -29,7 +29,8 @@ export default function InvitePage() {
   const { t } = useTranslation(['auth', 'common']);
   const navigate = useNavigate();
   const { notify } = useToast();
-  const [status, setStatus] = useState<'loading' | 'invalid' | 'valid'>('loading');
+  const [status, setStatus] = useState<'loading' | 'invalid' | 'valid' | 'error'>('loading');
+  const [validationAttempt, setValidationAttempt] = useState(0);
   const [invite, setInvite] = useState<InviteDetails | null>(null);
   const schema = useMemo(() => invitationSchema(t('auth:required')), [t]);
   const { register, handleSubmit, watch, setError, formState: { errors, isSubmitting } } = useForm<InvitationValues>({ resolver: zodResolver(schema), defaultValues: { fullName: '', password: '', confirmPassword: '' } });
@@ -43,9 +44,9 @@ export default function InvitePage() {
       if (!active) return;
       setInvite(result);
       setStatus(result ? 'valid' : 'invalid');
-    }).catch(() => { if (active) setStatus('invalid'); });
+    }).catch(() => { if (active) setStatus('error'); });
     return () => { active = false; };
-  }, [token]);
+  }, [token, validationAttempt]);
 
   const submit = handleSubmit(async (values) => {
     if (!invite) return;
@@ -63,6 +64,7 @@ export default function InvitePage() {
   });
 
   if (status === 'loading') return <div className="grid gap-5" role="status" aria-label={t('auth:inviteLoading')}><Skeleton variant="title" /><Skeleton variant="text" /><Skeleton variant="card" /></div>;
+  if (status === 'error') return <ErrorState title="حصلت مشكلة في التحقق من الدعوة، جرّب تاني." onRetry={() => setValidationAttempt((attempt) => attempt + 1)} />;
   if (status === 'invalid') return <div className="grid gap-5"><h1 className="font-display text-3xl font-bold text-ink">{t('auth:inviteInvalidTitle')}</h1><ErrorState title={t('auth:inviteInvalidTitle')} description={t('auth:inviteInvalidDescription')} /><Link to={`/${language}/login`} className="text-sm font-semibold text-primary-strong underline">{t('auth:backToLogin')}</Link></div>;
 
   return <div className="grid gap-6">

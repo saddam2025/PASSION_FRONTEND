@@ -7,6 +7,7 @@ import type { MediaAsset, MediaUsageResult } from '@/services/media';
 import { mediaService } from '@/services/media';
 import { mediaUrl } from '@/lib/mediaUrl';
 import { apiErrorMessage } from '@/api/client';
+import { EmptyState, ErrorState } from '@/components/ui/feedback';
 
 const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const maxBytes = 5 * 1024 * 1024;
@@ -28,6 +29,7 @@ export function MediaLibraryDialog({
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -35,12 +37,15 @@ export function MediaLibraryDialog({
   const inputRef = useRef<HTMLInputElement>(null);
   const reload = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
+    setError('');
     try {
       const result = await mediaService.list({ page, search });
       setAssets(result.items);
       setTotalPages(Math.max(1, result.pageCount));
     } catch (cause) {
       setError(apiErrorMessage(cause));
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -178,6 +183,7 @@ export function MediaLibraryDialog({
               ref={inputRef}
               className="sr-only"
               type="file"
+              aria-label={t('upload')}
               accept="image/jpeg,image/png,image/webp"
               onChange={(event) => void chooseFile(event.currentTarget.files?.[0])}
             />
@@ -202,6 +208,8 @@ export function MediaLibraryDialog({
           )}
           {loading ? (
             <p role="status">{t('loading')}</p>
+          ) : loadError ? (
+            <ErrorState title={error || 'حصلت مشكلة في تحميل مكتبة الصور، جرّب تاني.'} onRetry={() => void reload()} />
           ) : assets.length ? (
             <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3">
               {assets.map((asset) => (
@@ -229,7 +237,7 @@ export function MediaLibraryDialog({
               ))}
             </div>
           ) : (
-            <p className="py-6 text-center text-muted">{t('empty')}</p>
+            <EmptyState title={t('empty')} />
           )}
           <div className="flex items-center justify-between">
             <Button

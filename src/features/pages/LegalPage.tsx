@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { adminService } from '@/services/admin.service';
 import { useLanguage, getBilingualText } from '@/i18n/useLanguage';
 import { useSeo } from '@/lib/useSeo';
+import { ErrorState, Skeleton } from '@/components/ui/feedback';
 import type { BilingualText } from '@/schemas';
 
 interface PrivacySection { heading: BilingualText; paragraphs: BilingualText[] }
@@ -24,12 +25,17 @@ function isLegalSections(value: unknown): value is PrivacySection[] {
 
 export function LegalPage({ kind }: { kind: LegalKind }) {
   const [data, setData] = useState<PrivacySection[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const { language } = useLanguage();
   const { t } = useTranslation(kind === 'terms' ? 'terms' : 'privacy');
   useSeo({ title: t('title'), description: t('description'), language });
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setError(false);
     void adminService.publicSettings().then(
       (settings) => {
         const legal = settings.values.legal;
@@ -53,11 +59,14 @@ export function LegalPage({ kind }: { kind: LegalKind }) {
           : [];
         if (active) setData(sections);
       },
-    ).catch(() => { if (active) setData([]); });
+    ).catch(() => { if (active) setError(true); }).finally(() => { if (active) setLoading(false); });
     return () => {
       active = false;
     };
-  }, [kind]);
+  }, [kind, attempt]);
+
+  if (loading) return <main className="mx-auto grid w-full max-w-4xl gap-4 ps-container pe-container py-section" aria-label="جاري تحميل الصفحة"><Skeleton variant="title" /><Skeleton variant="text" /><Skeleton variant="card" /></main>;
+  if (error) return <main className="mx-auto w-full max-w-4xl ps-container pe-container py-section"><ErrorState title="حصلت مشكلة في تحميل الصفحة، جرّب تاني." onRetry={() => setAttempt((value) => value + 1)} /></main>;
 
   return (
     <article className="mx-auto grid w-full max-w-4xl gap-8 ps-container pe-container py-section">

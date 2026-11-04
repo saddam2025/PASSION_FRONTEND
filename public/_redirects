@@ -1,0 +1,2 @@
+# SPA fallback. The Worker/nginx proxy must handle /api/*, /robots.txt and /sitemap.xml first.
+/* /index.html 200

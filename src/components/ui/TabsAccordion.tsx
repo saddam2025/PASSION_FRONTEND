@@ -9,7 +9,7 @@ export function Tabs({ items, defaultValue, className }: { items: TabItem[]; def
   const initial = defaultValue ?? items[0]?.value;
   if (!initial) return null;
   return <TabsPrimitive.Root defaultValue={initial} className={cn('grid gap-4', className)}>
-    <TabsPrimitive.List className="flex max-w-full gap-1 overflow-x-auto border-b border-border" aria-label="Sections">
+    <TabsPrimitive.List className="flex max-w-full gap-1 overflow-x-auto border-b border-border" aria-label="الأقسام">
       {items.map((item) => <TabsPrimitive.Trigger key={item.value} value={item.value} disabled={item.disabled} className="shrink-0 border-b-2 border-transparent ps-4 pe-4 py-2.5 text-sm font-semibold text-muted transition-colors data-[state=active]:border-primary data-[state=active]:text-primary-strong disabled:opacity-50">{item.label}</TabsPrimitive.Trigger>)}
     </TabsPrimitive.List>
     {items.map((item) => <TabsPrimitive.Content key={item.value} value={item.value} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{item.content}</TabsPrimitive.Content>)}

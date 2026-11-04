@@ -20,6 +20,8 @@ export default function CourseDetailPage() {
   const [course, setCourse] = useState<CoursePageDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [missing, setMissing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [formVisible, setFormVisible] = useState(false);
   const jsonLdRef = useRef<HTMLScriptElement>(null);
   useEffect(() => {
@@ -38,6 +40,7 @@ export default function CourseDetailPage() {
     setLoading(true);
     setCourse(null);
     setMissing(false);
+    setLoadError(false);
     void coursesService
       .getPublishedBySlug(slug)
       .then((result) => {
@@ -53,7 +56,7 @@ export default function CourseDetailPage() {
         setCourse(result.course);
       })
       .catch(() => {
-        if (current) setMissing(true);
+        if (current) setLoadError(true);
       })
       .finally(() => {
         if (current) setLoading(false);
@@ -61,7 +64,7 @@ export default function CourseDetailPage() {
     return () => {
       current = false;
     };
-  }, [slug, language, navigate]);
+  }, [slug, language, navigate, loadAttempt]);
   const context = useMemo(
     () =>
       course
@@ -154,6 +157,15 @@ export default function CourseDetailPage() {
         <RouteSkeleton />
       </div>
     );
+  if (loadError)
+    return (
+      <section className="ps-container pe-container grid justify-items-start gap-5 py-16">
+        <ErrorState title={t('error', { ns: 'courses' })} onRetry={() => setLoadAttempt((attempt) => attempt + 1)} />
+        <Link className="text-primary-strong underline" to={`/${language}/courses`}>
+          {t('catalog')}
+        </Link>
+      </section>
+    );
   if (missing || !course)
     return (
       <section className="ps-container pe-container grid justify-items-start gap-5 py-16">
@@ -168,7 +180,7 @@ export default function CourseDetailPage() {
       <script ref={jsonLdRef} type="application/ld+json" />
       {!hideCrumb && (
         <nav
-          aria-label={language === 'ar' ? 'مسار التنقل' : 'Breadcrumb'}
+          aria-label="مسار التنقل"
           className="ps-container pe-container py-4 text-sm text-muted"
         >
           <Link to={`/${language}`}>{t('home')}</Link>

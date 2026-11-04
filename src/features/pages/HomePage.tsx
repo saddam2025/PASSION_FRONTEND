@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/i18n/useLanguage';
@@ -9,11 +10,14 @@ import { AboutSection } from '@/features/public/home/sections/AboutSection';
 import { FeaturedCoursesSection } from '@/features/public/home/sections/FeaturedCoursesSection';
 import { HowItWorksSection } from '@/features/public/home/sections/HowItWorksSection';
 import { ContactSection } from '@/features/public/home/sections/ContactSection';
+import { ErrorState } from '@/components/ui/feedback';
 
 export default function HomePage() {
   const { language } = useLanguage();
   const { t } = useTranslation('home');
-  const settings = usePublicSettings();
+  const [settingsError, setSettingsError] = useState(false);
+  const handleSettingsLoad = useCallback((state: 'loaded' | 'error') => setSettingsError(state === 'error'), []);
+  const settings = usePublicSettings(handleSettingsLoad);
   const featured = useQuery({ queryKey: ['public-courses', 'featured', 12], queryFn: () => publicCoursesService.getFeatured(12) });
   useSeo({ title: settings.academyName.ar || t('title'), description: settings.description.ar || t('intro'), language });
   const sections = [
@@ -24,10 +28,10 @@ export default function HomePage() {
     { id: 'home-contact', type: 'contact', visible: true, order: 4, content: { title: t('contactTitle') } },
   ];
   const courses = featured.data ?? [];
-  return <>{sections.map((section) => {
+  return <>{settingsError && <div className="ps-container pe-container pt-6"><ErrorState title="حصلت مشكلة في تحميل إعدادات الموقع، جرّب تاني." onRetry={() => window.dispatchEvent(new Event('passion-settings-updated'))} /></div>}{sections.map((section) => {
     if (section.type === 'hero') return <HeroSection key={section.id} title={String(section.content.title)} intro={String(section.content.intro)} />;
     if (section.type === 'about') return <AboutSection key={section.id} title={String(section.content.title)} body={String(section.content.text)} />;
-    if (section.type === 'featuredCourses') return <FeaturedCoursesSection key={section.id} title={String(section.content.title)} courses={courses} />;
+    if (section.type === 'featuredCourses') return <FeaturedCoursesSection key={section.id} title={String(section.content.title)} courses={courses} loading={featured.isPending} error={featured.isError} onRetry={() => void featured.refetch()} />;
     if (section.type === 'howItWorks') return <HowItWorksSection key={section.id} title={String(section.content.title)} steps={section.content.steps as string[]} />;
     return <ContactSection key={section.id} title={String(section.content.title)} />;
   })}</>;

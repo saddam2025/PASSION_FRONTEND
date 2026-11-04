@@ -19,7 +19,7 @@ const emptySettings: PublicSettings = {
   socials: { facebook: '', instagram: '', linkedin: '', youtube: '', tiktok: '', x: '' },
 };
 
-export function usePublicSettings(): PublicSettings {
+export function usePublicSettings(onLoadState?: (state: 'loaded' | 'error') => void): PublicSettings {
   const [settings, setSettings] = useState(emptySettings);
   useEffect(() => {
     const refresh = () =>
@@ -38,10 +38,14 @@ export function usePublicSettings(): PublicSettings {
             icon.removeAttribute('href');
           }
         }
-      }).catch(() => setSettings(emptySettings));
+        onLoadState?.('loaded');
+      }).catch(() => {
+        setSettings(emptySettings);
+        onLoadState?.('error');
+      });
     refresh();
     window.addEventListener('passion-settings-updated', refresh);
     return () => window.removeEventListener('passion-settings-updated', refresh);
-  }, []);
+  }, [onLoadState]);
   return settings;
 }

@@ -21,6 +21,8 @@ export default function CoursesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [categoriesError, setCategoriesError] = useState(false);
+  const [categoriesAttempt, setCategoriesAttempt] = useState(0);
   const { language } = useLanguage();
   const { t } = useTranslation('courses');
   const category = params.get('category') ?? '';
@@ -42,11 +44,12 @@ export default function CoursesPage() {
   }, [search, params, setParams]);
   useEffect(() => {
     let live = true;
-    void coursesService.getCategories().then((x) => live && setCategories(x));
+    setCategoriesError(false);
+    void coursesService.getCategories().then((x) => live && setCategories(x)).catch(() => live && setCategoriesError(true));
     return () => {
       live = false;
     };
-  }, []);
+  }, [categoriesAttempt]);
   useEffect(() => {
     let live = true;
     setLoading(true);
@@ -142,6 +145,7 @@ export default function CoursesPage() {
           />
         </label>
       </div>
+      {categoriesError && <ErrorState title="حصلت مشكلة في تحميل التصنيفات، جرّب تاني." onRetry={() => setCategoriesAttempt((value) => value + 1)} />}
       <p className="text-sm text-muted" aria-live="polite">
         {t('results', { count: total })}
       </p>

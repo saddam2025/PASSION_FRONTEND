@@ -100,8 +100,5 @@ export function checkReadiness(snapshot: CourseSnapshot, slug?: string): {
     warnings.push({ tab: 'details', path: 'details.instructor.name.ar', message: 'ضيف اسم المدرب بالعربي.' });
   }
 
-  if (import.meta.env?.DEV && errors.length) {
-    console.info('[جاهزية الكورس] قواعد لم تكتمل:', errors.map(({ path, value }) => ({ path, value })));
-  }
   return { errors, warnings };
 }

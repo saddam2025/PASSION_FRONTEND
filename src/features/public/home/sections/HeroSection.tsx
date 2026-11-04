@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { mediaUrl } from '@/lib/mediaUrl';
+import { SmartImage } from '@/components/common/SmartImage';
 import { usePublicSettings } from '@/services/usePublicSettings';
 import { useLanguage } from '@/i18n/useLanguage';
 import { whatsappUrl } from '@/features/public/layout/whatsapp';
@@ -42,7 +42,7 @@ export function HeroSection({ title, intro }: { title: string; intro: string }) 
             )}
           </div>
         </div>
-        {settings.logo && <img src={mediaUrl(settings.logo)} alt={settings.academyName.ar} width={400} height={300} fetchPriority="high" className="mx-auto max-h-64 max-w-full object-contain" />}
+        {settings.logo && <SmartImage slot="logo" srcOverride={settings.logo} alt={settings.academyName.ar} width={400} height={300} loading="eager" fetchPriority="high" sizes="(max-width: 768px) 90vw, 400px" className="mx-auto max-h-64 max-w-full object-contain" />}
       </div>
     </Frame>
   );

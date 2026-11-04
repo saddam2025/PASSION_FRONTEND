@@ -1,11 +1,16 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import LeadsPage from '@/features/leads/LeadsPage';
-import CustomerPage from '@/features/leads/CustomerPage';
+import { RouteSkeleton } from '@/components/ui/feedback';
+import NotFoundPage from './NotFoundPage';
+
+const LeadsPage = lazy(() => import('@/features/leads/LeadsPage'));
+const CustomerPage = lazy(() => import('@/features/leads/CustomerPage'));
 
 export default function AssistantPage() {
   const { pathname } = useLocation();
   if (pathname === '/assistant') return <Navigate to="/assistant/registrations" replace />;
-  if (pathname === '/assistant/registrations') return <LeadsPage />;
-  if (/^\/assistant\/registrations\/[^/]+/.test(pathname)) return <CustomerPage />;
-  return <Navigate to="/assistant/registrations" replace />;
+  const page = pathname === '/assistant/registrations' ? <LeadsPage />
+    : /^\/assistant\/registrations\/[^/]+/.test(pathname) ? <CustomerPage />
+      : <NotFoundPage area="assistant" />;
+  return <Suspense fallback={<RouteSkeleton />}>{page}</Suspense>;
 }

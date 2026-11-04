@@ -124,7 +124,7 @@ export default function UsersPage() {
         {invites.isLoading ? (
           <Skeleton variant="card" />
         ) : invites.isError ? (
-          <ErrorState title={t('loadError')} />
+          <ErrorState title={t('loadError')} onRetry={() => void invites.refetch()} />
         ) : invites.data?.items.length ? (
           invites.data.items.map((item) => (
             <article

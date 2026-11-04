@@ -6,6 +6,7 @@ import type { CoursePageContextValue } from './CoursePageContext';
 import { CoursePageProvider } from './CoursePageContext';
 import { SectionRenderer } from './SectionRenderer';
 import type { SectionMode } from './types';
+import { ErrorState } from '@/components/ui/feedback';
 
 export function PageRenderer({
   config,
@@ -23,10 +24,7 @@ export function PageRenderer({
   const { t } = useTranslation('sections');
   const result = useMemo(() => validatePage(config), [config]);
   if (!result.success) {
-    if (mode === 'public') {
-      if (import.meta.env.DEV) console.error('Invalid page configuration', result.errors);
-      return null;
-    }
+    if (mode === 'public') return <ErrorState title={t('invalidSection')} description={t('publicError')} onRetry={() => window.location.reload()} />;
     return (
       <div role="alert" className="m-4 rounded-sm border border-danger/30 bg-danger/5 p-4">
         <h2 className="font-bold">{t('invalidSection')}</h2>

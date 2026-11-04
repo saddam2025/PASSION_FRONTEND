@@ -14,7 +14,7 @@ export interface BreadcrumbItem { label: string; href?: string }
 export function Breadcrumbs({ items, homeLabel }: { items: BreadcrumbItem[]; homeLabel?: string }) {
   const { t } = useTranslation('common');
   const rootLabel = homeLabel ?? t('home');
-  return <nav aria-label="Breadcrumb"><ol className="flex flex-wrap items-center gap-2 text-sm text-muted">
+  return <nav aria-label="مسار التنقل"><ol className="flex flex-wrap items-center gap-2 text-sm text-muted">
     <li><Link to="/" aria-label={rootLabel} className="inline-flex items-center gap-1 hover:text-primary-strong"><Home aria-hidden="true" size={15} /><span>{rootLabel}</span></Link></li>
     {items.map((item, index) => <li key={`${item.label}-${index}`} className="inline-flex items-center gap-2">
       <ChevronRight aria-hidden="true" className="rtl:rotate-180" size={14} />{item.href && index < items.length - 1 ? <Link to={item.href} className="hover:text-primary-strong">{item.label}</Link> : <span aria-current="page" className="font-medium text-ink">{item.label}</span>}
