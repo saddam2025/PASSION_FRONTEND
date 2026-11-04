@@ -24,7 +24,7 @@ const errorMessages: Record<string, string> = {
   MEDIA_TYPE_INVALID: 'نوع الملف ده مش مدعوم.',
   MEDIA_TOO_LARGE: 'حجم الملف أكبر من المسموح.',
   MEDIA_DIMENSIONS_INVALID: 'أبعاد الصورة غير مناسبة.',
-  RECEIPT_TYPE_INVALID: 'ارفع صورة JPEG أو PNG أو WebP أو ملف PDF.',
+  RECEIPT_TYPE_INVALID: 'ارفع صورة بصيغة JPEG أو PNG أو WebP أو GIF أو TIFF أو BMP أو AVIF أو HEIF، أو ملف PDF.',
   RECEIPT_TOO_LARGE: 'حجم الإيصال لازم يكون 8 ميجابايت أو أقل.',
   RATE_LIMITED: 'عدد المحاولات كبير. جرّب تاني بعد شوية.',
   SERVICE_UNAVAILABLE: 'الخدمة مش متاحة دلوقتي. جرّب تاني.',
@@ -78,7 +78,7 @@ function validationMessage(details: unknown): string | undefined {
   if (!Array.isArray(details)) return undefined;
   if (details.some((item) => item && typeof item === 'object' && 'field' in item && (item as { field?: unknown }).field === 'maxRows')) return 'عدد السجلات أكبر من حد التصدير. قلّل الفترة أو استخدم فلاتر إضافية.';
   const codes = details.map((item) => item && typeof item === 'object' && 'code' in item ? String((item as { code: unknown }).code) : '');
-  if (codes.includes('unsupported_type')) return 'نوع الصورة ده مش مدعوم. ارفع صورة بصيغة JPEG أو PNG أو WebP.';
+  if (codes.includes('unsupported_type')) return 'صيغة الصورة دي مش مدعومة. الصيغ المقبولة: JPEG وPNG وWebP وGIF وTIFF وAVIF وHEIF.';
   if (codes.includes('too_big') || codes.includes('LIMIT_FILE_SIZE')) return 'حجم الصورة لازم يكون 5 ميجابايت أو أقل.';
   if (codes.includes('pixel_limit') || codes.includes('invalid_image')) return 'أبعاد الصورة غير مناسبة أو الملف مش صالح.';
   return undefined;

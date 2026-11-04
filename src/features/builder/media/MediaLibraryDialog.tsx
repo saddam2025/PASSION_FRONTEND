@@ -9,7 +9,7 @@ import { mediaUrl } from '@/lib/mediaUrl';
 import { apiErrorMessage } from '@/api/client';
 import { EmptyState, ErrorState } from '@/components/ui/feedback';
 
-const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/tiff', 'image/avif', 'image/heif', 'image/heic', 'image/heif-sequence', 'image/heic-sequence']);
 const maxBytes = 5 * 1024 * 1024;
 export function MediaLibraryDialog({
   open,
@@ -102,6 +102,7 @@ export function MediaLibraryDialog({
     try {
       const asset = await mediaService.upload(file, setProgress);
       setAssets((current) => [asset, ...current.filter((item) => item.id !== asset.id)]);
+      setPreviewUrl(null);
       setSelected(asset);
       setPage(1);
     } catch (cause) {
@@ -184,7 +185,7 @@ export function MediaLibraryDialog({
               className="sr-only"
               type="file"
               aria-label={t('upload')}
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/tiff,image/avif,image/heif,image/heic,.jpg,.jpeg,.png,.webp,.gif,.tif,.tiff,.avif,.heif,.heic"
               onChange={(event) => void chooseFile(event.currentTarget.files?.[0])}
             />
             <Button

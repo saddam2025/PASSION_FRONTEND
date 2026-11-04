@@ -13,7 +13,7 @@
   "deleteDescription": "مش ممكن ترجع ملف اتحذف ومش مستخدم.",
   "cancel": "إلغاء",
   "uploading": "جاري رفع الصورة… {{progress}}٪",
-  "invalidType": "صيغ الصور المتاحة: JPG وPNG وWebP وAVIF بس.",
+  "invalidType": "الصيغ المدعومة: JPEG وPNG وWebP وGIF وTIFF وAVIF وHEIF. ملفات SVG غير مدعومة.",
   "tooLarge": "الحد الأقصى لحجم الصورة 5 ميجابايت.",
   "uploadError": "ما قدرناش نرفع الصورة. جرّب تاني.",
   "deleteError": "ما قدرناش نحذف الصورة.",
