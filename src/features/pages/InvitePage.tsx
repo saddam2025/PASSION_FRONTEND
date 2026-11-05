@@ -11,7 +11,6 @@ import { ErrorState, Skeleton, useToast } from '@/components/ui/feedback';
 import { PasswordStrength } from '@/features/auth/PasswordStrength';
 import { passwordSchema } from '@/schemas/auth';
 import { inviteService } from '@/services/authFlows.service';
-import { useLanguage } from '@/i18n/useLanguage';
 import { useDocumentTitle } from '@/lib/useDocumentTitle';
 import type { InviteDetails } from '@/services/authFlows.types';
 import { ApiError } from '@/api/client';
@@ -25,7 +24,6 @@ type InvitationValues = z.infer<ReturnType<typeof invitationSchema>>;
 
 export default function InvitePage() {
   const { token = '' } = useParams();
-  const { language } = useLanguage();
   const { t } = useTranslation(['auth', 'common']);
   const navigate = useNavigate();
   const { notify } = useToast();
@@ -53,7 +51,7 @@ export default function InvitePage() {
     try {
       await inviteService.accept({ token, email: invite.email, fullName: values.fullName, password: values.password });
       notify({ title: t('auth:inviteSuccess'), tone: 'success' });
-      navigate(`/${language}/login`, { replace: true, state: { email: invite.email } });
+      navigate('/', { replace: true, state: { email: invite.email } });
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) setStatus('invalid');
       else if (error instanceof ApiError) for (const [field, message] of Object.entries(error.fieldErrors)) {
@@ -65,7 +63,7 @@ export default function InvitePage() {
 
   if (status === 'loading') return <div className="grid gap-5" role="status" aria-label={t('auth:inviteLoading')}><Skeleton variant="title" /><Skeleton variant="text" /><Skeleton variant="card" /></div>;
   if (status === 'error') return <ErrorState title="حصلت مشكلة في التحقق من الدعوة، جرّب تاني." onRetry={() => setValidationAttempt((attempt) => attempt + 1)} />;
-  if (status === 'invalid') return <div className="grid gap-5"><h1 className="font-display text-3xl font-bold text-ink">{t('auth:inviteInvalidTitle')}</h1><ErrorState title={t('auth:inviteInvalidTitle')} description={t('auth:inviteInvalidDescription')} /><Link to={`/${language}/login`} className="text-sm font-semibold text-primary-strong underline">{t('auth:backToLogin')}</Link></div>;
+  if (status === 'invalid') return <div className="grid gap-5"><h1 className="font-display text-3xl font-bold text-ink">{t('auth:inviteInvalidTitle')}</h1><ErrorState title={t('auth:inviteInvalidTitle')} description={t('auth:inviteInvalidDescription')} /><Link to="/" className="text-sm font-semibold text-primary-strong underline">{t('auth:backToLogin')}</Link></div>;
 
   return <div className="grid gap-6">
     <header className="grid gap-2"><h1 className="font-display text-3xl font-bold text-ink">{t('auth:inviteTitle')}</h1><p className="text-sm text-muted">{t('auth:inviteDescription')}</p></header>

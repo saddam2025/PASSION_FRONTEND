@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RouteSkeleton, ErrorState } from '@/components/ui/feedback';
 import { PageRenderer } from '@/features/sections/PageRenderer';
@@ -142,18 +142,12 @@ export default function CourseDetailPage() {
     return (
       <section className="ps-container pe-container grid justify-items-start gap-5 py-16">
         <ErrorState title={t('error', { ns: 'courses' })} onRetry={() => setLoadAttempt((attempt) => attempt + 1)} />
-        <Link className="text-primary-strong underline" to={`/${language}/courses`}>
-          {t('catalog')}
-        </Link>
       </section>
     );
   if (missing || !course)
     return (
       <section className="ps-container pe-container grid justify-items-start gap-5 py-16">
         <ErrorState title={t('notAvailable')} description={t('notAvailableHint')} />
-        <Link className="text-primary-strong underline" to={`/${language}/courses`}>
-          {t('catalog')}
-        </Link>
       </section>
     );
   return (
@@ -164,10 +158,6 @@ export default function CourseDetailPage() {
           aria-label="مسار التنقل"
           className="ps-container pe-container py-4 text-sm text-muted"
         >
-          <Link to={`/${language}`}>{t('home')}</Link>
-          <span aria-hidden="true"> / </span>
-          <Link to={`/${language}/courses`}>{t('courses')}</Link>
-          <span aria-hidden="true"> / </span>
           <span aria-current="page" className="text-ink">
             {getBilingualText(course.title, language)}
           </span>

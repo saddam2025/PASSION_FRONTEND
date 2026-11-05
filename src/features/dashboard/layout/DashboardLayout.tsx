@@ -13,7 +13,6 @@ import type { DashboardArea } from '@/features/dashboard/nav.config';
 import { NewCourseDialogProvider } from '@/features/courses/newCourseDialog';
 import { usePublicSettings } from '@/services/usePublicSettings';
 import { RouteTransition } from '@/components/common/motion';
-import { Footer } from '@/features/public/layout/Footer';
 
 export function DashboardLayout({ area, children }: PropsWithChildren<{ area: DashboardArea }>) {
   const { collapsed, toggle } = useSidebarPreference();
@@ -59,7 +58,6 @@ export function DashboardLayout({ area, children }: PropsWithChildren<{ area: Da
             className={`dashboard-scroll min-h-0 min-w-0 w-full max-w-full flex-1 overflow-y-auto overscroll-contain ps-container pe-container ${area === 'assistant' ? 'pb-6 md:pb-8' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-8'} pt-6 outline-none md:pt-8`}
           >
             <RouteTransition><div className="ms-auto me-auto grid grid-cols-[minmax(0,1fr)] min-w-0 w-full max-w-7xl gap-8">{children}</div></RouteTransition>
-            <Footer />
           </main>
         </div>
         {area === 'assistant'

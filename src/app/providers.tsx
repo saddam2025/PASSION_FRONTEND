@@ -1,6 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useState, type PropsWithChildren } from 'react';
-import { AuthProvider } from '@/app/AuthContext';
 import { ErrorBoundary } from '@/app/ErrorBoundary';
 import { ToastProvider, TooltipProvider } from '@/components/ui';
 import { SplashScreen } from '@/components/common/SplashScreen';
@@ -10,6 +9,6 @@ import { appQueryClient } from '@/app/queryClient';
 
 export function AppProviders({ children }: PropsWithChildren) {
   const [queryClient] = useState(() => appQueryClient);
-  return <LanguageProvider><QueryClientProvider client={queryClient}><ToastProvider><TooltipProvider><AuthProvider><ErrorBoundary><NetworkBackground />{children}<SplashScreen /></ErrorBoundary></AuthProvider></TooltipProvider></ToastProvider></QueryClientProvider></LanguageProvider>;
+  return <LanguageProvider><QueryClientProvider client={queryClient}><ToastProvider><TooltipProvider><ErrorBoundary><NetworkBackground />{children}<SplashScreen /></ErrorBoundary></TooltipProvider></ToastProvider></QueryClientProvider></LanguageProvider>;
 }
 

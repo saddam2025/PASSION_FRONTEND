@@ -40,7 +40,7 @@ export default function ResetPasswordPage() {
     try {
       await passwordResetService.resetPassword(token, values.password);
       notify({ title: t('resetSuccess'), tone: 'success' });
-      navigate(`/${language}/login`, { replace: true });
+      navigate('/', { replace: true });
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) setStatus('invalid');
       else if (error instanceof ApiError) for (const [field, message] of Object.entries(error.fieldErrors)) if (field === 'password') setError(field, { type: 'server', message });

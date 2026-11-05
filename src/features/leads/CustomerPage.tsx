@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/app/AuthContext';
@@ -20,7 +20,11 @@ import { formatDate, formatPhone } from '@/lib/formatters';
 import { majorToMinor, minorToMajor } from '@/lib/money';
 
 export default function CustomerPage() {
-  const { leadId = '' } = useParams();
+  // AdminPage and AssistantPage dispatch this screen from a wildcard route,
+  // so React Router does not expose a named `leadId` param here.
+  const { pathname } = useLocation();
+  const enrollmentMatch = pathname.match(/\/registrations\/([^/]+)\/?$/);
+  const leadId = enrollmentMatch ? decodeURIComponent(enrollmentMatch[1]) : '';
   const [params] = useSearchParams();
   const { t } = useTranslation('leads');
   const { language } = useLanguage();
@@ -44,6 +48,7 @@ export default function CustomerPage() {
   const q = useQuery({
     queryKey: ['customer', leadId],
     queryFn: () => leadsService.getCustomer(leadId, user?.role),
+    enabled: Boolean(leadId),
   });
   const canView = Boolean(user && (user.role === 'admin' || user.role === 'assistant'));
   const canRecord = Boolean(user && hasPermission(user, 'recordPayments'));

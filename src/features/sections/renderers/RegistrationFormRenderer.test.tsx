@@ -98,7 +98,7 @@ describe('public course registration form', () => {
     fireEvent.keyDown(select, { key: 'ArrowDown' });
     fireEvent.click(await screen.findByRole('option', { name: 'إدارة' }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'أوافق على التواصل' }));
-    fireEvent.click(screen.getByRole('checkbox', { name: 'أوافق على استخدام بياناتي للتواصل معي' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /أوافق على استخدام بياناتي للتواصل معي/ }));
     now.mockReturnValue(mountedAt + 2100);
 
     fireEvent.click(submit);
@@ -110,6 +110,16 @@ describe('public course registration form', () => {
       idempotencyKey: 'f60e6190-0bf0-49a6-bc38-3766cb665129', attribution: {},
     }));
     expect(await screen.findByRole('heading', { name: 'تم حجز الكورس مبدئيًا' })).toBeTruthy();
+  });
+
+  it('links legal pages only from the consent text and opens them in a new tab', async () => {
+    renderPublicForm();
+    const privacy = await screen.findByRole('link', { name: 'سياسة الخصوصية' });
+    const terms = screen.getByRole('link', { name: 'الشروط والأحكام' });
+    expect(privacy.getAttribute('href')).toBe('/ar/privacy');
+    expect(terms.getAttribute('href')).toBe('/ar/terms');
+    expect(privacy.getAttribute('target')).toBe('_blank');
+    expect(terms.getAttribute('target')).toBe('_blank');
   });
 
   it('shows the consent error when consent is unchecked', async () => {
@@ -143,7 +153,7 @@ describe('public course registration form', () => {
     fireEvent.keyDown(select, { key: 'ArrowDown' });
     fireEvent.click(await screen.findByRole('option', { name: 'إدارة' }));
     fireEvent.click(screen.getByRole('checkbox', { name: 'أوافق على التواصل' }));
-    fireEvent.click(screen.getByRole('checkbox', { name: 'أوافق على استخدام بياناتي للتواصل معي' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /أوافق على استخدام بياناتي للتواصل معي/ }));
     now.mockReturnValue(mountedAt + 2100);
     fireEvent.click(screen.getByRole('button', { name: 'سجّل دلوقتي' }));
 

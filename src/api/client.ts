@@ -172,7 +172,12 @@ function clearSessionAndRedirect(): void {
   window.dispatchEvent(new Event('passion-auth-session-cleared'));
   const path = `${window.location.pathname}${window.location.search}${window.location.hash}`;
   const safeReturn = path.startsWith('/') && !path.startsWith('//') ? path : '/admin';
-  window.location.replace(`/ar/login?sessionExpired=1&returnTo=${encodeURIComponent(safeReturn)}`);
+  window.location.replace(`/?sessionExpired=1&returnTo=${encodeURIComponent(safeReturn)}`);
+}
+
+function isPublicApiPath(path: string): boolean {
+  const pathname = path.split('?')[0].replace(/^\//, '');
+  return pathname.startsWith('public/') || pathname === 'settings/public' || pathname === 'categories/public';
 }
 
 export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -180,7 +185,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
     return await rawRequest(path, init) as T;
   } catch (cause) {
     const error = cause instanceof ApiError ? cause : new ApiError('generic', 0);
-    if (error.status === 401 && !isAuthPath(path)) {
+    if (error.status === 401 && !isAuthPath(path) && !isPublicApiPath(path)) {
       if (await refreshSession()) {
         try { return await rawRequest(path, init) as T; }
         catch (retryCause) {

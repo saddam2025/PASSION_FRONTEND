@@ -47,8 +47,18 @@ describe('shared API client', () => {
     vi.stubGlobal('fetch', fetchMock);
     await expect(apiRequest('users')).rejects.toMatchObject({ status: 401 });
     expect(events).toContain('passion-auth-session-cleared');
-    expect(replace).toHaveBeenCalledWith(expect.stringContaining('/ar/login?sessionExpired=1&returnTo='));
+    expect(replace).toHaveBeenCalledWith('/?sessionExpired=1&returnTo=%2Fadmin%2Fusers%3Fp%3D2');
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/users'))).toHaveLength(1);
+  });
+
+  it('does not refresh a staff session for public data endpoints', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => { void input; return json({ error: { code: 'NOT_FOUND' } }, 404); });
+    vi.stubGlobal('fetch', fetchMock);
+    for (const path of ['public/courses/missing', 'settings/public', 'categories/public']) {
+      await expect(apiRequest(path)).rejects.toMatchObject({ status: 404 });
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith('/auth/refresh'))).toBe(false);
   });
 
   it('maps known and unknown codes without exposing backend messages and extracts field paths', async () => {

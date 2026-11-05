@@ -63,7 +63,7 @@ export default function LoginPage() {
           : returnTo?.startsWith('/') && !returnTo.startsWith('//')
             ? returnTo
             : null;
-      navigate(safeRequested ?? (user.role === 'admin' ? '/admin' : '/assistant'), {
+      navigate(safeRequested ?? (user.role === 'admin' ? '/admin' : '/assistant/registrations'), {
         replace: true,
       });
     } catch (error) {
@@ -81,7 +81,6 @@ export default function LoginPage() {
       <header className="grid gap-2">
         <h1 className="font-display text-3xl font-bold text-ink">{t('auth:loginTitle')}</h1>
         <p className="text-sm text-muted">{t('auth:loginDescription')}</p>
-        <Link to={`/${language}`} className="min-h-11 inline-flex w-fit items-center text-sm text-primary-strong underline">{t('auth:backToSite')}</Link>
       </header>
       {locked && (
         <div

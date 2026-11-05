@@ -1,13 +1,12 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
+import type { PropsWithChildren } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SmartImage } from '@/components/common/SmartImage';
 import { usePublicSettings } from '@/services/usePublicSettings';
 import { RouteTransition } from '@/components/common/motion';
-import { Footer } from '@/features/public/layout/Footer';
 
-export function AuthLayout() {
+export function AuthLayout({ children }: PropsWithChildren) {
   const { t } = useTranslation('auth');
-  const { pathname } = useLocation();
   const settings = usePublicSettings();
   const academyName = settings.academyName.ar.trim();
 
@@ -34,9 +33,8 @@ export function AuthLayout() {
       <span className="relative z-10 font-mono text-xs text-on-secondary/50">{t('secureAccess')}</span>
     </aside>
     <main id="auth-main" tabIndex={-1} className="grid min-h-dvh place-items-center ps-4 pe-4 py-20 outline-none sm:ps-8 sm:pe-8">
-      <div className="w-full max-w-lg rounded-lg border border-border bg-surface p-5 shadow-card sm:p-8"><RouteTransition><Outlet /></RouteTransition></div>
+      <div className="w-full max-w-lg rounded-lg border border-border bg-surface p-5 shadow-card sm:p-8"><RouteTransition>{children ?? <Outlet />}</RouteTransition></div>
     </main>
     </div>
-    {!/\/login\/?$/.test(pathname) && <Footer />}
   </>;
 }

@@ -287,7 +287,10 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
                 />
                 <span>
                   {formDefinition.consentText?.ar ?? t('consent')}{' '}
-                  {settings.privacyUrl && <a href={settings.privacyUrl} className="text-primary-strong underline">سياسة الخصوصية</a>}
+                  <span className="flex flex-wrap gap-x-3 gap-y-1">
+                    <a href="/ar/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-strong underline">{t('privacyLink')}</a>
+                    <a href="/ar/terms" target="_blank" rel="noopener noreferrer" className="text-primary-strong underline">{t('termsLink')}</a>
+                  </span>
                 </span>
               </label>
             )}
