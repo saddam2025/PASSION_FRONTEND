@@ -12,7 +12,7 @@ export function ContactSection({ title }: { title: string }) {
     s.openingHours?.ar;
   if (!s.email && !s.phone && !address && !wa && !s.mapLink && !openingHours) return null;
   return (
-    <Frame id="contact" title={title || t('contactTitle')}>
+    <Frame id="contact" title={title || t('contactTitle')} tone="brand">
       <div className="flex flex-wrap gap-4">
         {wa && (
           <a

@@ -7,24 +7,29 @@ export function normalizePhone(value: string): string {
 }
 export function buildSubmissionSchema(definition: FormDefinition) {
   const shape: z.ZodRawShape = {
-    fullName: z.string().trim().min(2).max(120),
+    fullName: z.string().trim().min(1, 'الحقل ده مطلوب.').min(2, 'اكتب الاسم كامل بشكل صحيح.').max(120, 'الاسم طويل زيادة.'),
     email: z
       .string()
       .trim()
-      .email()
-      .max(254)
+      .min(1, 'الحقل ده مطلوب.')
+      .email('اكتب بريد إلكتروني صحيح.')
+      .max(254, 'البريد الإلكتروني طويل زيادة.')
       .transform((value) => value.toLowerCase()),
     phone: z
       .string()
       .trim()
-      .min(7)
-      .max(24)
+      .min(1, 'الحقل ده مطلوب.')
+      .min(7, 'اكتب رقم الهاتف كامل.')
+      .max(24, 'رقم الهاتف طويل زيادة.')
       .transform(normalizePhone)
       .refine(
         (value) => isLikelyValidPhone(value.replace(/\D/g, '')),
-        'Enter a valid international phone number.',
+        'اكتب رقم هاتف صحيح، زي 01012345678.',
       ),
     consent: z.literal(true, { errorMap: () => ({ message: 'الموافقة مطلوبة.' }) }),
+    // Registered honeypot is sent to the API for bot detection, but never
+    // participates in user validation.
+    honeypot: z.string().optional().default(''),
   };
   for (const field of definition.fields) {
     const limit = field.maxLength ?? (field.type === 'textarea' ? 4000 : 300);
@@ -33,13 +38,14 @@ export function buildSubmissionSchema(definition: FormDefinition) {
     else if (field.type === 'select' || field.type === 'radio')
       value = z
         .string()
+        .refine((entry) => !field.required || entry !== '', 'الحقل ده مطلوب.')
         .refine(
-          (entry) => Boolean(field.options?.some((option) => option.value === entry)),
+          (entry) => entry === '' || Boolean(field.options?.some((option) => option.value === entry)),
           'اختار قيمة من الاختيارات المتاحة.',
         );
-    else value = z.string().trim().max(limit);
+    else value = z.string().trim().max(limit, 'النص أطول من الحد المسموح.');
     if (!field.required && field.type !== 'checkbox') value = value.optional().or(z.literal(''));
-    else if (field.required && field.type !== 'checkbox')
+    else if (field.required && field.type !== 'checkbox' && field.type !== 'select' && field.type !== 'radio')
       value = value.refine(
         (entry) => entry !== '' && entry !== undefined,
         'الحقل ده مطلوب.',

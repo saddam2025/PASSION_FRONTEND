@@ -5,6 +5,7 @@ import type { MediaAsset } from '@/services/media';
 import { mediaUrl } from '@/lib/mediaUrl';
 import { MediaLibraryDialog } from '@/features/builder/media/MediaLibraryDialog';
 import { Button } from '@/components/ui/Button';
+import { ImageHoverFrame } from '@/components/common/SmartImage';
 
 function withImageDescription(value: ImageRef, label: string): ImageRef {
   if (value.decorative || value.alt.ar.trim()) return value;
@@ -33,13 +34,7 @@ export function ImagePickerField({
       <p className="text-sm font-medium">{label}</p>
       <div className="flex flex-wrap items-center gap-3">
         {value.src && (
-          <img
-            src={mediaUrl(value.src)}
-            alt=""
-            width={112}
-            height={72}
-            className="h-[4.5rem] w-28 rounded-xs border border-border object-cover"
-          />
+          <ImageHoverFrame className="h-[4.5rem] w-28 rounded-xs border border-border"><img src={mediaUrl(value.src)} alt="" width={112} height={72} className="size-full object-cover" /></ImageHoverFrame>
         )}
         <Button variant="secondary" disabled={disabled} onClick={() => setOpen(true)}>
           {t('chooseImage')}

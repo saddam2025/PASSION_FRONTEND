@@ -6,11 +6,13 @@ export type RegistrationErrorCode =
   | 'COURSE_FULL'
   | 'VALIDATION_ERROR'
   | 'IDEMPOTENCY_CONFLICT'
+  | 'SUBMISSION_NOT_CONFIRMED'
+  | 'ORIGIN_NOT_ALLOWED'
   | 'RATE_LIMITED'
   | 'NETWORK_ERROR';
 
 export class RegistrationServiceError extends Error {
-  constructor(readonly code: RegistrationErrorCode, message: string, readonly fieldErrors: Record<string, string> = {}) {
+  constructor(readonly code: RegistrationErrorCode, message: string, readonly fieldErrors: Record<string, string> = {}, readonly requestId?: string) {
     super(message);
     this.name = 'RegistrationServiceError';
   }

@@ -1,5 +1,4 @@
 import { Suspense, lazy } from 'react';
-import { AnimatePresence } from 'framer-motion';
 import {
   BrowserRouter,
   Navigate,
@@ -52,9 +51,8 @@ function LanguageRoute() {
 function RouteTree() {
   const location = useLocation();
   return (
-    <AnimatePresence mode="wait">
       <Suspense fallback={<RouteSkeleton />}>
-        <Routes location={location} key={location.pathname}>
+        <Routes location={location}>
           <Route path="/" element={<RootRedirect />} />
           <Route path="/courses/:slug" element={<CourseLinkRedirect />} />
           <Route path="/:lang" element={<LanguageRoute />}>
@@ -84,7 +82,6 @@ function RouteTree() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
-    </AnimatePresence>
   );
 }
 export function AppRouter() {

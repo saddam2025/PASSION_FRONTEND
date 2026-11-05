@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/i18n/useLanguage';
@@ -10,6 +10,8 @@ import { AboutSection } from '@/features/public/home/sections/AboutSection';
 import { FeaturedCoursesSection } from '@/features/public/home/sections/FeaturedCoursesSection';
 import { HowItWorksSection } from '@/features/public/home/sections/HowItWorksSection';
 import { ContactSection } from '@/features/public/home/sections/ContactSection';
+import { CourseCategoryTicker } from '@/features/public/home/sections/CourseCategoryTicker';
+import { CourseAccreditationSection, CourseInstructorsSection, CourseModesSection } from '@/features/public/home/sections/AcademyHighlightsSections';
 import { ErrorState } from '@/components/ui/feedback';
 
 export default function HomePage() {
@@ -29,10 +31,10 @@ export default function HomePage() {
   ];
   const courses = featured.data ?? [];
   return <>{settingsError && <div className="ps-container pe-container pt-6"><ErrorState title="حصلت مشكلة في تحميل إعدادات الموقع، جرّب تاني." onRetry={() => window.dispatchEvent(new Event('passion-settings-updated'))} /></div>}{sections.map((section) => {
-    if (section.type === 'hero') return <HeroSection key={section.id} title={String(section.content.title)} intro={String(section.content.intro)} />;
+    if (section.type === 'hero') return <Fragment key={section.id}><HeroSection title={String(section.content.title)} intro={String(section.content.intro)} /><CourseCategoryTicker courses={courses} /></Fragment>;
     if (section.type === 'about') return <AboutSection key={section.id} title={String(section.content.title)} body={String(section.content.text)} />;
     if (section.type === 'featuredCourses') return <FeaturedCoursesSection key={section.id} title={String(section.content.title)} courses={courses} loading={featured.isPending} error={featured.isError} onRetry={() => void featured.refetch()} />;
-    if (section.type === 'howItWorks') return <HowItWorksSection key={section.id} title={String(section.content.title)} steps={section.content.steps as string[]} />;
+    if (section.type === 'howItWorks') return <Fragment key={section.id}><HowItWorksSection title={String(section.content.title)} steps={section.content.steps as string[]} /><CourseModesSection courses={courses} /><CourseInstructorsSection courses={courses} /><CourseAccreditationSection courses={courses} /></Fragment>;
     return <ContactSection key={section.id} title={String(section.content.title)} />;
   })}</>;
 }

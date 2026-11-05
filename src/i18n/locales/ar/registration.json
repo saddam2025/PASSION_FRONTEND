@@ -11,9 +11,14 @@
   "selectOption": "اختار خيارًا",
   "offlinePayment": "ده طلب تواصل بس. تفاصيل الدفع بتتنسق مع الأكاديمية بره المنصة.",
   "inquiryMessage": "بخصوص الاستفسار عن كورس {{courseTitle}}.",
-  "requestReceived": "وصلنا طلبك",
-  "requestNotEnrolled": "ده طلب تسجيل مبدئي؛ لسه ما تمش تأكيد مكانك أو الدفع. هنتواصل معاك على واتساب في أقرب وقت.",
-  "copyReference": "انسخ رقم الطلب",
-  "continueWhatsApp": "كمّل الحجز على واتساب",
-  "whatsappConfirmation": "أهلاً {{name}}، بخصوص طلبك في كورس {{course}}، رقم الطلب {{reference}}."
+  "validationSummary": "راجع الحقول المطلوبة",
+  "provisionalTitle": "تم حجز الكورس مبدئيًا",
+  "provisionalInstruction": "تواصل مع الدعم خلال 24 ساعة عشان تكمّل إجراءات الدفع.",
+  "referenceLabel": "رقم الحجز",
+  "copyReference": "انسخ رقم الحجز",
+  "continueWhatsApp": "استكمل الإجراءات على واتساب.",
+  "whatsappFallbackNote": "لو الزرار ما اشتغلش، احفظ رقم الحجز وكلمنا على واتساب.",
+  "whatsappNumberMissing": "احفظ رقم الحجز وتواصل مع الأكاديمية من بيانات التواصل الموجودة في الصفحة.",
+  "statusReceived": "وصلنا طلبك",
+  "whatsappConfirmation": "أهلاً {name}، بخصوص حجز {course}، رقم الحجز {reference}."
 }

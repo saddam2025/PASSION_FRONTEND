@@ -42,11 +42,11 @@ export function PublicNavbar() {
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 -mb-16 border-b border-transparent transition duration-250',
-        solid && 'border-border/80 bg-surface/95 shadow-soft backdrop-blur-md',
+        'sticky top-0 z-40 -mb-16 border-b border-transparent px-3 pt-2 transition duration-250 md:px-6 md:pt-4',
+        solid && 'border-transparent',
       )}
     >
-      <div className="ms-auto me-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-3 ps-container pe-container">
+      <div className={cn('ms-auto me-auto flex min-h-16 w-full max-w-6xl items-center justify-between gap-3 rounded-2xl px-4 py-2 ring-1 ring-slate-900/5 backdrop-blur-md transition duration-300 md:px-6', solid ? 'bg-surface/95 shadow-card' : 'bg-surface/85 shadow-soft')}>
         <Link
           to={home}
           className="flex min-w-0 items-center gap-2"

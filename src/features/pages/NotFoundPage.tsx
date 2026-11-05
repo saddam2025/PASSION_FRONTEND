@@ -4,13 +4,14 @@ import { Container, Section } from '@/components/ui';
 import { useLanguage } from '@/i18n/useLanguage';
 import { Link } from 'react-router-dom';
 import { useSeo } from '@/lib/useSeo';
+import { Footer } from '@/features/public/layout/Footer';
 export default function NotFoundPage({ area = 'public' }: { area?: 'public' | 'admin' | 'assistant' }) {
   const { t } = useTranslation('common');
   const { language } = useLanguage();
   useSeo({ title: t('notFound'), description: t('notFound'), language, robots: 'noindex,follow' });
   const destination = area === 'admin' ? '/admin' : area === 'assistant' ? '/assistant/registrations' : `/${language}`;
   const label = area === 'admin' ? 'العودة للوحة التحكم' : area === 'assistant' ? 'العودة للتسجيلات' : t('goHome');
-  return (
+  return <>
     <PageTransition>
       <Section>
         <Container className="grid justify-items-center gap-4 text-center">
@@ -25,5 +26,6 @@ export default function NotFoundPage({ area = 'public' }: { area?: 'public' | 'a
         </Container>
       </Section>
     </PageTransition>
-  );
+    <Footer />
+  </>;
 }

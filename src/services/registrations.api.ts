@@ -8,6 +8,9 @@ const messages: Record<string, string> = {
   VALIDATION_ERROR: 'راجع بيانات التسجيل وحاول تاني.',
   IDEMPOTENCY_KEY_REUSED: 'بيانات الطلب اتغيرت. حدّث الصفحة وابدأ التسجيل من جديد.',
   IDEMPOTENCY_CONFLICT: 'بيانات الطلب اتغيرت. حدّث الصفحة وابدأ التسجيل من جديد.',
+  SUBMISSION_NOT_CONFIRMED: 'ما قدرناش نأكد وصول طلبك. راجع اتصالك وحاول تاني.',
+  CORS_ORIGIN_DENIED: 'تعذر إرسال الطلب من الموقع الحالي. تواصل مع الأكاديمية.',
+  FORBIDDEN: 'تعذر إرسال الطلب من الموقع الحالي. تواصل مع الأكاديمية.',
   RATE_LIMITED: 'عدد المحاولات كبير. جرّب تاني بعد شوية.',
 };
 function mapError(error: unknown): RegistrationServiceError {
@@ -15,15 +18,22 @@ function mapError(error: unknown): RegistrationServiceError {
   const api = error instanceof ApiError ? error : null;
   const rawCode = api?.code ?? 'NETWORK_ERROR';
   const code: RegistrationErrorCode = rawCode === 'IDEMPOTENCY_KEY_REUSED' ? 'IDEMPOTENCY_CONFLICT'
+    : rawCode === 'CORS_ORIGIN_DENIED' || rawCode === 'FORBIDDEN' ? 'ORIGIN_NOT_ALLOWED'
     : rawCode === 'COURSE_NOT_AVAILABLE' || rawCode === 'REGISTRATION_CLOSED' || rawCode === 'COURSE_FULL' || rawCode === 'VALIDATION_ERROR' || rawCode === 'RATE_LIMITED' ? rawCode : 'NETWORK_ERROR';
   const details = api?.details;
   const fieldErrors = { ...(api?.fieldErrors ?? {}) };
+  for (const [field, message] of Object.entries(fieldErrors)) {
+    if (field.startsWith('answers.')) {
+      fieldErrors[field.slice('answers.'.length)] = message;
+      delete fieldErrors[field];
+    }
+  }
   if (Array.isArray(details)) for (const item of details) {
     if (item && typeof item === 'object' && 'fieldId' in item && typeof (item as { fieldId: unknown }).fieldId === 'string') {
       fieldErrors[(item as { fieldId: string }).fieldId] = 'راجع الحقل ده.';
     }
   }
-  return new RegistrationServiceError(code, messages[rawCode] ?? api?.message ?? 'تعذر إرسال التسجيل. اتأكد من اتصالك وحاول تاني.', fieldErrors);
+  return new RegistrationServiceError(code, messages[rawCode] ?? api?.message ?? 'تعذر إرسال التسجيل. اتأكد من اتصالك وحاول تاني.', fieldErrors, api?.requestId);
 }
 export const apiRegistrationsService: RegistrationsService = {
   async submit(input: RegistrationSubmission) {
@@ -42,6 +52,20 @@ export const apiRegistrationsService: RegistrationsService = {
     try {
       const result = await apiRequest<{ reference: string; status: 'received' }>('public/registrations', { method: 'POST', body: JSON.stringify(body) });
       if (!result.reference || result.status !== 'received') throw new RegistrationServiceError('VALIDATION_ERROR', 'تعذر تأكيد التسجيل. حاول تاني.');
+      // Honeypot/time checks intentionally return the same neutral 201 shape as
+      // accepted submissions. Verify the reference exists before showing success.
+      let confirmation: { reference: string; courseTitle: { ar: string }; status: 'received' };
+      try {
+        confirmation = await apiRequest<{ reference: string; courseTitle: { ar: string }; status: 'received' }>(`public/registrations/${encodeURIComponent(result.reference)}`);
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          throw new RegistrationServiceError('SUBMISSION_NOT_CONFIRMED', messages.SUBMISSION_NOT_CONFIRMED);
+        }
+        throw error;
+      }
+      if (confirmation.reference !== result.reference) {
+        throw new RegistrationServiceError('SUBMISSION_NOT_CONFIRMED', messages.SUBMISSION_NOT_CONFIRMED);
+      }
       return result;
     } catch (error) { throw mapError(error); }
   },

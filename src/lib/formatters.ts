@@ -17,6 +17,7 @@ export function formatMoney(value: number, currency: string): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: safeCurrency,
+    minimumFractionDigits: 0,
     maximumFractionDigits: 2,
     numberingSystem: 'latn',
   }).format(value);

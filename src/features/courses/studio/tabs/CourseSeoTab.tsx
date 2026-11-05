@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/selection';
 import { ImagePickerField } from '@/features/courses/ImagePickerField';
 import { adminService } from '@/services/admin.service';
 import { mediaUrl } from '@/lib/mediaUrl';
+import { ImageHoverFrame } from '@/components/common/SmartImage';
 import type { Course, Snapshot } from '@/schemas/course';
 import { resolveCourseSeo } from '@/lib/courseSeo';
 
@@ -25,6 +26,6 @@ export function CourseSeoTab({ course, snapshot, onChange }: { course: Course; s
       <label className="flex min-h-11 items-center gap-2 text-sm"><Checkbox checked={seo.noindex ?? !settingsDefaults.allowSearch} onCheckedChange={(checked)=>onChange({...snapshot,seo:{...seo,noindex:checked===true}})}/>إخفاء الكورس من محركات البحث</label>
     </section>
     <section className="grid grid-cols-[minmax(0,1fr)] w-full min-w-0 max-w-full gap-4 rounded-md border border-border bg-canvas p-4"><h3 className="font-bold">معاينة نتيجة البحث</h3><article className="grid w-full min-w-0 max-w-xl gap-1 rounded-sm bg-surface p-4"><p className="min-w-0 truncate text-lg text-[#1a0dab]">{pageTitle}</p><p dir="ltr" className="min-w-0 break-all text-start text-sm text-success">{window.location.origin}/ar/courses/{course.slug}</p><p className="min-w-0 break-words text-sm text-muted">{pageDescription}</p></article></section>
-    <section className="grid grid-cols-[minmax(0,1fr)] w-full min-w-0 max-w-full gap-4 rounded-md border border-border bg-canvas p-4"><h3 className="font-bold">معاينة بطاقة المشاركة</h3><article className="grid w-full min-w-0 max-w-xl rounded-sm border border-border bg-surface">{previewImage&&<img src={previewImage} alt="" className="aspect-[1.91/1] w-full max-w-full rounded-t-sm object-cover"/>}<div className="grid min-w-0 gap-1 p-3"><p dir="ltr" className="min-w-0 break-all text-start text-xs text-muted">{window.location.host}</p><h4 className="min-w-0 break-words font-semibold">{pageTitle}</h4><p className="min-w-0 break-words line-clamp-2 text-sm text-muted">{pageDescription}</p></div></article></section>
+    <section className="grid grid-cols-[minmax(0,1fr)] w-full min-w-0 max-w-full gap-4 rounded-md border border-border bg-canvas p-4"><h3 className="font-bold">معاينة بطاقة المشاركة</h3><article className="grid w-full min-w-0 max-w-xl rounded-sm border border-border bg-surface">{previewImage&&<ImageHoverFrame className="aspect-[1.91/1] w-full max-w-full rounded-t-sm"><img src={previewImage} alt="" className="size-full object-cover"/></ImageHoverFrame>}<div className="grid min-w-0 gap-1 p-3"><p dir="ltr" className="min-w-0 break-all text-start text-xs text-muted">{window.location.host}</p><h4 className="min-w-0 break-words font-semibold">{pageTitle}</h4><p className="min-w-0 break-words line-clamp-2 text-sm text-muted">{pageDescription}</p></div></article></section>
   </div>;
 }

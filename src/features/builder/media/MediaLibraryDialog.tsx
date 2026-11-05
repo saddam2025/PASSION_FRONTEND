@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguage, getBilingualText } from '@/i18n/useLanguage';
 import { Button } from '@/components/ui/Button';
+import { ImageHoverFrame } from '@/components/common/SmartImage';
 import { ConfirmDialog, Modal } from '@/components/ui/Overlay';
 import type { MediaAsset, MediaUsageResult } from '@/services/media';
 import { mediaService } from '@/services/media';
@@ -226,13 +227,7 @@ export function MediaLibraryDialog({
                   }}
                   className="grid gap-1 rounded-sm border border-border p-2 text-start aria-pressed:border-primary aria-pressed:ring-2 aria-pressed:ring-primary"
                 >
-                  <img
-                    src={mediaUrl(asset.key, asset.variants.thumb)}
-                    alt=""
-                    width={asset.width}
-                    height={asset.height}
-                    className="aspect-[4/3] w-full rounded-xs object-cover"
-                  />
+                  <ImageHoverFrame className="aspect-[4/3] w-full rounded-xs"><img src={mediaUrl(asset.key, asset.variants.thumb)} alt="" width={asset.width} height={asset.height} className="size-full object-cover" /></ImageHoverFrame>
                   <span className="truncate text-xs">{asset.key.split('/').at(-1)}</span>
                 </button>
               ))}
@@ -265,13 +260,7 @@ export function MediaLibraryDialog({
               aria-label={t('title')}
             >
               <div className="flex flex-wrap items-start gap-3">
-                <img
-                  src={imageSource}
-                  alt=""
-                  width={Math.min(selected.width, 320)}
-                  height={Math.min(selected.height, 220)}
-                  className="max-h-40 max-w-48 rounded-sm object-contain"
-                />
+                <ImageHoverFrame className="max-h-40 max-w-48 rounded-sm"><img src={imageSource} alt="" width={Math.min(selected.width, 320)} height={Math.min(selected.height, 220)} className="max-h-40 max-w-48 object-contain" /></ImageHoverFrame>
                 <div className="grid gap-1 text-sm">
                   <p>{t('dimensions', { width: selected.width, height: selected.height })}</p>
                   {selected.width < 800 || selected.height < 400 ? (

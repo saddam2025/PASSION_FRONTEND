@@ -13,10 +13,20 @@ import { SectionFrame } from '../SectionFrame';
 import { SectionHeading } from './SectionContent';
 import type { AnyRendererProps } from './types';
 import { getRegistrationAttribution } from '@/lib/attribution';
-import { buildRegistrationWhatsAppLink } from '@/lib/registrationWhatsApp';
-import { buildRegistrationMessage } from '@/lib/registrationWhatsApp';
 import { buildWhatsAppLink } from '@/lib/whatsapp';
+import { RegistrationSuccessCard } from '@/features/sections/RegistrationSuccessCard';
 const empty: SubmissionValues = { fullName: '', email: '', phone: '', consent: false as never };
+function createIdempotencyKey(): string {
+  try {
+    if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    if (typeof crypto.getRandomValues === 'function') {
+      return Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, '0')).join('');
+    }
+  } catch {
+    // A timestamp/random fallback is only an idempotency identifier, not a secret.
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
 export default function RegistrationFormRenderer({ section, registrationTarget = false }: AnyRendererProps) {
   const { language } = useLanguage();
   const { t } = useTranslation('registration');
@@ -24,7 +34,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
   const inert = mode !== 'public';
   const schema = useMemo(() => buildSubmissionSchema(formDefinition), [formDefinition]);
   const idempotencyKey = useRef<string | null>(null);
-  const submissionIdempotencyKey = idempotencyKey.current ?? crypto.randomUUID();
+  const submissionIdempotencyKey = idempotencyKey.current ?? createIdempotencyKey();
   idempotencyKey.current = submissionIdempotencyKey;
   const formStartedAt = useRef(Date.now());
   const [submitting, setSubmitting] = useState(false);
@@ -42,9 +52,14 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
   });
   const label = (value: { ar: string; en: string }) => getBilingualText(value, language);
   const submit = form.handleSubmit(async (values) => {
+    if (submitting) return;
     setError('');
     setSubmitting(true);
     try {
+      // The API treats submissions under two seconds as automated. Keep the
+      // timestamp tied to the first visible form render and make the wait visible.
+      const remainingBotCheckTime = 2000 - (Date.now() - formStartedAt.current);
+      if (remainingBotCheckTime > 0) await new Promise((resolve) => window.setTimeout(resolve, remainingBotCheckTime));
       const { registrationsService } = await import('@/services/registrations');
       const extendedValues = values as SubmissionValues & { honeypot?: string };
       const answers = Object.fromEntries(
@@ -69,26 +84,41 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
       if (cause instanceof RegistrationServiceError) {
         for (const [field, message] of Object.entries(cause.fieldErrors)) form.setError(field as keyof SubmissionValues, { type: 'server', message });
         setError(cause.message);
-      } else setError(t('submitError'));
+        if (import.meta.env.DEV) console.error('[Registration] request failed', { code: cause.code, requestId: cause.requestId });
+      } else {
+        if (import.meta.env.DEV) console.error('[Registration] unexpected submit failure', { errorType: cause instanceof Error ? cause.name : 'unknown' });
+        setError(t('submitError'));
+      }
     } finally {
       setSubmitting(false);
+    }
+  }, (invalidFields) => {
+    const names = Object.keys(invalidFields);
+    setError(t('validationSummary'));
+    if (import.meta.env.DEV) console.error('[Registration] validation blocked', { fields: names });
+    const first = names[0];
+    if (first) {
+      const inputId = `field-${first.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+      const focusFirstInvalid = () => {
+        const input = document.getElementById(inputId);
+        input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        input?.focus();
+      };
+      if (typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(focusFirstInvalid);
+      else window.setTimeout(focusFirstInvalid, 0);
     }
   });
   if (section.type !== 'registrationForm') return null;
   if (success) {
-    const defaultMessage = t('whatsappConfirmation', { name: success.name, course: success.title, reference: success.reference });
-    const template = course.whatsappMessageTemplate.ar.trim() || settings.registrationWhatsappTemplate || '';
-    const whatsappMessage = template.trim()
-      ? buildRegistrationMessage(template, success.name, success.title, success.reference)
-      : defaultMessage;
-    const whatsappHref = buildRegistrationWhatsAppLink(course.whatsappNumberOverride || settings.whatsappNumber, whatsappMessage, course.whatsappUrlOverride);
     return <SectionFrame settings={section.settings} id={registrationTarget ? 'register' : `register-${section.id}`} registrationTarget={registrationTarget}>
-      <section role="status" className="mx-auto grid max-w-3xl gap-4 rounded-md border border-success/30 bg-surface p-6 shadow-soft">
-        <SectionHeading title={{ ar: t('requestReceived'), en: '' }} language={language} />
-        <p>{t('requestNotEnrolled')}</p>
-        <div className="flex flex-wrap items-center gap-3 rounded-sm bg-canvas p-3"><span className="font-mono text-lg font-bold" dir="ltr">{success.reference}</span><Button type="button" variant="outline" onClick={() => void navigator.clipboard.writeText(success.reference)}>{t('copyReference')}</Button></div>
-        {whatsappHref && <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-xs bg-primary-strong px-5 font-semibold text-white">{t('continueWhatsApp')}</a>}
-      </section>
+      <RegistrationSuccessCard
+        reference={success.reference}
+        name={success.name}
+        courseTitle={success.title}
+        whatsappNumber={settings.whatsappNumber}
+        messageTemplate={settings.registrationWhatsappTemplate}
+        onCopy={() => { void navigator.clipboard?.writeText(success.reference).catch(() => undefined); }}
+      />
     </SectionFrame>;
   }
   if (!course.registrationOpen) {
@@ -179,7 +209,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
                 key={fieldDefinition.id}
                 name={fieldName}
                 control={form.control}
-                label={label(fieldDefinition.label)}
+                label={fieldDefinition.type === 'checkbox' ? '' : label(fieldDefinition.label)}
                 hint={fieldDefinition.helpText ? label(fieldDefinition.helpText) : undefined}
                 render={(field, state) => {
                   const props = {
@@ -223,7 +253,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
                     return (
                       <label className="flex min-h-11 items-center gap-2">
                         <input type="checkbox" disabled={inert} {...props} />
-                        {label(fieldDefinition.label)}
+                        <span>{label(fieldDefinition.label)}</span>
                       </label>
                     );
                   return (
@@ -244,7 +274,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
           <FormField
             name={'consent' as keyof SubmissionValues}
             control={form.control}
-            label={formDefinition.consentText?.ar ?? t('consent')}
+            label=""
             render={(field, state) => (
               <label className="flex min-h-11 items-center gap-2">
                 <input
@@ -271,11 +301,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
               {...form.register('honeypot' as keyof SubmissionValues)}
             />
           </div>
-          {error && (
-            <p role="alert" className="text-sm text-danger">
-              {error}
-            </p>
-          )}
+          {error && <p role="alert" className="text-sm font-semibold text-danger">{error}</p>}
           <Button type="submit" disabled={submitting || inert}>
             {submitting ? t('submitting') : t('submit')}
           </Button>

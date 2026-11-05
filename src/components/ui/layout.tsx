@@ -1,4 +1,5 @@
 import { ChevronRight, Home } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { ComponentPropsWithoutRef, PropsWithChildren, ReactNode } from 'react';
@@ -8,7 +9,24 @@ export function Container({ children, className, ...props }: PropsWithChildren<C
   return <div className={cn('mx-auto w-full max-w-[var(--container-max)] ps-container pe-container', className)} {...props}>{children}</div>;
 }
 export function Section({ children, className, ...props }: PropsWithChildren<ComponentPropsWithoutRef<'section'>>) {
-  return <section className={cn('py-section', className)} {...props}>{children}</section>;
+  const sectionRef = useRef<HTMLElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      setVisible(true);
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setVisible(true);
+      observer.disconnect();
+    }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+  return <section ref={sectionRef} className={cn('py-section transition-[opacity,transform] duration-500 ease-premium motion-reduce:transform-none motion-reduce:transition-none', visible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0', className)} {...props}>{children}</section>;
 }
 export interface BreadcrumbItem { label: string; href?: string }
 export function Breadcrumbs({ items, homeLabel }: { items: BreadcrumbItem[]; homeLabel?: string }) {

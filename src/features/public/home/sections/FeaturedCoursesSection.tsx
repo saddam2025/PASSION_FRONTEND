@@ -24,8 +24,8 @@ export function FeaturedCoursesSection({
   if (loading) return <Frame id="courses" title={title}><div role="status" aria-live="polite" className="rounded-md border border-border bg-surface p-5 text-sm text-muted">جاري تحميل الكورسات المتاحة.</div></Frame>;
   if (!courses.length) return null;
   return (
-    <Frame id="courses" title={title}>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <Frame id="courses" title={title} anchorIds={['products']}>
+      <div className="grid gap-6 md:grid-cols-2">
         {courses.map((c) => (
           <CourseCard key={c.slug} course={c} />
         ))}

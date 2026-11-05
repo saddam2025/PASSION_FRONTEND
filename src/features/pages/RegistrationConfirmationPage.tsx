@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Check, Copy } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { ErrorState, Spinner } from '@/components/ui/feedback';
 import { registrationsService } from '@/services/registrations';
 import type { PublicRegistrationConfirmation } from '@/services/registrations.types';
 import { useToast } from '@/components/ui/feedback';
 import { useSeo } from '@/lib/useSeo';
+import { usePublicSettings } from '@/services/usePublicSettings';
+import { RegistrationSuccessCard } from '@/features/sections/RegistrationSuccessCard';
 export default function RegistrationConfirmationPage() {
   const { reference = '' } = useParams();
   const [data, setData] = useState<PublicRegistrationConfirmation | null | undefined>(undefined);
@@ -15,6 +15,7 @@ export default function RegistrationConfirmationPage() {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const { t } = useTranslation('confirmation');
   const toast = useToast();
+  const settings = usePublicSettings();
   useSeo({
     title: t('title'),
     description: t('description'),
@@ -53,23 +54,14 @@ export default function RegistrationConfirmationPage() {
           <p className="mt-3 text-muted">{t('notFound')}</p>
         </section>
       ) : (
-        <section className="grid gap-5 rounded-md border border-border bg-surface p-6 sm:ps-10 sm:pe-10">
-          <span className="grid size-12 place-items-center rounded-full bg-success/10 text-success">
-            <Check aria-hidden="true" />
-          </span>
-          <h1 className="text-3xl font-bold">{t('successTitle')}</h1>
-          <p className="text-muted">{t('requestReceived')}</p>
-          <p><strong>{t('course')}:</strong> {title}</p>
-          <div className="flex flex-wrap items-center gap-3">
-            <strong>{t('reference')}:</strong>
-            <code className="rounded bg-canvas ps-3 pe-3 py-2" dir="ltr">{data.reference}</code>
-            <Button variant="secondary" onClick={() => void copy()}>
-              <Copy aria-hidden="true" size={16} />
-              {t('copy')}
-            </Button>
-          </div>
-          <p><strong>{t('status')}:</strong> {t('requestReceived')}</p>
-        </section>
+        <RegistrationSuccessCard
+          reference={data.reference}
+          courseTitle={title}
+          whatsappNumber={settings.whatsappNumber}
+          messageTemplate={settings.registrationWhatsappTemplate}
+          status={data.status}
+          onCopy={() => void copy()}
+        />
       )}
     </main>
   );

@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
+import { ImageHoverFrame } from '@/components/common/SmartImage';
 import { MediaLibraryDialog } from '@/features/builder/media/MediaLibraryDialog';
 import type { MediaAsset } from '@/services/media';
 import { mediaUrl } from '@/lib/mediaUrl';
@@ -20,7 +21,7 @@ function ImageField({ value, onChange, label }: { value: unknown; onChange: (val
   const [open, setOpen] = useState(false);
   const { t } = useTranslation('builder');
   const src = typeof value === 'string' ? value : '';
-  return <div className="grid gap-2"><span className="text-sm text-muted">{label}</span><div className="flex flex-wrap items-center gap-3">{src && <img src={mediaUrl(src)} alt="" width={96} height={64} className="size-16 rounded-xs border border-border object-contain" />}<Button type="button" variant="secondary" onClick={() => setOpen(true)}>{t('chooseImage')}</Button></div><MediaLibraryDialog open={open} onOpenChange={setOpen} onChoose={(asset: MediaAsset) => { onChange(asset.key); setOpen(false); }} /></div>;
+  return <div className="grid gap-2"><span className="text-sm text-muted">{label}</span><div className="flex flex-wrap items-center gap-3">{src && <ImageHoverFrame className="size-16 rounded-xs border border-border"><img src={mediaUrl(src)} alt="" width={96} height={64} className="size-full object-contain" /></ImageHoverFrame>}<Button type="button" variant="secondary" onClick={() => setOpen(true)}>{t('chooseImage')}</Button></div><MediaLibraryDialog open={open} onOpenChange={setOpen} onChoose={(asset: MediaAsset) => { onChange(asset.key); setOpen(false); }} /></div>;
 }
 
 export function SettingsSectionEditor({ section, value, onChange }: { section: SettingsSection; value: Record<string, unknown>; onChange: (key: string, value: unknown) => void }) {

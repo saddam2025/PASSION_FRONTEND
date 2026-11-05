@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/Button';
 import { RouteSkeleton, ErrorState } from '@/components/ui/feedback';
 import { PageRenderer } from '@/features/sections/PageRenderer';
 import type { CoursePageContextValue } from '@/features/sections/CoursePageContext';
@@ -22,7 +21,6 @@ export default function CourseDetailPage() {
   const [missing, setMissing] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
-  const [formVisible, setFormVisible] = useState(false);
   const jsonLdRef = useRef<HTMLScriptElement>(null);
   useEffect(() => {
     captureAttribution(window.location.search, window.location.pathname);
@@ -117,23 +115,6 @@ export default function CourseDetailPage() {
   });
   const first = course?.pageConfig.sections.find((section) => section.visible);
   const hideCrumb = first?.type === 'hero' && first.content.layout === 'imageBackground';
-  const hasRegistration = Boolean(
-    course?.pageConfig.sections.some(
-      (section) => section.type === 'registrationForm' && section.visible,
-    ),
-  );
-  const registrationAnchorId = 'register';
-  useEffect(() => {
-    if (!course || !course.registrationOpen || !hasRegistration) return;
-    const node = document.getElementById(registrationAnchorId);
-    if (!node) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setFormVisible(Boolean(entry?.isIntersecting)),
-      { rootMargin: '0px 0px -15% 0px' },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [course, hasRegistration, registrationAnchorId]);
   const schema = course
     ? JSON.stringify({
         '@context': 'https://schema.org',
@@ -193,23 +174,6 @@ export default function CourseDetailPage() {
         </nav>
       )}
       <PageRenderer config={course.pageConfig} context={context!} />
-      {course.registrationOpen && hasRegistration && !formVisible && (
-        <div className="sticky-register-bar z-30 border-t border-border bg-surface/95 p-3 shadow-elevated backdrop-blur lg:hidden">
-          <Button
-            className="w-full"
-            onClick={() =>
-              document.getElementById(registrationAnchorId)?.scrollIntoView({
-                behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-                  ? 'auto'
-                  : 'smooth',
-                block: 'start',
-              })
-            }
-          >
-            {t('register')}
-          </Button>
-        </div>
-      )}
     </>
   );
 }

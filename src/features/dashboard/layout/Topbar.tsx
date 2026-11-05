@@ -25,7 +25,7 @@ export function Topbar({ area, onOpenDrawer, settings }: { area: DashboardArea; 
   const userName = user?.name.ar || user?.email || '';
 
   return (
-    <header className="sticky top-0 z-30 flex min-h-16 shrink-0 items-center justify-between gap-3 border-b border-border bg-surface/95 ps-4 pe-4 shadow-soft backdrop-blur-md md:ps-6 md:pe-6">
+    <header className="sticky top-2 z-30 mx-2 flex min-h-16 shrink-0 items-center justify-between gap-3 rounded-2xl border border-border/80 bg-surface/90 ps-4 pe-4 shadow-card backdrop-blur-md md:mx-4 md:ps-6 md:pe-6">
       <div className="flex min-w-0 items-center gap-3">
         <Link to={`/${area}`} aria-label={academyName || t('nav:dashboard')} className="flex shrink-0 items-center gap-2 rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
           <SmartImage slot="logo" srcOverride={settings.logo || undefined} alt={academyName || t('nav:dashboard')} width={120} height={40} className="h-auto w-48 shrink-0 object-contain" />

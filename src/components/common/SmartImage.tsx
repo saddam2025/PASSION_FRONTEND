@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import type { ImgHTMLAttributes } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { AssetFallback } from '@/assets/AssetFallback';
 import { assetManifest, type AssetSlot } from '@/assets/manifest';
-import { mediaUrl, mediaVariantKeys, type MediaVariant } from '@/lib/mediaUrl';
+import { mediaSrcSet, mediaUrl, mediaVariantKeys, type MediaVariant } from '@/lib/mediaUrl';
 import { cn } from '@/lib/cn';
 
 export interface SmartImageProps
@@ -18,6 +19,10 @@ export interface SmartImageProps
   variantKeys?: Partial<Record<MediaVariant, string>>;
   sizes?: string;
 }
+export function ImageHoverFrame({ children, className, style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
+  return <span className={cn('image-hover-frame', className)} style={style}>{children}<span className="image-hover-scan" aria-hidden="true" /></span>;
+}
+
 export function SmartImage({
   slot,
   alt,
@@ -36,27 +41,9 @@ export function SmartImage({
   let srcSet: string | undefined;
   try {
     if (srcOverride) {
-      src = mediaUrl(srcOverride, 'large');
       const keys = variantKeys ?? mediaVariantKeys(srcOverride);
-      if (keys) {
-        const entries: [MediaVariant, number][] = [
-          ['thumb', 400],
-          ['medium', 800],
-          ['large', 1600],
-        ];
-        srcSet =
-          entries
-            .flatMap(([variant, descriptor]) => {
-              const key = keys[variant];
-              if (!key) return [];
-              try {
-                return [`${mediaUrl(srcOverride, key)} ${descriptor}w`];
-              } catch {
-                return [];
-              }
-            })
-            .join(', ') || undefined;
-      }
+      src = mediaUrl(srcOverride, 'large', keys);
+      srcSet = mediaSrcSet(srcOverride, keys);
     }
   } catch {
     src = asset.src;
@@ -64,27 +51,25 @@ export function SmartImage({
   }
   if (failed)
     return (
-      <AssetFallback
-        slot={slot}
+      <ImageHoverFrame className={className} style={{ aspectRatio: `${width || asset.width} / ${height || asset.height}` }}>
+        <AssetFallback slot={slot} alt={alt} width={width || asset.width} height={height || asset.height} className={cn('overflow-hidden', className)} />
+      </ImageHoverFrame>
+    );
+  return (
+    <ImageHoverFrame className={className} style={{ aspectRatio: `${width || asset.width} / ${height || asset.height}` }}>
+      <img
+        {...props}
+        src={src}
+        srcSet={srcSet}
+        sizes={srcSet ? sizes : undefined}
         alt={alt}
         width={width || asset.width}
         height={height || asset.height}
-        className={cn('overflow-hidden', className)}
+        loading={loading}
+        decoding="async"
+        className={cn('image-hover-target max-w-full object-cover', className)}
+        onError={() => setFailed(true)}
       />
-    );
-  return (
-    <img
-      {...props}
-      src={src}
-      srcSet={srcSet}
-      sizes={srcSet ? sizes : undefined}
-      alt={alt}
-      width={width || asset.width}
-      height={height || asset.height}
-      loading={loading}
-      decoding="async"
-      className={cn('max-w-full object-cover', className)}
-      onError={() => setFailed(true)}
-    />
+    </ImageHoverFrame>
   );
 }

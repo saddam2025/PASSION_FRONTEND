@@ -27,9 +27,10 @@ describe('integrated API adapters', () => {
 
   it('resolves original and API variant keys against the configured public base', () => {
     vi.stubEnv('VITE_MEDIA_BASE_URL', 'https://media.example.test');
-    const original = 'media/2026/11/0123456789abcdef.webp';
-    expect(mediaUrl(original, 'thumb')).toContain('/media/2026/11/0123456789abcdef-thumb.webp');
-    expect(mediaUrl('media/2026/11/0123456789abcdef-original.webp', 'media/2026/11/0123456789abcdef-thumb.webp')).toContain('-thumb.webp');    const storedOriginal = 'media/2026/11/5990825a96164d768956c9804742a441-original.webp';
+    const original = 'media/2026/11/0123456789abcdef0123456789abcdef-original.webp';
+    expect(mediaUrl(original, 'thumb')).toContain('/media/2026/11/0123456789abcdef0123456789abcdef-thumb.webp');
+    expect(mediaUrl(original, 'media/2026/11/0123456789abcdef0123456789abcdef-thumb.webp')).toContain('-thumb.webp');
+    const storedOriginal = 'media/2026/11/5990825a96164d768956c9804742a441-original.webp';
     expect(mediaUrl(storedOriginal, 'large')).toBe('https://media.example.test/media/2026/11/5990825a96164d768956c9804742a441-large.webp');
     expect(mediaVariantKeys(storedOriginal)?.large).toBe('media/2026/11/5990825a96164d768956c9804742a441-large.webp');
     expect(mediaUrl('', undefined)).toBe('/images/course-cover-default.webp');
