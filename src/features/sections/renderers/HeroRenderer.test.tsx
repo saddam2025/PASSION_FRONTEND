@@ -49,17 +49,22 @@ describe('course landing hero layout', () => {
     expect(copy!.compareDocumentPosition(container.querySelector('.landing-hero-media')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('uses an eager responsive image with explicit dimensions, contain fit, and vertical centering', () => {
+  it('uses an eager responsive image with explicit dimensions, cover fit, and vertical centering', () => {
     const { container } = renderHero();
     const image = container.querySelector<HTMLImageElement>('.landing-hero-image.image-hover-target');
     expect(image?.getAttribute('loading')).toBe('eager');
     expect(image?.getAttribute('width')).toBe('960'); expect(image?.getAttribute('height')).toBe('720');
     expect(container.querySelector('.landing-hero-image .image-hover-scan')).toBeTruthy();
     const css = readFileSync(resolve(process.cwd(), 'src/features/sections/landing.css'), 'utf8');
-    expect(css).toMatch(/\.landing-hero-image\.image-hover-frame\s*>\s*img\s*\{[^}]*object-fit:\s*contain/s);
+    expect(css).toMatch(/\.landing-hero-image\.image-hover-frame\s*>\s*img\s*\{[^}]*object-fit:\s*cover/s);
     expect(css).toMatch(/\.landing-hero-visual\s*\{[^}]*align-content:\s*center/s);
     expect(css).toMatch(/\.landing-hero-grid\.is-reference-split \.landing-hero-visual\s*\{[^}]*padding-inline:\s*clamp\(/s);
     expect(css).not.toMatch(/\.landing-hero-image \.image-hover-scan\s*\{[^}]*display:\s*none/s);
+  });
+
+  it('leaves a responsive background gap between landing sections', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/features/sections/landing.css'), 'utf8');
+    expect(css).toMatch(/\.course-landing \[data-landing-section\] \+ \[data-landing-section\]\s*\{[^}]*margin-block-start:\s*clamp\(48px,\s*8vw,\s*3cm\)/s);
   });
 
   it('uses a full-width text layout when the hero has no image', () => {
