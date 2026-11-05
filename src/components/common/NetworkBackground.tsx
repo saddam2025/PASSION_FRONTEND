@@ -32,7 +32,7 @@ type Node = {
 const MARGIN = 120;
 
 function NetworkBackground({
-  color = "37,99,235",
+ color = "37,99,235",
   density = 15000,
   maxLinks = 4,
   linkDistance = 125,

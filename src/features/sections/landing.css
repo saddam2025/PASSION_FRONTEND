@@ -13,7 +13,7 @@
   --landing-heading: #181a20;
   --landing-gray: #475569;
   --landing-muted: #64748b;
-  --landing-heading-muted: #9ca3af;
+  --landing-heading-muted: #64748b;
   --landing-section-pad: clamp(80px, 10vw, 140px);
   --landing-container: 1280px;
   --landing-ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -132,9 +132,9 @@
 .course-landing [data-landing-background='brand'] .landing-heading-primary,
 .course-landing [data-landing-background='softGradient'] .landing-heading-primary { color: var(--landing-white) !important; }
 .course-landing [data-landing-tone='dark'] .landing-heading-muted,
-.course-landing [data-landing-background='dark'] .landing-heading-muted,
+.course-landing [data-landing-background='dark'] .landing-heading-muted { color: #cbd5e1 !important; }
 .course-landing [data-landing-background='brand'] .landing-heading-muted,
-.course-landing [data-landing-background='softGradient'] .landing-heading-muted { color: var(--landing-heading-muted) !important; }
+.course-landing [data-landing-background='softGradient'] .landing-heading-muted { color: #adcdff !important; }
 .course-landing .landing-section-heading > p:last-child {
   max-width: 760px;
   margin: 0;
@@ -196,47 +196,51 @@
 .course-landing-menu { position: absolute; inset-inline: 12px; inset-block-start: calc(100% + 8px); display: grid; gap: 4px; padding: 12px; border: 1px solid var(--landing-border); border-radius: 20px; background: rgb(255 255 255 / 97%); box-shadow: 0 20px 48px rgb(9 20 38 / 14%); }
 .course-landing-menu a { justify-content: flex-start; }
 
-/* Hero: copy remains bounded, course image bleeds to the physical right edge. */
+/* Hero layout: paired copy and natural-ratio media stay inside the section container. */
 .course-landing .landing-hero-section { padding-inline: 0 !important; }
-.course-landing .landing-hero-section .landing-section-inner { max-width: none !important; }
+.course-landing .landing-hero-section .landing-section-inner,
 .course-landing .landing-hero-section.landing-section-frame[data-landing-width] .landing-section-inner { max-width: none !important; }
-.course-landing .landing-hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; gap: clamp(28px, 5vw, 64px); direction: ltr; min-height: min(760px, calc(100vh - 96px)); }
-.course-landing .landing-hero-copy { display: grid; align-content: center; gap: 20px; min-width: 0; padding-block: clamp(48px, 7vw, 96px); padding-inline-start: clamp(20px, 4vw, 48px); padding-inline-end: max(24px, calc((100vw - 1280px) / 2 + 24px)); text-align: right; direction: rtl; }
+.course-landing .landing-hero-grid { display: grid; min-width: 0; align-items: stretch; gap: clamp(24px, 4vw, 56px); }
+.course-landing .landing-hero-grid.is-reference-split { grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); direction: ltr; }
+.course-landing .landing-hero-grid.is-reference-split[data-has-image='false'] { grid-template-columns: minmax(0, 1fr); }
+.course-landing .landing-hero-copy { display: grid; min-width: 0; align-content: center; gap: 20px; padding-block: clamp(36px, 6vw, 80px); padding-inline: clamp(20px, 4vw, 48px); text-align: start; direction: rtl; }
 .course-landing .landing-hero-copy .landing-section-heading { margin-block-end: 0 !important; }
 .course-landing .landing-hero-copy .landing-section-heading::after { content: none; }
 .course-landing .landing-hero-copy .landing-section-heading > p:last-child { margin-block-start: 4px; }
-.course-landing .landing-hero-brief { max-width: 620px; padding: 18px 22px; border: 1px solid var(--landing-border); border-radius: 16px; background: var(--landing-light); box-shadow: 0 4px 18px rgb(9 20 38 / 4%); color: var(--landing-ink); }
-.course-landing .landing-hero-brief p { margin: 0; line-height: 1.75; }
+.course-landing .landing-hero-visual { display: grid; min-width: 0; align-content: center; gap: 20px; direction: rtl; }
+.course-landing .landing-hero-grid.is-reference-split .landing-hero-visual { padding-inline: clamp(10px, 1.5vw, 20px); }
+.course-landing .landing-hero-grid.is-reference-split.is-image-end .landing-hero-visual { order: -1; }
+.course-landing .landing-hero-grid.is-reference-split.is-image-end .landing-hero-copy { order: 1; }
+.course-landing .landing-hero-media { position: relative; width: min(100%, 960px); min-width: 0; margin-inline: auto; overflow: hidden; aspect-ratio: 4 / 3; border: 1px solid var(--landing-border); border-radius: 24px; background: var(--landing-light); box-shadow: 0 18px 44px rgb(9 20 38 / 12%); }
+.course-landing .landing-hero-image.image-hover-frame { display: block; width: 100%; max-width: 960px; height: auto; min-height: 0; aspect-ratio: 4 / 3; overflow: hidden; border-radius: inherit; clip-path: none; background: transparent; }
+.course-landing .landing-hero-image.image-hover-frame > img { display: block; width: 100%; height: 100%; min-height: 0; max-height: none; aspect-ratio: 4 / 3 !important; object-fit: contain; object-position: center; }
+.course-landing .landing-hero-brief { min-width: 0; max-width: none; padding: 18px 22px; border: 1px solid var(--landing-border); border-radius: 16px; background: var(--landing-light); box-shadow: 0 4px 18px rgb(9 20 38 / 4%); color: var(--landing-ink); }
+.course-landing .landing-hero-brief p { margin: 0; line-height: 1.75; overflow-wrap: anywhere; }
 .course-landing .landing-hero-brief a,
 .course-landing .landing-hero-brief button { display: inline-flex; min-height: 40px; align-items: center; margin-block-start: 12px; padding: 6px 16px; border: 1px solid rgb(2 132 199 / 32%); border-radius: 9999px; color: var(--landing-blue) !important; background: rgb(2 132 199 / 6%) !important; text-decoration: none; }
-.course-landing .landing-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
-.course-landing .landing-hero-actions > * { min-height: 48px; padding: 12px 24px; border-radius: 8px; font-weight: 700; }
+.course-landing .landing-hero-actions { display: flex; min-width: 0; width: max-content; max-width: 100%; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+.course-landing .landing-hero-actions > * { min-height: 48px; flex: 0 0 auto; padding: 12px 24px; border-radius: 8px; font-weight: 700; white-space: nowrap; }
 .course-landing .landing-hero-actions > :first-child { color: #fff !important; background: linear-gradient(135deg, #0284c7, #00d2ff) !important; box-shadow: 0 4px 20px rgb(2 132 199 / 25%); }
-.course-landing .landing-hero-actions > :nth-child(2) { border: 1px solid var(--landing-border); color: var(--landing-ink); background: transparent; }
-.course-landing .landing-hero-visual { position: relative; display: flex; min-width: 0; min-height: 100%; margin-inline-start: calc(-1 * clamp(20px, 4vw, 48px)); direction: rtl; }
-.course-landing .landing-hero-grid.is-image-end .landing-hero-visual { order: -1; }
-.course-landing .landing-hero-grid.is-image-end .landing-hero-copy { order: 1; }
 .course-landing .landing-hero-grid.is-centered { grid-template-columns: minmax(0, 1fr); }
 .course-landing .landing-hero-grid.is-centered .landing-hero-copy { justify-items: center; padding-inline: clamp(20px, 6vw, 80px); text-align: center; }
 .course-landing .landing-hero-grid.is-centered .landing-hero-visual { width: min(100%, 900px); min-height: auto; margin-inline: auto; }
-.course-landing .landing-hero-grid.is-image-background { position: relative; grid-template-columns: minmax(0, 1fr); overflow: hidden; }
-.course-landing .landing-hero-grid.is-image-background .landing-hero-visual { position: absolute; inset: 0; margin: 0; }
-.course-landing .landing-hero-grid.is-image-background .landing-hero-visual::after { position: absolute; inset: 0; content: ''; background: rgb(9 20 38 / 62%); }
-.course-landing .landing-hero-grid.is-image-background .landing-hero-copy { position: relative; z-index: 1; color: #fff; }
+.course-landing .landing-hero-grid.is-image-background { position: relative; min-height: min(760px, calc(100vh - 96px)); grid-template-columns: minmax(0, 1fr); overflow: hidden; }
+.course-landing .landing-hero-grid.is-image-background .landing-hero-visual { position: absolute; inset: 0; display: block; margin: 0; }
+.course-landing .landing-hero-grid.is-image-background .landing-hero-media { width: 100%; height: 100%; max-width: none; aspect-ratio: auto; border: 0; border-radius: 0; box-shadow: none; }
+.course-landing .landing-hero-grid.is-image-background .landing-hero-image.image-hover-frame { width: 100%; height: 100%; max-width: none; aspect-ratio: auto; border-radius: 0; }
+.course-landing .landing-hero-grid.is-image-background .landing-hero-image.image-hover-frame > img { height: 100%; aspect-ratio: auto !important; object-fit: cover; }
+.course-landing .landing-hero-grid.is-image-background .landing-hero-visual::after { position: absolute; z-index: 1; inset: 0; content: ''; background: rgb(9 20 38 / 62%); pointer-events: none; }
+.course-landing .landing-hero-grid.is-image-background .landing-hero-copy { position: relative; z-index: 3; color: #fff; }
 .course-landing .landing-hero-grid.is-image-background .landing-heading-primary,
 .course-landing .landing-hero-grid.is-image-background .landing-heading-muted { color: #fff !important; }
-.course-landing .landing-hero-visual > .image-hover-frame,
-.course-landing .landing-hero-placeholder { display: block; width: 100%; height: 100%; min-height: 520px; aspect-ratio: 4 / 5; border-radius: 16px 0 0 16px; clip-path: polygon(0 0, 100% 0, 100% 92%, 85% 100%, 0 100%); object-fit: cover; object-position: center; background: radial-gradient(circle at 65% 35%, rgb(0 210 255 / 26%), transparent 42%), linear-gradient(135deg, #0b1528, #1e293b 52%, #0284c7); }
-.course-landing .landing-hero-visual > .image-hover-frame { flex: 1; overflow: hidden; }
-.course-landing .landing-hero-visual > .image-hover-frame > img { display: block; width: 100%; height: 100%; min-height: 520px; aspect-ratio: 4 / 5 !important; object-fit: cover; }
-.course-landing .landing-hero-placeholder::before { content: ''; display: block; width: 100%; height: 100%; background: radial-gradient(circle at 65% 35%, rgb(0 210 255 / 34%), transparent 3%, transparent 19%, rgb(0 210 255 / 12%) 19.3%, transparent 20%), linear-gradient(155deg, transparent 49%, rgb(255 255 255 / 10%) 50%, transparent 51%); }
-.course-landing .landing-hero-facts { position: absolute; z-index: 2; inset-inline: 24px; inset-block-end: 24px; display: grid; width: min(calc(100% - 48px), 380px); margin-inline: auto; gap: 14px; padding: 18px 20px; border: 1px solid rgb(0 210 255 / 30%); border-radius: 18px; color: #fff; background: linear-gradient(145deg, rgb(30 33 40 / 97%), rgb(22 24 29 / 97%)); box-shadow: 0 18px 48px rgb(0 0 0 / 34%); direction: rtl; backdrop-filter: blur(12px); }
-.course-landing .landing-hero-fact { display: flex; min-width: 0; align-items: center; gap: 12px; }
-.course-landing .landing-hero-fact > svg { flex: 0 0 auto; color: var(--landing-cyan); }
-.course-landing .landing-hero-fact > span { display: grid; min-width: 0; gap: 2px; }
-.course-landing .landing-hero-fact small { color: rgb(255 255 255 / 62%); font-size: 11px; }
-.course-landing .landing-hero-fact strong { overflow-wrap: anywhere; color: #fff; font-size: 14px; font-weight: 650; }
-
+@container section-content (max-width: 760px) {
+  .course-landing .landing-hero-grid.is-reference-split { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .course-landing .landing-hero-grid.is-reference-split .landing-hero-copy { padding-block: 28px 0; padding-inline: clamp(20px, 5cqi, 48px); }
+  .course-landing .landing-hero-grid.is-reference-split .landing-hero-visual { width: 100%; margin: 0; }
+  .course-landing .landing-hero-grid.is-reference-split .landing-hero-media { width: 100%; aspect-ratio: 4 / 3; }
+  .course-landing .landing-hero-copy .landing-hero-actions { width: 100%; }
+  .course-landing .landing-hero-copy .landing-hero-actions > * { width: 100%; }
+}
 /* Editorial text + split media. */
 .course-landing .section-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: clamp(28px, 5vw, 64px); }
 .course-landing .section-split > img,
@@ -341,6 +345,67 @@
   .course-landing-nav-links a { padding-inline: 8px; font-size: 12px; }
   .course-landing .section-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* The "why choose this course" cards become a compact auto-loop only on phones. */
+.course-landing .feature-card-grid-group { display: contents; }
+.course-landing .feature-card-grid-track { display: contents; }
+.course-landing .feature-card-grid-group[data-clone='true'] { display: none; }
+@media (max-width: 639px) {
+  .course-landing .feature-card-grid.is-mobile-carousel {
+    display: block !important;
+    width: 100%;
+    max-width: 100% !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(34 211 238 / 55%) transparent;
+    touch-action: pan-x pan-y;
+  }
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card-grid-track {
+    display: flex;
+    width: max-content;
+    direction: rtl;
+    align-items: stretch;
+    animation: landing-feature-cards-loop var(--feature-card-marquee-duration, 24s) linear infinite;
+    will-change: transform;
+  }
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card-grid-group {
+    display: flex;
+    flex: 0 0 max-content;
+    align-items: stretch;
+    gap: 12px;
+    padding-inline-end: 12px;
+  }
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card-grid-group[data-clone='true'] { display: flex; }
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card-grid-item {
+    flex: 0 0 min(78vw, 18rem);
+    width: min(78vw, 18rem);
+    align-self: stretch;
+    min-width: 0;
+  }
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card-wrapper,
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card-motion,
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card {
+    block-size: 100%;
+    min-block-size: 0;
+  }
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card { display: flex; flex-direction: column; }
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card-image { flex: 0 0 auto; }
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card-content { display: flex; flex: 1; min-block-size: 0; flex-direction: column; }
+  .course-landing .feature-card-grid.is-mobile-carousel:active .feature-card-grid-track,
+  .course-landing .feature-card-grid.is-mobile-carousel:focus-within .feature-card-grid-track { animation-play-state: paused; }
+  @media (hover: hover) {
+    .course-landing .feature-card-grid.is-mobile-carousel:hover .feature-card-grid-track { animation-play-state: paused; }
+  }
+}
+@keyframes landing-feature-cards-loop { from { transform: translateX(0); } to { transform: translateX(50%); } }
+@media (max-width: 639px) and (prefers-reduced-motion: reduce) {
+  .course-landing .feature-card-grid.is-mobile-carousel { overflow-x: auto; scroll-snap-type: inline mandatory; }
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card-grid-track { animation: none; }
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card-grid-group[data-clone='true'] { display: none; }
+  .course-landing .feature-card-grid.is-mobile-carousel .feature-card-grid-item { scroll-snap-align: start; }
+}
 @media (max-width: 760px) {
   .course-landing-navbar { padding: 4px 10px 0; }
   .course-landing-navbar-inner { min-height: 48px; padding: 2px 10px; gap: 8px; }
@@ -349,12 +414,6 @@
   .course-landing-nav-links { display: none; }
   .course-landing-menu-toggle { display: inline-flex; }
   .course-landing-register { min-height: 42px; padding-inline: 14px; font-size: 12px; }
-  .course-landing .landing-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 0; min-height: 0; }
-  .course-landing .landing-hero-copy { padding: 48px 20px 32px; }
-  .course-landing .landing-hero-visual { min-height: 0; margin-inline: 0; }
-  .course-landing .landing-hero-visual > .image-hover-frame,
-  .course-landing .landing-hero-placeholder { min-height: 0; aspect-ratio: 4 / 5; border-radius: 16px 0 0 16px; }
-  .course-landing .landing-hero-facts { inset-inline: 12px; inset-block-end: 14px; width: min(calc(100% - 24px), 340px); }
   .course-landing .section-split,
   .course-landing .landing-text-columns,
   .course-landing .course-instructor-card { grid-template-columns: minmax(0, 1fr); }
