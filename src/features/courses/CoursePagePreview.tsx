@@ -59,7 +59,7 @@ export function CoursePagePreview({
   } satisfies Omit<CoursePageContextValue, 'mode'>;
 
   return (
-    <div className="overflow-hidden rounded-sm border border-border bg-surface">
+    <div className="course-preview-frame overflow-hidden rounded-sm border border-border bg-surface">
       <PageRenderer
         config={{
           ...snapshot.page,

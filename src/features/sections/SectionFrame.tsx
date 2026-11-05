@@ -21,10 +21,13 @@ export function SectionFrame({
     <section
       id={id}
       data-registration-form={registrationTarget ? '' : undefined}
-      className={`section-container relative ps-container pe-container ${spacing[settings.spacing]} ${backgrounds[settings.background]} ${className}`}
+      data-landing-background={settings.background}
+      data-landing-spacing={settings.spacing}
+      data-landing-width={settings.width}
+      className={`section-container landing-section-frame relative ps-container pe-container ${spacing[settings.spacing]} ${backgrounds[settings.background]} ${className}`}
     >
       <div
-        className={`mx-auto w-full ${widths[settings.width]} text-start`}
+        className={`landing-section-inner mx-auto w-full ${widths[settings.width]} text-start`}
       >
         {children}
       </div>

@@ -1,4 +1,6 @@
-import { useLanguage } from '@/i18n/useLanguage';
+import { useLanguage, getBilingualText } from '@/i18n/useLanguage';
+import { useTranslation } from 'react-i18next';
+import { CalendarDays, Clock3, UserRound } from 'lucide-react';
 import { SectionFrame } from '../SectionFrame';
 import { CtaLinkButton } from '../CtaLinkButton';
 import { SectionImage, SectionHeading } from './SectionContent';
@@ -6,65 +8,49 @@ import type { AnyRendererProps } from './types';
 import { useCoursePage } from '../CoursePageContext';
 export default function HeroRenderer({ section }: AnyRendererProps) {
   const { language } = useLanguage();
+  const { t } = useTranslation('courses');
   const { course } = useCoursePage();
   if (section.type !== 'hero') return null;
   const c = section.content;
   const copy = (
-    <div className="grid content-start gap-5">
+    <div className="landing-hero-copy">
       <SectionHeading eyebrow={c.eyebrow} title={c.title} subtitle={c.subtitle} language={language} as="h1" />
-      <div className="flex flex-wrap gap-3">
+      {course.shortDescription && <article className="landing-hero-brief"><p>{getBilingualText(course.shortDescription, language)}</p>{c.secondaryCta && <CtaLinkButton cta={c.secondaryCta} variant="secondary" />}</article>}
+      <div className="landing-hero-actions">
         {c.primaryCta && <CtaLinkButton cta={c.primaryCta} />}
-        {c.secondaryCta && <CtaLinkButton cta={c.secondaryCta} variant="secondary" />}
       </div>
     </div>
   );
   const heroImage = c.image ?? course.coverImage;
-  const image = heroImage && (
+  const image = heroImage ? (
     <SectionImage
       image={heroImage}
       language={language}
       width={960}
       height={720}
       priority
-      className="max-h-[34rem] w-full rounded-xl object-cover"
+      className="landing-hero-image"
     />
-  );
+  ) : <div className="landing-hero-placeholder" aria-hidden="true" />;
+  const duration = course.schedule?.duration ? getBilingualText(course.schedule.duration, language) : '';
+  const startDate = course.startDate;
+  const instructor = course.instructor?.name ? getBilingualText(course.instructor.name, language) : '';
   return (
     <SectionFrame
       settings={section.settings}
       id={section.id}
-      className={c.layout === 'imageBackground' ? 'relative overflow-hidden' : ''}
+      className={`landing-hero-section ${c.layout === 'imageBackground' ? 'relative overflow-hidden' : ''}`}
     >
-      {c.layout === 'imageBackground' ? (
-        <div className="relative grid min-h-96 content-center">
-          {image && (
-            <div className="absolute inset-0 -z-10 overflow-hidden">
-              {image}
-              <div className="absolute inset-0 bg-secondary/60" />
-            </div>
-          )}
-          <div className="relative text-on-secondary">{copy}</div>
+      <div className={`landing-hero-grid ${c.layout === 'centered' ? 'is-centered' : ''} ${c.layout === 'splitEnd' ? 'is-image-end' : ''} ${c.layout === 'imageBackground' ? 'is-image-background' : ''}`}>
+        {copy}
+        <div className="landing-hero-visual">{image}
+          {(duration || startDate || instructor) && <aside className="landing-hero-facts" aria-label={[instructor && t('instructor'), duration && t('duration'), startDate && t('startDate')].filter(Boolean).join('، ')}>
+            {instructor && <div className="landing-hero-fact"><UserRound size={20} aria-hidden="true" /><span><small>{t('instructor')}</small><strong>{instructor}</strong></span></div>}
+            {duration && <div className="landing-hero-fact"><Clock3 size={20} aria-hidden="true" /><span><small>{t('duration')}</small><strong>{duration}</strong></span></div>}
+            {startDate && <div className="landing-hero-fact"><CalendarDays size={20} aria-hidden="true" /><span><small>{t('startDate')}</small><strong><bdi dir="ltr">{startDate}</bdi></strong></span></div>}
+          </aside>}
         </div>
-      ) : c.layout === 'centered' ? (
-        <div className="grid justify-items-center text-center">
-          {copy}
-          {image && <div className="mt-8 w-full">{image}</div>}
-        </div>
-      ) : (
-        <div className="section-split">
-          {c.layout === 'splitStart' ? (
-            <>
-              {image}
-              {copy}
-            </>
-          ) : (
-            <>
-              {copy}
-              {image}
-            </>
-          )}
-        </div>
-      )}
+      </div>
     </SectionFrame>
   );
 }

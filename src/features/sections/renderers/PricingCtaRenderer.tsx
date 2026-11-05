@@ -21,7 +21,7 @@ export default function PricingCtaRenderer({ section }: AnyRendererProps) {
   const secondCta = c.secondaryCta ?? { label: { ar: 'سجّل دلوقتي', en: '' }, destination: { kind: 'action' as const, action: 'scrollToRegister' as const } };
   return (
     <SectionFrame settings={section.settings} id={section.id}>
-      <article className="mx-auto grid max-w-3xl gap-5 rounded-md border border-border bg-surface section-card-padding shadow-soft">
+      <article className="landing-pricing-card mx-auto grid max-w-3xl gap-5 rounded-md border border-border bg-surface section-card-padding shadow-soft">
         <SectionHeading title={c.title} language={language} />
         {c.note && <RichTextRenderer value={c.note} />}
         {c.paymentType && <p className="text-sm font-semibold text-muted">{getBilingualText(c.paymentType, language)}</p>}

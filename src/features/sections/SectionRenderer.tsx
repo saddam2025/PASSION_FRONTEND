@@ -99,7 +99,13 @@ export function SectionRenderer({
     );
   }
   if (deferUntilNearViewport && !nearViewport) {
-    return <div ref={mountTarget} aria-hidden="true" className="min-h-64" />;
+    return <div
+      ref={mountTarget}
+      id={registrationTarget ? 'register' : undefined}
+      data-registration-form={registrationTarget ? '' : undefined}
+      aria-hidden="true"
+      className="min-h-64"
+    />;
   }
   const parsed = result.data;
   const Renderer = renderers[parsed.type] as ComponentType<AnyRendererProps>;

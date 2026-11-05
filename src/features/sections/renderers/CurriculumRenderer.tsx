@@ -1,91 +1,73 @@
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { useLanguage, getBilingualText } from '@/i18n/useLanguage';
 import { useTranslation } from 'react-i18next';
-import { Accordion } from '@/components/ui/TabsAccordion';
 import { SectionFrame } from '../SectionFrame';
-import { SectionHeading, getText } from './SectionContent';
+import { SectionHeading } from './SectionContent';
 import type { AnyRendererProps } from './types';
+
 export default function CurriculumRenderer({ section }: AnyRendererProps) {
   const { language } = useLanguage();
   const { t } = useTranslation('sections');
+  const [active, setActive] = useState(0);
   if (section.type !== 'curriculum') return null;
-  const c = section.content;
-  const numberedModules = (duplicate = false) => (
-    <div className="curriculum-marquee-group" role="list" dir="ltr" aria-hidden={duplicate || undefined}>
-      {c.modules.map((module, index) => (
-        <article key={`${duplicate ? 'copy-' : ''}${index}`} role="listitem" dir="rtl" className="curriculum-module-card">
-          <header className="flex items-center justify-between gap-3 border-b border-cyan-100/15 pb-4">
-            <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-1 text-xs font-semibold text-cyan-100">
-              <span className="grid size-6 place-items-center rounded-full bg-cyan-300 font-bold text-slate-950">{String(index + 1).padStart(2, '0')}</span>
-              {t('module')}
-            </span>
-            {module.duration && <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200"><span className="sr-only">{t('duration')}: </span>{getBilingualText(module.duration, language)}</span>}
-          </header>
-          <h3 className="text-lg font-bold leading-snug text-white sm:text-xl">{getBilingualText(module.title, language)}</h3>
-          {module.summary && <p className="text-sm leading-relaxed text-slate-300">{getBilingualText(module.summary, language)}</p>}
-          {module.lessons.length > 0 && (
-            <div className="mt-auto grid gap-2 border-t border-white/10 pt-3">
-              <span className="text-xs font-semibold text-cyan-100">{t('lessons')}</span>
-              <ul className="grid gap-1.5 text-sm leading-relaxed text-slate-200">
-                {module.lessons.map((lesson, lessonIndex) => <li key={lessonIndex} className="flex items-start gap-2"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-cyan-300" aria-hidden="true" /><span>{getBilingualText(lesson.title, language)}</span></li>)}
-              </ul>
-            </div>
-          )}
-        </article>
-      ))}
-    </div>
-  );
-  const curriculumMarquee = (
-    <div className="curriculum-marquee" dir="rtl" role="region" tabIndex={0} aria-label={getBilingualText(c.title, language) || t('curriculum')}>
-      <div className="curriculum-marquee-track" style={{ '--curriculum-duration': `${Math.max(24, c.modules.length * 5)}s` } as CSSProperties & { '--curriculum-duration': string }}>
-        {numberedModules()}
-        {numberedModules(true)}
-      </div>
-    </div>
-  );
-  const items = c.modules.map((module, index) => ({
-    value: `module-${index}`,
-    title: getBilingualText(module.title, language),
-    content: (
-      <div className="grid gap-3">
-        {module.summary && <p>{getText(module.summary, language)}</p>}
-        {module.duration && (
-          <p className="text-sm text-muted">
-            {t('duration')}: {getText(module.duration, language)}
-          </p>
-        )}
-        {module.lessons.length > 0 && (
-          <ul className="list-inside list-disc">
-            {module.lessons.map((lesson, lessonIndex) => (
-              <li key={lessonIndex}>{getBilingualText(lesson.title, language)}</li>
-            ))}
-          </ul>
-        )}
-      </div>
-    ),
-  }));
+  const { content } = section;
+  const module = content.modules[active];
+
   return (
     <SectionFrame settings={section.settings} id={section.id}>
-      <SectionHeading title={c.title} language={language} />
-      {c.layout === 'accordion' ? (
-        <Accordion items={items} />
-      ) : c.layout === 'timeline' ? (
-        <ol className="grid gap-4 border-s-2 border-primary ps-6">
-          {c.modules.map((module, index) => (
-            <li key={index} className="grid gap-2">
-              <h3 className="font-bold">{getBilingualText(module.title, language)}</h3>
-              {module.summary && <p className="text-muted">{getText(module.summary, language)}</p>}
+      <SectionHeading title={content.title} language={language} />
+      {content.modules.length === 0 ? null : (
+        <section className="curriculum-tabs-card" aria-label={getBilingualText(content.title, language) || t('curriculum')}>
+          <div className="curriculum-tabs-list" role="tablist" aria-orientation="vertical">
+            {content.modules.map((item, index) => (
+              <button
+                key={`module-${index}`}
+                id={`curriculum-tab-${section.id}-${index}`}
+                type="button"
+                role="tab"
+                aria-selected={active === index}
+                aria-controls={`curriculum-panel-${section.id}`}
+                tabIndex={active === index ? 0 : -1}
+                className="curriculum-tab"
+                onClick={() => setActive(index)}
+                onKeyDown={(event) => {
+                  if (event.key === 'ArrowDown' || event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    setActive((value) => (value + 1) % content.modules.length);
+                  } else if (event.key === 'ArrowUp' || event.key === 'ArrowRight') {
+                    event.preventDefault();
+                    setActive((value) => (value - 1 + content.modules.length) % content.modules.length);
+                  }
+                }}
+              >
+                <span className="curriculum-tab-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                <span>{getBilingualText(item.title, language)}</span>
+              </button>
+            ))}
+          </div>
+          {module && (
+            <div id={`curriculum-panel-${section.id}`} className="curriculum-tab-content" role="tabpanel" aria-labelledby={`curriculum-tab-${section.id}-${active}`}>
+              <div className="curriculum-progress" style={{ '--progress-count': content.modules.length } as CSSProperties} aria-hidden="true">
+                {content.modules.map((_, index) => <span key={index} data-active={index <= active ? 'true' : 'false'} />)}
+              </div>
+              <header>
+                <p className="landing-price-badge">{t('module')} {String(active + 1).padStart(2, '0')}</p>
+                <h3 className="mt-4 text-2xl font-bold text-white">{getBilingualText(module.title, language)}</h3>
+                {module.summary && <p className="mt-3 text-slate-300">{getBilingualText(module.summary, language)}</p>}
+                {module.duration && <p className="mt-3 text-sm text-slate-400">{t('duration')}: {getBilingualText(module.duration, language)}</p>}
+              </header>
               {module.lessons.length > 0 && (
-                <ul className="list-inside list-disc">
-                  {module.lessons.map((lesson, lessonIndex) => (
-                    <li key={lessonIndex}>{getBilingualText(lesson.title, language)}</li>
-                  ))}
-                </ul>
+                <div>
+                  <h4 className="mb-3 text-sm font-semibold text-cyan-200">{t('lessons')}</h4>
+                  <ul className="curriculum-spec-list">
+                    {module.lessons.map((lesson, index) => <li key={index}>{getBilingualText(lesson.title, language)}</li>)}
+                  </ul>
+                </div>
               )}
-            </li>
-          ))}
-        </ol>
-      ) : c.layout === 'numberedCards' ? curriculumMarquee : <div className="section-columns-3">{c.modules.map((module, index) => <article key={index} className="relative grid content-start gap-3 rounded-sm border border-border bg-surface p-5"><span className="grid size-9 place-items-center rounded-full bg-primary/10 font-bold text-primary-strong">{String(index + 1).padStart(2, '0')}</span><h3 className="font-bold">{getBilingualText(module.title, language)}</h3>{module.summary && <p className="text-sm text-muted">{getBilingualText(module.summary, language)}</p>}{module.duration && <p className="text-xs text-muted">{t('duration')}: {getBilingualText(module.duration, language)}</p>}{module.lessons.length > 0 && <ul className="list-inside list-disc">{module.lessons.map((lesson, lessonIndex) => <li key={lessonIndex}>{getBilingualText(lesson.title, language)}</li>)}</ul>}</article>)}</div>}
+            </div>
+          )}
+        </section>
+      )}
     </SectionFrame>
   );
 }

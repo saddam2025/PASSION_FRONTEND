@@ -23,7 +23,7 @@ export default function ContactWhatsAppRenderer({ section }: AnyRendererProps) {
   const phone = c.show.phone ? settings.phone.replace(/[^+\d]/g, '') : '';
   return (
     <SectionFrame settings={section.settings} id={section.id}>
-      <article className="grid gap-4 rounded-md border border-border bg-surface p-6">
+      <article className="landing-contact-card grid gap-4 rounded-md border border-border bg-surface p-6">
         <SectionHeading title={c.title} language={language} />
         {c.text && <RichTextRenderer value={c.text} />}
         <div className="flex flex-wrap gap-3">

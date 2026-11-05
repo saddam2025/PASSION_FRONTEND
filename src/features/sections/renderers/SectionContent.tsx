@@ -24,10 +24,14 @@ export function SectionHeading({
   const sub = overrides?.subtitle ? getBilingualText(overrides.subtitle, language) : subtitle ? getBilingualText(subtitle, language) : '';
   if (!eyebrowText && !headingText && !accentText && !sub) return null;
   const HeadingTag = as;
+  const splitAt = headingText.lastIndexOf(' ', Math.floor(headingText.length / 2));
+  const canSplit = !accentText && !headingText.includes('[hl]') && splitAt > 0;
+  const primaryText = canSplit ? headingText.slice(0, splitAt) : headingText;
+  const mutedText = canSplit ? headingText.slice(splitAt + 1) : '';
   return (
-    <header className="mb-6 grid gap-2">
+    <header className="landing-section-heading mb-6 grid gap-2">
       {eyebrowText && <p className="text-sm font-semibold tracking-wide text-primary-strong">{renderHighlightMarkup(eyebrowText)}</p>}
-      {(headingText || accentText) && <HeadingTag className={`${as === 'h1' ? 'section-hero-title' : 'section-heading-title'} font-display font-bold leading-tight`}><span>{renderHighlightMarkup(headingText)}</span>{accentText && <>{headingText ? ' ' : ''}<span className={overrides?.highlight === 'underline' ? 'section-title-accent' : 'text-primary-strong'}>{renderHighlightMarkup(accentText)}</span></>}</HeadingTag>}
+      {(headingText || accentText) && <HeadingTag className={`${as === 'h1' ? 'section-hero-title' : 'section-heading-title'} landing-heading-title font-display font-bold leading-tight`}><span className="landing-heading-primary">{renderHighlightMarkup(primaryText)}</span>{mutedText && <> <span className="landing-heading-muted">{mutedText}</span></>}{accentText && <>{headingText ? ' ' : ''}<span className={`${overrides?.highlight === 'underline' ? 'section-title-accent' : 'text-primary-strong'} landing-heading-muted`}>{renderHighlightMarkup(accentText)}</span></>}</HeadingTag>}
       {sub && <p className="text-muted">{renderHighlightMarkup(sub)}</p>}
     </header>
   );

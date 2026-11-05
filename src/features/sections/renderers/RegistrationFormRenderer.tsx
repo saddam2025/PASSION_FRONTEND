@@ -128,7 +128,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
     });
     return (
       <SectionFrame settings={section.settings} id={registrationTarget ? 'register' : `register-${section.id}`} registrationTarget={registrationTarget}>
-        <section className="mx-auto grid max-w-3xl gap-4 rounded-md border border-border bg-surface p-6">
+        <section className="landing-registration-card mx-auto grid max-w-3xl gap-4 rounded-md border border-border bg-surface p-6">
           <SectionHeading title={section.content.title} language={language} />
           <p>{t('closed')}</p>
           {inquiry && (
@@ -147,7 +147,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
   }
   return (
     <SectionFrame settings={section.settings} id={registrationTarget ? 'register' : `register-${section.id}`} registrationTarget={registrationTarget}>
-      <section className="mx-auto grid max-w-3xl gap-5 rounded-md border border-border bg-surface section-card-padding shadow-soft">
+      <section className="landing-registration-card mx-auto grid max-w-3xl gap-5 rounded-md border border-border bg-surface section-card-padding shadow-soft">
         <SectionHeading title={section.content.title} language={language} />
         {section.content.subtitle && (
           <p className="text-muted">{label(section.content.subtitle)}</p>
@@ -162,6 +162,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
                 {...form.register('fullName')}
                 id={field.id}
                 disabled={inert}
+                placeholder={t('fullName')}
                 autoComplete="name"
                 aria-invalid={state.invalid}
                 aria-describedby={field['aria-describedby']}
@@ -178,6 +179,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
                 id={field.id}
                 disabled={inert}
                 type="email"
+                placeholder={t('email')}
                 autoComplete="email"
                 aria-invalid={state.invalid}
                 aria-describedby={field['aria-describedby']}
@@ -195,6 +197,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
                 disabled={inert}
                 type="tel"
                 inputMode="tel"
+                placeholder={t('phone')}
                 dir="ltr"
                 autoComplete="tel"
                 aria-invalid={state.invalid}
@@ -219,7 +222,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
                     'aria-describedby': field['aria-describedby'],
                   };
                   if (fieldDefinition.type === 'textarea')
-                    return <Textarea {...props} maxLength={fieldDefinition.maxLength} />;
+                    return <Textarea {...props} placeholder={label(fieldDefinition.label)} maxLength={fieldDefinition.maxLength} />;
                   if (fieldDefinition.type === 'select')
                     return (
                       <Select
@@ -262,7 +265,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
                       disabled={inert}
                       type="text"
                       placeholder={
-                        fieldDefinition.placeholder ? label(fieldDefinition.placeholder) : undefined
+                        fieldDefinition.placeholder ? label(fieldDefinition.placeholder) : label(fieldDefinition.label)
                       }
                       maxLength={fieldDefinition.maxLength}
                     />

@@ -35,7 +35,7 @@ export default function InstructorRenderer({ section }: AnyRendererProps) {
   );
   return (
     <SectionFrame settings={section.settings} id={section.id}>
-      <div className="section-split">
+      <div className="section-split course-instructor-card">
         {c.layout === 'photoStart' ? (
           <>
             {photo}
