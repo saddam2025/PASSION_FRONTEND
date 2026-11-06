@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { overviewQuery, overviewService } from './overview';
+import { mapOverviewResponse, overviewQuery, overviewService } from './overview';
 import { OverviewPageContent } from '@/features/dashboard/OverviewPage';
 
 const fixture = vi.hoisted(() => ({ data: {
   period: '30d' as const, totalRegistrations: 0, registrations: 0, paid: 0, unpaid: 0,
-  netRevenue: 0, courses: [] as Array<{ id: string; title: string; registrations: number; paid: number; revenue: number; currency: string }>,
+  netRevenue: 0, revenueByCurrency: [], courses: [] as Array<{ id: string; title: string; registrations: number; paid: number; revenue: number; currency: string; netByCurrency: { EGP: number; USD: number } }>,
 } }));
 vi.mock('@tanstack/react-query', () => ({ useQuery: () => ({ isPending: false, isError: false, data: fixture.data }) }));
 vi.mock('react-i18next', async (importOriginal) => ({
@@ -36,9 +36,20 @@ describe('Admin overview integration', () => {
   });
 
   it('renders zero cards and the empty-course message for an empty API response', () => {
-    fixture.data = { period: '30d', totalRegistrations: 0, registrations: 0, paid: 0, unpaid: 0, netRevenue: 0, courses: [] };
+    fixture.data = { period: '30d', totalRegistrations: 0, registrations: 0, paid: 0, unpaid: 0, netRevenue: 0, revenueByCurrency: [], courses: [] };
     const markup = renderToStaticMarkup(<OverviewPageContent data={fixture.data} />);
     expect(markup).toContain('مفيش تسجيلات في الفترة دي.');
     expect(markup.match(/>0</g)?.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('keeps EGP and USD revenues separate in overview cards and per-course rows', () => {
+    const data = mapOverviewResponse({ totalRegistrations: 3, registrations: 3, paid: 2, unpaid: 1, netRevenue: 200000, revenueByCurrency: [{ currency: 'EGP', netRevenue: 200000, paidCount: 1, unpaidCount: 1 }, { currency: 'USD', netRevenue: 15000, paidCount: 1, unpaidCount: 0 }], courses: [{ id: 'c1', title: { ar: 'كورس' }, registrations: 3, paid: 2, revenue: 200000, currency: 'EGP', netByCurrency: { EGP: 200000, USD: 15000 } }] }, '30d');
+    const markup = renderToStaticMarkup(<OverviewPageContent data={data} />);
+    expect(markup).toContain('صافي الإيرادات بالجنيه المصري');
+    expect(markup).toContain('صافي الإيرادات بالدولار');
+    expect(markup).toContain('2,000 ج.م');
+    expect(markup).toContain('150 $');
+    expect(markup).not.toContain('2,150');
+    expect(markup).toContain('currencyRevenueSeparate');
   });
 });

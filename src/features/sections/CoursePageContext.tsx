@@ -15,6 +15,7 @@ export interface CoursePageData {
   startDate: string;
   registrationOpen: boolean;
   pricingContactUs?: boolean;
+  foreignPricing?: { enabled: boolean; price: number | null; promoPrice: number | null; currency: 'USD'; contactUs?: boolean };
   accreditationVerified?: boolean;
   instructor?: {
     name: BilingualText;

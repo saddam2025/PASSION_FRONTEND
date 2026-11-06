@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/app/AuthContext';
@@ -14,15 +14,16 @@ import { paymentsService } from '@/services/payments.service';
 import { canVoidPaymentRecord } from '@/services/paymentAccess';
 import { privateMediaService, receiptIdForKey } from '@/services/privateMedia';
 import { apiErrorMessage } from '@/api/client';
-import { formatPrice } from '@/features/public/courses/format';
 import CustomerActions from './CustomerActions';
-import { formatDate, formatPhone } from '@/lib/formatters';
-import { majorToMinor, minorToMajor } from '@/lib/money';
+import { formatDate, formatPhone, formatMoneyMinor } from '@/lib/formatters';
+import { majorToMinor, minorToMajorText } from '@/lib/money';
+import { enrollmentCurrency, paymentDefaultAmount } from './paymentPresentation';
 
 export default function CustomerPage() {
   // AdminPage and AssistantPage dispatch this screen from a wildcard route,
   // so React Router does not expose a named `leadId` param here.
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const enrollmentMatch = pathname.match(/\/registrations\/([^/]+)\/?$/);
   const leadId = enrollmentMatch ? decodeURIComponent(enrollmentMatch[1]) : '';
   const [params] = useSearchParams();
@@ -73,12 +74,22 @@ export default function CustomerPage() {
       receiptMediaKey?: string;
       idempotencyKey: string;
     }) => paymentsService.record(input),
-    onSuccess: () => {
+    onSuccess: (result, input) => {
       setPaymentId('');
       setAmount('');
       setPaymentNote('');
       setPaymentReference(''); setReceiptKey(''); paymentFingerprint.current = '';
       void client.invalidateQueries({ queryKey: ['customer', leadId] });
+      if (input.kind === 'payment') {
+        const listPath = pathname.replace(/\/registrations\/[^/]+\/?$/, '/registrations');
+        const listParams = new URLSearchParams(params);
+        listParams.delete('enrollment');
+        listParams.set('payment', result.paymentSummary.status);
+        listParams.delete('page');
+        void client.invalidateQueries({ queryKey: ['leads'] });
+        toast.notify({ title: 'تم تسجيل الدفع وتحديث حالته.', tone: 'success' });
+        navigate({ pathname: listPath, search: `?${listParams.toString()}` });
+      }
     },
     onError: (error: Error) => toast.notify({ title: apiErrorMessage(error), tone: 'danger' }),
   });
@@ -98,7 +109,7 @@ export default function CustomerPage() {
       recordLaunchHandled.current=true;
       paymentKey.current=crypto.randomUUID();
       setPaymentId(enrollment.id);
-      setAmount(enrollment.priceSnapshot.amount === null ? '' : String(minorToMajor(enrollment.priceSnapshot.amount)));
+      setAmount(paymentDefaultAmount(enrollment.priceSnapshot));
       setPaymentMethod('cash');
     }
   },[canRecord,params,q.data]);
@@ -107,6 +118,7 @@ export default function CustomerPage() {
   if (!q.data) return <EmptyState title={t('notFound')} />;
   const { lead, enrollments, notes } = q.data;
   const duplicateInfo = (q.data as typeof q.data & { possibleDuplicate?: { hasPossibleDuplicate?: boolean; references?: Array<{ reference: string }> }; otherEnrollments?: Array<{ reference: string }> }).possibleDuplicate;
+  const editingCurrency = enrollmentCurrency(enrollments.find((item) => item.id === paymentId)?.priceSnapshot.currency);
   return (
     <main className="grid gap-5" dir="rtl">
       <header className="grid gap-2">
@@ -151,6 +163,7 @@ export default function CustomerPage() {
                   <p dir="ltr">
                     {t('reference')}: {enrollment.reference}
                   </p>
+                  <p>{t('audience')}: {t(enrollment.audience === 'foreign' ? 'foreignAudience' : 'egyptianAudience')}</p>
                   <time dir="ltr" className="text-sm text-muted">
                     {formatDate(enrollment.registeredAt)}
                   </time>
@@ -166,11 +179,7 @@ export default function CustomerPage() {
                   {t('price')}:{' '}
                   {enrollment.priceSnapshot.amount === null
                     ? t('contactUs')
-                    : formatPrice(
-                        minorToMajor(enrollment.priceSnapshot.amount),
-                        enrollment.priceSnapshot.currency,
-                        language,
-                      )}
+                    : formatMoneyMinor(enrollment.priceSnapshot.amount, enrollment.priceSnapshot.currency === 'USD' ? 'USD' : 'EGP')}
                 </p>
               )}
               <section>
@@ -195,22 +204,22 @@ export default function CustomerPage() {
                         paymentKey.current = crypto.randomUUID();
                         setPaymentId(enrollment.id);
                         setPaymentKind('payment');
-                        setAmount(enrollment.priceSnapshot.amount === null ? '' : String(minorToMajor(enrollment.priceSnapshot.amount)));
+                        setAmount(enrollment.priceSnapshot.amount === null ? '' : minorToMajorText(enrollment.priceSnapshot.amount));
                         setPaymentMethod('cash');
                         setPaymentNote(''); setPaymentReference(''); setReceiptKey(''); setReceivedAt(localDateTimeNow()); paymentFingerprint.current = '';
                       }}>تم الدفع
                     </Button>
                   <Button variant="outline" disabled={!records.some((record) => canVoidPaymentRecord(record, user))} onClick={() => setUnpaidId(enrollment.id)}>لم يتم الدفع</Button>
-                  {user?.role === 'admin' && summary && summary.netMinor > 0 && <Button variant="outline" onClick={() => { paymentKey.current = crypto.randomUUID(); paymentFingerprint.current = ''; setPaymentKind('refund'); setPaymentId(enrollment.id); setAmount(String(minorToMajor(summary.netMinor))); setPaymentMethod('other'); setPaymentNote(''); setPaymentReference(''); setReceiptKey(''); setReceivedAt(localDateTimeNow()); }}>تسجيل استرداد</Button>}
+                  {user?.role === 'admin' && summary && summary.netMinor > 0 && <Button variant="outline" onClick={() => { paymentKey.current = crypto.randomUUID(); paymentFingerprint.current = ''; setPaymentKind('refund'); setPaymentId(enrollment.id); setAmount(minorToMajorText(summary.netMinor)); setPaymentMethod('other'); setPaymentNote(''); setPaymentReference(''); setReceiptKey(''); setReceivedAt(localDateTimeNow()); }}>تسجيل استرداد</Button>}
                     </div>
                   )}
-                  {canView && <p className="text-sm">صافي المدفوع: {formatPrice(minorToMajor(summary?.netMinor ?? records.filter((r) => r.status === 'confirmed').reduce((sum, r) => sum + (r.kind === 'payment' ? r.amount : -r.amount), 0)), enrollment.priceSnapshot.currency, language)} · المتبقي: {enrollment.priceSnapshot.amount === null ? '—' : formatPrice(minorToMajor(summary?.outstandingMinor ?? Math.max(enrollment.priceSnapshot.amount - records.filter((r) => r.status === 'confirmed').reduce((sum, r) => sum + (r.kind === 'payment' ? r.amount : -r.amount), 0), 0)), enrollment.priceSnapshot.currency, language)}</p>}
+                  {canView && <p className="text-sm">صافي المدفوع: {formatMoneyMinor(summary?.netMinor ?? records.filter((r) => r.status === 'confirmed').reduce((sum, r) => sum + (r.kind === 'payment' ? r.amount : -r.amount), 0), enrollment.priceSnapshot.currency === 'USD' ? 'USD' : 'EGP')} · المتبقي: {enrollment.priceSnapshot.amount === null ? '—' : formatMoneyMinor(summary?.outstandingMinor ?? Math.max(enrollment.priceSnapshot.amount - records.filter((r) => r.status === 'confirmed').reduce((sum, r) => sum + (r.kind === 'payment' ? r.amount : -r.amount), 0), 0), enrollment.priceSnapshot.currency === 'USD' ? 'USD' : 'EGP')}</p>}
                   {records.length ? (
                     <ul className="mt-3 grid gap-2">
                       {[...records].sort((a, b) => a.receivedAt.localeCompare(b.receivedAt)).map((record) => (
                         <li key={record.id} className="rounded-xs border border-border p-3 text-sm">
                           <div className="flex flex-wrap justify-between gap-2">
-                            <strong>{formatPrice(minorToMajor(record.amount), record.currency, language)}</strong>
+                            <strong>{formatMoneyMinor(record.amount, record.currency === 'USD' ? 'USD' : 'EGP')}</strong>
                             <time dir="ltr">{formatDate(record.receivedAt)}</time>
                           </div>
                           <p>{t(`paymentMethods.${record.method}`)} · {t(`paymentRecordStatuses.${record.status}`)}</p>
@@ -266,12 +275,12 @@ export default function CustomerPage() {
               {t('cancel')}
             </Button>
             <Button
-                disabled={!isPositiveMinor(amount) || !receivedAt || payment.isPending || (paymentKind === 'refund' && paymentNote.trim().length < 3)}
+                disabled={!isPositiveMinor(amount, editingCurrency) || !receivedAt || payment.isPending || (paymentKind === 'refund' && paymentNote.trim().length < 3)}
               onClick={() => {
                 const enrollment = enrollments.find((item) => item.id === paymentId);
                 if (!enrollment) return;
                 let minorAmount: number;
-                try { minorAmount = majorToMinor(amount); } catch (error) { toast.notify({ title: error instanceof Error ? error.message : t('loadError'), tone: 'danger' }); return; }
+                try { minorAmount = majorToMinor(amount, enrollment.priceSnapshot.currency === 'USD' ? 'USD' : 'EGP'); } catch (error) { toast.notify({ title: error instanceof Error ? error.message : t('loadError'), tone: 'danger' }); return; }
                   const receivedDate = new Date(receivedAt);
                   if (!Number.isFinite(receivedDate.getTime())) { toast.notify({ title: 'تاريخ الاستلام غير صالح.', tone: 'danger' }); return; }
                   const payload = { enrollmentId: enrollment.id, amount: minorAmount, currency: enrollment.priceSnapshot.currency, method: paymentMethod, kind: paymentKind, receivedAt: receivedDate.toISOString(), note: paymentNote.trim() || undefined, reference: paymentReference.trim() || undefined, receiptMediaKey: receiptKey || undefined };
@@ -319,4 +328,4 @@ function Status({ text }: { text: string }) {
   return <span className="rounded-pill border border-border px-3 py-1 text-sm">● {text}</span>;
 }
 function localDateTimeNow() { const value = new Date(); value.setMinutes(value.getMinutes() - value.getTimezoneOffset()); return value.toISOString().slice(0, 16); }
-function isPositiveMinor(value: string) { try { return majorToMinor(value) > 0; } catch { return false; } }
+function isPositiveMinor(value: string, currency: 'EGP' | 'USD') { try { return majorToMinor(value, currency) > 0; } catch { return false; } }

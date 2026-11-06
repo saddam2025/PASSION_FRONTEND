@@ -9,6 +9,7 @@ import { FormDefinitionSchema } from '@/schemas/registrationForm';
 
 const optionalText = BilingualTextSchema.optional();
 const minorUnits = z.number().int().nonnegative().nullable();
+const foreignMinorUnits = z.number().int().positive().max(100_000_000).nullable();
 export function hasInvalidWhatsappTokens(value: string): boolean {
   return /[{}]/.test(value.replace(/\{(?:name|course|reference)\}/g, ''));
 }
@@ -34,6 +35,25 @@ export const CoursePricingSchema = z
   })
   .strict();
 export type CoursePricing = z.infer<typeof CoursePricingSchema>;
+
+export const ForeignCoursePricingSchema = z.object({
+  enabled: z.boolean().default(false),
+  price: foreignMinorUnits.default(null),
+  promoPrice: foreignMinorUnits.default(null),
+  currency: z.literal('USD').default('USD'),
+  contactUs: z.boolean().optional(),
+}).strict().superRefine((pricing, ctx) => {
+  if (!pricing.enabled) return;
+  if ((pricing.price === null || pricing.price === undefined) && pricing.contactUs !== true) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['price'], message: 'اكتب سعر الأجانب أو اختار التواصل لمعرفة السعر.' });
+  }
+  if (pricing.promoPrice != null && pricing.price == null) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['price'], message: 'اكتب السعر الأساسي قبل سعر العرض.' });
+  } else if (pricing.price != null && pricing.promoPrice != null && pricing.promoPrice >= pricing.price) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['promoPrice'], message: 'سعر العرض لازم يكون أقل من السعر الأساسي.' });
+  }
+});
+export type ForeignCoursePricing = z.infer<typeof ForeignCoursePricingSchema>;
 
 export const CourseInstructorSchema = z
   .object({
@@ -125,6 +145,7 @@ export const CourseDetailsSchema = z
     delivery: CourseDeliverySchema,
     schedule: CourseScheduleSchema,
     pricing: CoursePricingSchema,
+    foreignPricing: ForeignCoursePricingSchema.default({ enabled: false, price: null, promoPrice: null, currency: 'USD' }),
     enrollment: CourseEnrollmentSchema,
     accreditation: CourseAccreditationSchema,
     whatsappOverrides: CourseWhatsappOverridesSchema.optional(),

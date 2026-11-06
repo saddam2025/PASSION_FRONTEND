@@ -18,8 +18,11 @@ function fieldLabel(issue: ReadinessIssue, sections: Section[]) {
   if (issue.path.includes('category')) return 'التصنيف';
   if (issue.path.includes('slug')) return 'الرابط المختصر';
   if (issue.path.includes('coverImage')) return 'صورة الغلاف';
+    if (issue.path === 'details.foreignPricing') return 'إعداد التسعير بعملة أجنبية';
   if (issue.path.includes('pricing.price')) return 'السعر';
   if (issue.path.includes('pricing.promo')) return 'سعر العرض';
+  if (issue.path.includes('foreignPricing.promoPrice')) return 'سعر العرض للأجانب';
+  if (issue.path.includes('foreignPricing.price')) return 'سعر الأجانب';
   if (issue.path.includes('consentText')) return 'نص الموافقة';
   if (issue.path.includes('form')) return 'حقول نموذج التسجيل';
   return 'بيانات الكورس';

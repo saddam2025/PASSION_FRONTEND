@@ -34,6 +34,7 @@ export const EnrollmentSchema = z
       amount: z.number().int().nonnegative().nullable(),
       currency: z.string().length(3),
     }),
+    audience: z.enum(['egyptian', 'foreign']).default('egyptian'),
     formSnapshot: z.object({
       fields: z.array(z.object({ id: z.string(), label: BilingualTextSchema, type: z.string() })),
     }),

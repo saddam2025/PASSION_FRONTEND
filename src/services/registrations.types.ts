@@ -29,6 +29,7 @@ export interface PublicRegistrationConfirmation extends PublicRegistrationResult
 
 export interface RegistrationSubmission {
   courseSlug: string;
+  audience?: 'egyptian' | 'foreign';
   fullName?: string;
   email?: string;
   phone?: string;

@@ -3,7 +3,7 @@ import { SnapshotSchema, type Snapshot } from '@/schemas/course';
 import { SECTION_REGISTRY_META, type SectionType } from '@/schemas/sections';
 import { appQueryClient } from '@/app/queryClient';
 import { resetApiSessionForTests } from '@/api/client';
-import { apiCoursesService, apiPublicCoursesService, asSnapshot, invalidateCourseCaches, mapAdminCourseListItem, mapPublicCoursePage } from './courses.api';
+import { apiCoursesService, apiPublicCoursesService, asSnapshot, invalidateCourseCaches, mapAdminCourseListItem, mapPublicCoursePage, mapPublicCourseSummary } from './courses.api';
 import { apiRegistrationsService } from './registrations.api';
 
 const sectionTypes: SectionType[] = ['hero', 'imageText', 'text', 'instructor', 'featureCards', 'curriculum', 'pricingCta', 'faq', 'contactWhatsApp', 'registrationForm', 'steps', 'banner'];
@@ -41,6 +41,23 @@ describe('API course and public registration adapters', () => {
     const publicPage = mapPublicCoursePage({ slug: wire.slug, title: value.details.title, shortDescription: value.details.shortDescription, seoTitle: value.seo.title, seoDescription: value.seo.description, category: { ar: 'إدارة' }, instructorName: value.details.instructor.name, instructor: value.details.instructor, coverImage: value.details.coverImage, price: 120000, promoPrice: null, currency: 'EGP', startDate: '', duration: value.details.schedule.duration, deliveryMethod: 'online', publishedAt: wire.publishedAt, featured: true, accreditationVerified: false, delivery: value.details.delivery, schedule: value.details.schedule, accreditation: { verifiedByAcademy: false }, registrationOpen: true, pageConfig: value.page, formDefinition: value.form, whatsappNumber: '+201000000000', whatsappMessageTemplate: value.details.whatsappOverrides?.messageTemplate });
     expect(publicPage.pageConfig.sections.map((section) => section.type).sort()).toEqual([...sectionTypes].sort());
     expect(publicPage.formDefinition.fields[0]?.id).toBe('experience'); expect(publicPage.seoTitle?.ar).toBe('كورس تجريبي'); expect(publicPage.price).toBe(1200);
+  });
+
+  it('strips stored USD values when foreign pricing is disabled before saving a snapshot', () => {
+    const draft = snapshot();
+    draft.details.foreignPricing = { enabled: false, price: 15000, promoPrice: 12000, currency: 'USD', contactUs: false };
+    expect(asSnapshot(draft).details.foreignPricing).toEqual({ enabled: false, price: null, promoPrice: null, currency: 'USD' });
+  });
+
+  it('maps the Egyptian contact-for-price flag and the optional USD offer from public course summaries', () => {
+    const summary = mapPublicCourseSummary({
+      slug: 'dual-price', title: { ar: 'كورس', en: '' }, shortDescription: { ar: 'وصف', en: '' },
+      category: { ar: 'إدارة' }, instructorName: { ar: 'مدرب' }, coverImage: { src: '/cover.webp', alt: { ar: '' } },
+      price: null, promoPrice: null, currency: 'EGP', pricingContactUs: true,
+      foreignPricing: { enabled: true, price: 15000, promoPrice: 12500, currency: 'USD', contactUs: false },
+    });
+    expect(summary.pricingContactUs).toBe(true);
+    expect(summary.foreignPricing).toEqual({ enabled: true, price: 150, promoPrice: 125, currency: 'USD' });
   });
 
   it('sends expectedVersion with the complete snapshot and maps a stale-version conflict', async () => {
@@ -93,6 +110,19 @@ describe('API course and public registration adapters', () => {
     const sent = JSON.parse(String(calls.at(-1)?.init?.body));
     expect(calls.at(-1)?.url).toContain('/public/registrations');
     expect(sent.answers).toEqual({ experience: 'سنتين' }); expect(sent.idempotencyKey).toBe('stable-key'); expect(sent.website).toBe(''); expect(sent.formStartedAt).toBe(1_800_000_000_000); expect(sent.attribution.utm_campaign).toBe('launch');
+    expect(sent).not.toHaveProperty('audience');
+  });
+
+  it('sends the selected audience and maps an API audience validation error to the Arabic field message', async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      calls.push({ url: String(url), init });
+      if (String(url).endsWith('/auth/csrf')) return json({ csrfToken: 'csrf' });
+      return json({ error: { code: 'VALIDATION_ERROR', details: [{ field: 'audience' }] } }, 422);
+    }));
+    await expect(apiRegistrationsService.submit({ courseSlug: 'dual-price', audience: 'foreign', answers: {}, idempotencyKey: 'audience-key', honeypot: '', formStartedAt: 1_800_000_000_000 })).rejects.toMatchObject({ fieldErrors: { audience: 'اختار الفئة المناسبة قبل التسجيل.' } });
+    const sent = JSON.parse(String(calls.at(-1)?.init?.body));
+    expect(sent.audience).toBe('foreign');
   });
 
   it('confirms success only with reference and never expects PII', async () => {

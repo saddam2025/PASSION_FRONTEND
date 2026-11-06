@@ -70,6 +70,7 @@ describe('shared API client', () => {
     const unknown = new ApiError('UNRECOGNIZED', 400, undefined, 'id');
     expect(unknown.message).toBe('حصلت مشكلة، جرّب تاني');
     expect(unknown.message).not.toContain('raw');
+    expect(new ApiError('UNAUTHENTICATED', 401).message).toBe('انتهت جلسة الدخول. سجّل دخولك تاني وبعدها جرّب النشر.');
   });
 
   it('refetches CSRF once when a mutation is rejected for CSRF', async () => {

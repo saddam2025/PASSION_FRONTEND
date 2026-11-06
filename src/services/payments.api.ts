@@ -1,5 +1,5 @@
 import { ApiError, apiRequest } from '@/api/client';
-import type { PaymentRecord } from '@/schemas/payment';
+import type { PaymentRecord, PaymentStatus } from '@/schemas/payment';
 import { majorToMinor } from '@/lib/money';
 
 type RecordInput = Omit<PaymentRecord, 'id' | 'status' | 'recordedBy' | 'createdAt' | 'confirmedBy' | 'confirmedAt'> & { receiptMediaKey?: string };
@@ -16,8 +16,8 @@ function mapPayment(row: WirePayment): PaymentRecord & { receiptMediaKey?: strin
 export const apiPaymentsService = {
   async record(input: RecordInput) {
     const { enrollmentId, ...rest } = input;
-    const result = await apiRequest<{ payment: WirePayment; paymentSummary: { netMinor: number; status: string; outstandingMinor: number | null }; replayed: boolean }>(`enrollments/${encodeURIComponent(enrollmentId)}/payments`, { method: 'POST', body: JSON.stringify(rest) });
-    return mapPayment(result.payment);
+    const result = await apiRequest<{ payment: WirePayment; paymentSummary: { netMinor: number; status: PaymentStatus; outstandingMinor: number | null }; replayed: boolean }>(`enrollments/${encodeURIComponent(enrollmentId)}/payments`, { method: 'POST', body: JSON.stringify(rest) });
+    return { payment: mapPayment(result.payment), paymentSummary: result.paymentSummary };
   },
   async markUnpaid(enrollmentId: string, reason: string, actorId = '', role: 'admin' | 'assistant' = 'assistant') {
     if (reason.trim().length < 3) throw new ApiError('VALIDATION_ERROR', 422, [{ field: 'reason' }]);

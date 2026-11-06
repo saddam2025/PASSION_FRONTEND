@@ -44,7 +44,12 @@ export function CourseCard({ course }: { course: CourseSummary }) {
                 {t('instructor')}: {text(course.instructorName)}
               </p>
             )}
-            {price !== null && (
+            {course.foreignPricing?.enabled ? (
+              <div className="grid gap-1 text-sm">
+                <p className="font-bold text-primary-strong">{t('egyptianPrice')}: {course.pricingContactUs || course.price === null ? t('contactForPrice') : formatPrice(course.promoPrice ?? course.price, course.currency, language)}{course.promoPrice !== null && course.price !== null && <del className="ms-2 font-normal text-muted">{formatPrice(course.price, course.currency, language)}</del>}</p>
+                <p className="font-bold text-primary-strong">{t('foreignPrice')}: {course.foreignPricing.contactUs || course.foreignPricing.price === null ? t('contactForPrice') : formatPrice(course.foreignPricing.promoPrice ?? course.foreignPricing.price, 'USD', language)}{course.foreignPricing.promoPrice !== null && course.foreignPricing.price !== null && <del className="ms-2 font-normal text-muted">{formatPrice(course.foreignPricing.price, 'USD', language)}</del>}</p>
+              </div>
+            ) : price !== null ? (
               <p className="font-bold text-primary-strong">
                 {formatPrice(price, course.currency, language)}
                 {course.promoPrice !== null && course.price !== null && (
@@ -53,7 +58,7 @@ export function CourseCard({ course }: { course: CourseSummary }) {
                   </del>
                 )}
               </p>
-            )}
+            ) : null}
             <div className="flex flex-wrap gap-3 text-xs text-muted">
               {course.startDate && (
                 <time dateTime={course.startDate}>

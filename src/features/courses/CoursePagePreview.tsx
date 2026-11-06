@@ -5,6 +5,7 @@ import { usePublicSettings } from '@/services/usePublicSettings';
 import type { SectionMode } from '@/features/sections/types';
 import type { Snapshot } from '@/schemas/course';
 import { hasSectionEditor } from './studio/editableSections';
+import { minorToMajor } from '@/lib/money';
 
 export function CoursePagePreview({
   course,
@@ -31,12 +32,17 @@ export function CoursePagePreview({
       title: d.title,
       shortDescription: d.shortDescription,
       coverImage: d.coverImage,
-      price: d.pricing.price,
-      promoPrice: d.pricing.promo ?? null,
+      price: d.pricing.price === null ? null : minorToMajor(d.pricing.price),
+      promoPrice: (d.pricing.promo ?? d.pricing.promoPrice) == null ? null : minorToMajor((d.pricing.promo ?? d.pricing.promoPrice)!),
       currency: d.pricing.currency,
       startDate: d.schedule.startDate ?? '',
       registrationOpen: d.enrollment.registrationOpen,
       pricingContactUs: d.pricing.contactUs === true,
+      foreignPricing: d.foreignPricing.enabled ? {
+        ...d.foreignPricing,
+        price: d.foreignPricing.price == null ? null : minorToMajor(d.foreignPricing.price),
+        promoPrice: d.foreignPricing.promoPrice == null ? null : minorToMajor(d.foreignPricing.promoPrice),
+      } : undefined,
       accreditationVerified: d.accreditation.verifiedByAcademy,
       instructor: d.instructor,
       delivery: d.delivery,

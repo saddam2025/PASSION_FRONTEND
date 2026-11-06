@@ -49,6 +49,14 @@ export function mapPublicCourseSummary(input: Record<string, unknown>): CourseSu
     // API snapshots use integer minor units; public formatters consume major units.
     price: typeof details.price === 'number' ? details.price / 100 : null,
     promoPrice: typeof details.promoPrice === 'number' ? details.promoPrice / 100 : null, currency: String(details.currency ?? 'EGP'),
+    pricingContactUs: details.pricingContactUs === true || details.contactUs === true || details.price == null,
+    ...(details.foreignPricing && typeof details.foreignPricing === 'object' && (details.foreignPricing as { enabled?: unknown }).enabled === true ? { foreignPricing: {
+      enabled: true,
+      price: typeof (details.foreignPricing as { price?: unknown }).price === 'number' ? Number((details.foreignPricing as { price: number }).price) / 100 : null,
+      promoPrice: typeof (details.foreignPricing as { promoPrice?: unknown }).promoPrice === 'number' ? Number((details.foreignPricing as { promoPrice: number }).promoPrice) / 100 : null,
+      currency: 'USD' as const,
+      ...((details.foreignPricing as { contactUs?: unknown }).contactUs === true ? { contactUs: true } : {}),
+    } } : {}),
     startDate: String(details.startDate ?? ''), duration: bilingual(details.duration),
     deliveryMethod: details.deliveryMethod === 'inPerson' || details.deliveryMethod === 'online' || details.deliveryMethod === 'hybrid' ? details.deliveryMethod : '',
     publishedAt: String(details.publishedAt ?? ''), featured: Boolean(details.featured), accreditationVerified: Boolean(details.accreditationVerified),
@@ -65,6 +73,7 @@ export function mapPublicCoursePage(input: Record<string, unknown>): CoursePageD
     instructor: input.instructor ?? { name: input.instructorName ?? { ar: '' } }, coverImage: input.coverImage,
     delivery: input.delivery ?? { method: input.deliveryMethod === 'inPerson' ? 'in_person' : input.deliveryMethod || 'online' },
     schedule: input.schedule ?? { startDate: input.startDate }, pricing: { price: input.price ?? null, promoPrice: input.promoPrice ?? undefined, currency: input.currency ?? 'EGP' },
+    foreignPricing: input.foreignPricing ?? { enabled: false },
     enrollment: { registrationOpen: input.registrationOpen === true }, accreditation: input.accreditation ?? { verifiedByAcademy: input.accreditationVerified === true },
   }, page: input.pageConfig, form: input.formDefinition, seo: { title: input.seoTitle ?? input.title, description: input.seoDescription ?? input.shortDescription, noindex: input.noindex, ogImage: input.ogImage } });
   return { ...summary, id: String(input.id ?? input.slug), registrationOpen: input.registrationOpen === true,
@@ -132,5 +141,11 @@ export const apiPublicCoursesService: CoursesService = {
   async getBySlug(slug: string) { return this.getPublishedBySlug(slug); },
 };
 
-export function asSnapshot(value: Snapshot): Snapshot { return SnapshotSchema.parse(JSON.parse(JSON.stringify(value))); }
+export function asSnapshot(value: Snapshot): Snapshot {
+  const copy = JSON.parse(JSON.stringify(value)) as Snapshot;
+  if (!copy.details.foreignPricing.enabled) {
+    copy.details.foreignPricing = { enabled: false, price: null, promoPrice: null, currency: 'USD' };
+  }
+  return SnapshotSchema.parse(copy);
+}
 

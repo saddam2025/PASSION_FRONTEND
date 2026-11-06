@@ -22,6 +22,7 @@ function mapError(error: unknown): RegistrationServiceError {
     : rawCode === 'COURSE_NOT_AVAILABLE' || rawCode === 'REGISTRATION_CLOSED' || rawCode === 'COURSE_FULL' || rawCode === 'VALIDATION_ERROR' || rawCode === 'RATE_LIMITED' ? rawCode : 'NETWORK_ERROR';
   const details = api?.details;
   const fieldErrors = { ...(api?.fieldErrors ?? {}) };
+  if (fieldErrors.audience) fieldErrors.audience = 'اختار الفئة المناسبة قبل التسجيل.';
   for (const [field, message] of Object.entries(fieldErrors)) {
     if (field.startsWith('answers.')) {
       fieldErrors[field.slice('answers.'.length)] = message;
@@ -39,6 +40,7 @@ export const apiRegistrationsService: RegistrationsService = {
   async submit(input: RegistrationSubmission) {
     const body = {
       courseSlug: input.courseSlug,
+      ...(input.audience ? { audience: input.audience } : {}),
       ...(input.fullName !== undefined ? { fullName: input.fullName } : {}),
       ...(input.email !== undefined ? { email: input.email } : {}),
       ...(input.phone !== undefined ? { phone: input.phone } : {}),

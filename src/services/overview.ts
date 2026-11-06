@@ -11,11 +11,13 @@ export interface OverviewData {
   paid: number;
   unpaid: number;
   netRevenue: number;
-  courses: Array<{ id: string; title: string; registrations: number; paid: number; revenue: number; currency: string }>;
+  revenueByCurrency: Array<{ currency: 'EGP' | 'USD'; netRevenue: number; paidCount: number; unpaidCount: number }>;
+  courses: Array<{ id: string; title: string; registrations: number; paid: number; revenue: number; currency: string; netByCurrency: { EGP: number; USD: number } }>;
 }
 interface OverviewResponse {
   totalRegistrations: number; registrations: number; paid: number; unpaid: number; netRevenue: number;
-  courses: Array<{ id: string; title: string | { ar?: string }; registrations: number; paid: number; revenue: number; currency: string }>;
+  revenueByCurrency?: Array<{ currency: 'EGP' | 'USD'; netRevenue: number; paidCount: number; unpaidCount: number }>;
+  courses: Array<{ id: string; title: string | { ar?: string }; registrations: number; paid: number; revenue: number; currency: string; netByCurrency?: { EGP?: number; USD?: number } }>;
 }
 
 export function overviewQuery(query: OverviewQuery, now = new Date()): URLSearchParams {
@@ -36,10 +38,15 @@ export function mapOverviewResponse(response: OverviewResponse, period: Overview
     paid: response.paid,
     unpaid: response.unpaid,
     netRevenue: minorToMajor(response.netRevenue),
+    revenueByCurrency: response.revenueByCurrency ?? [{ currency: 'EGP', netRevenue: response.netRevenue, paidCount: response.paid, unpaidCount: response.unpaid }],
     courses: response.courses.map((course) => ({
       ...course,
       title: typeof course.title === 'string' ? course.title : course.title.ar ?? '',
       revenue: minorToMajor(course.revenue),
+      netByCurrency: {
+        EGP: course.netByCurrency?.EGP ?? (course.currency === 'EGP' ? course.revenue : 0),
+        USD: course.netByCurrency?.USD ?? (course.currency === 'USD' ? course.revenue : 0),
+      },
     })),
   };
 }

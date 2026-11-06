@@ -9,6 +9,7 @@ export interface ApiErrorBody {
 
 const errorMessages: Record<string, string> = {
   VALIDATION_ERROR: 'راجع البيانات اللي دخلتها وحاول تاني.',
+  UNAUTHENTICATED: 'انتهت جلسة الدخول. سجّل دخولك تاني وبعدها جرّب النشر.',
   CSRF_INVALID: 'انتهت صلاحية الطلب. حدّث الصفحة وحاول تاني.',
   FORBIDDEN: 'مش مسموح لك تعمل الإجراء ده.',
   NOT_FOUND: 'المحتوى المطلوب مش موجود.',

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { buildWhatsAppLink } from '@/lib/whatsapp';
@@ -11,7 +11,7 @@ export interface RegistrationSuccessCardProps {
   whatsappNumber: string;
   messageTemplate?: string;
   status?: 'received';
-  onCopy?: () => void;
+  onCopy?: () => void | Promise<void>;
 }
 
 export function RegistrationSuccessCard({
@@ -25,6 +25,8 @@ export function RegistrationSuccessCard({
 }: RegistrationSuccessCardProps) {
   const { t } = useTranslation('registration');
   const cardRef = useRef<HTMLElement>(null);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (typeof cardRef.current?.scrollIntoView === 'function') {
@@ -33,12 +35,27 @@ export function RegistrationSuccessCard({
     cardRef.current?.focus({ preventScroll: true });
   }, []);
 
+  useEffect(() => () => {
+    if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+  }, []);
+
   if (!reference) return null;
 
   const template = messageTemplate?.trim() || t('whatsappConfirmation');
   const personalizedTemplate = name ? template : template.replace(/أهلاً\s*\{name\}[،,]?\s*/i, '');
   const message = buildRegistrationMessage(personalizedTemplate, name, courseTitle, reference);
   const whatsappHref = whatsappNumber ? buildWhatsAppLink({ phone: whatsappNumber, message }) : null;
+  const copyReference = async () => {
+    try {
+      if (onCopy) await onCopy();
+      else await navigator.clipboard.writeText(reference);
+      setCopied(true);
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+      copiedTimerRef.current = setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  };
 
   return (
     <section
@@ -54,13 +71,13 @@ export function RegistrationSuccessCard({
       <p>{t('provisionalInstruction')}</p>
       <div className="flex flex-wrap items-center gap-3 rounded-sm bg-canvas p-3">
         <strong>{t('referenceLabel')}:</strong>
-        <span className="font-mono text-lg font-bold" dir="ltr">{reference}</span>
+        <span className="font-mono text-lg font-bold text-ink" dir="ltr">{reference}</span>
         <Button
           type="button"
           variant="outline"
-          onClick={onCopy ?? (() => { void navigator.clipboard?.writeText(reference).catch(() => undefined); })}
+          onClick={() => { void copyReference(); }}
         >
-          {t('copyReference')}
+          {copied ? t('copiedReference') : t('copyReference')}
         </Button>
       </div>
       {whatsappHref && (
@@ -73,9 +90,7 @@ export function RegistrationSuccessCard({
           {t('continueWhatsApp')}
         </a>
       )}
-      <p className="text-sm text-muted">
-        {whatsappHref ? t('whatsappFallbackNote') : t('whatsappNumberMissing')}
-      </p>
+      {!whatsappHref && <p className="text-sm text-muted">{t('whatsappNumberMissing')}</p>}
       {status && <p className="text-sm text-muted">{t('statusReceived')}</p>}
     </section>
   );

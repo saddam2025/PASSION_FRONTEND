@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { LanguageProvider } from '@/i18n/LanguageProvider';
 import { RegistrationSuccessCard } from './RegistrationSuccessCard';
@@ -37,7 +37,8 @@ describe('registration success card', () => {
     expect(screen.getByRole('heading', { name: 'تم حجز الكورس مبدئيًا' })).toBeTruthy();
     expect(screen.getByText('تواصل مع الدعم خلال 24 ساعة عشان تكمّل إجراءات الدفع.')).toBeTruthy();
     expect(screen.getByText('رقم الحجز:')).toBeTruthy();
-    expect(screen.getByText('لو الزرار ما اشتغلش، احفظ رقم الحجز وكلمنا على واتساب.')).toBeTruthy();
+    expect(screen.getByText('PAS-123456').className).toContain('text-ink');
+    expect(screen.queryByText('لو الزرار ما اشتغلش، احفظ رقم الحجز وكلمنا على واتساب.')).toBeNull();
     expect(screen.getByRole('link', { name: 'استكمل الإجراءات على واتساب.' })).toBeTruthy();
   });
 
@@ -49,6 +50,17 @@ describe('registration success card', () => {
     expect([...url.searchParams.keys()]).toEqual(['text']);
     expect(url.searchParams.get('text')).toBe('أهلاً سلمى أحمد، بخصوص حجز كورس الإدارة، رقم PAS-123456.');
     expect(url.href).toContain(encodeURIComponent('سلمى أحمد'));
+  });
+
+  it('confirms after the booking reference is copied', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    renderCard();
+
+    fireEvent.click(screen.getByRole('button', { name: 'انسخ رقم الحجز' }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('PAS-123456'));
+    expect(await screen.findByRole('button', { name: 'تم النسخ' })).toBeTruthy();
   });
 
   it('hides WhatsApp and gives a contact fallback when settings have no academy number', () => {

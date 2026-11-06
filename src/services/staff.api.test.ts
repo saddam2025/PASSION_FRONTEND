@@ -31,7 +31,9 @@ describe('INT-3 staff API adapters', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
     const input = { enrollmentId: 'enroll-1', kind: 'payment' as const, amount: 1250, currency: 'EGP', method: 'cash' as const, receivedAt: '2026-11-03T10:00:00.000Z', idempotencyKey: 'retry-key-001', receiptMediaKey: 'receipts/2026/11/0123456789012345678901234567890123456789.webp' };
-    await apiPaymentsService.record(input); await apiPaymentsService.record(input);
+    const first = await apiPaymentsService.record(input); const replay = await apiPaymentsService.record(input);
+    expect(first.paymentSummary.status).toBe('partially_paid');
+    expect(replay.paymentSummary.status).toBe('partially_paid');
     const posts = calls.filter((call) => call.url.endsWith('/enrollments/enroll-1/payments'));
     expect(posts).toHaveLength(2);
     for (const call of posts) expect(JSON.parse(String(call.init?.body))).toMatchObject({ amount: 1250, idempotencyKey: 'retry-key-001', receiptMediaKey: input.receiptMediaKey, receivedAt: input.receivedAt });

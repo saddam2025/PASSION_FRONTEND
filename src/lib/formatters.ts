@@ -13,14 +13,22 @@ export function formatPercent(value: number, maximumFractionDigits = 0): string 
 }
 
 export function formatMoney(value: number, currency: string): string {
-  const safeCurrency = ['EGP', 'USD', 'SAR', 'AED', 'EUR'].includes(currency) ? currency : 'EGP';
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: safeCurrency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-    numberingSystem: 'latn',
-  }).format(value);
+  if (currency === 'EGP' || currency === 'USD') {
+    const amount = new Intl.NumberFormat(locale, { maximumFractionDigits: 2, numberingSystem: 'latn' }).format(value);
+    return `${amount} ${currency === 'USD' ? '$' : 'ج.م'}`;
+  }
+  return new Intl.NumberFormat(locale, { style: 'currency', currency, maximumFractionDigits: 2, numberingSystem: 'latn' }).format(value);
+}
+
+/** Formats integer piasters/cents without converting through binary floating point. */
+export function formatMoneyMinor(value: number, currency: 'EGP' | 'USD'): string {
+  if (!Number.isSafeInteger(value) || value < 0) throw new Error('قيمة المبلغ غير صالحة.');
+  const minor = BigInt(value);
+  const whole = minor / 100n;
+  const fraction = minor % 100n;
+  const wholeText = new Intl.NumberFormat(locale, { maximumFractionDigits: 0, numberingSystem: 'latn' }).format(Number(whole));
+  const amount = fraction === 0n ? wholeText : `${wholeText}.${String(fraction).padStart(2, '0').replace(/0$/, '')}`;
+  return `${amount} ${currency === 'USD' ? '$' : 'ج.م'}`;
 }
 
 export function formatDate(

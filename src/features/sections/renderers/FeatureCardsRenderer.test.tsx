@@ -77,7 +77,7 @@ describe('mobile feature card carousel', () => {
     expect(css).toMatch(/\.feature-card-grid\.is-mobile-carousel:active \.feature-card-grid-track\s*,[\s\S]*?animation-play-state:\s*paused/s);
     expect(css).toMatch(/@keyframes landing-feature-cards-loop[\s\S]*?to\s*\{\s*transform:\s*translateX\(50%\)/);
     expect(css).toMatch(/@media\s*\(max-width:\s*639px\)\s+and\s+\(prefers-reduced-motion:\s*reduce\)[\s\S]*?feature-card-grid\.is-mobile-carousel[\s\S]*?overflow-x:\s*auto/);
-    expect(css).toMatch(/\[data-landing-background='brand'\] \.landing-heading-muted,[\s\S]*?\[data-landing-background='softGradient'\] \.landing-heading-muted\s*\{\s*color:\s*#6b7280/s);
+    expect(css).toMatch(/\[data-landing-background='brand'\] \.landing-heading-muted,[\s\S]*?\[data-landing-background='softGradient'\] \.landing-heading-muted\s*\{\s*color:\s*#adcdff/s);
     expect(css).toContain('overflow-x: auto');
   });
 });

@@ -24,8 +24,7 @@ expect(router.includes('path="invite/:token"') && router.includes('path="forgot-
 expect(router.includes('path="/admin/*"') && router.includes('path="/assistant/*"'), 'Admin/Assistant shells are not registered.');
 expect(auth.includes("pathname === '/' || /^\\/ar\\/?$/.test(pathname)") && auth.includes("/^\\/(admin|assistant)(\\/|$)/.test(pathname)"), 'Session restoration is not scoped to staff-entry and dashboard routes.');
 expect(api.includes("pathname.startsWith('public/')") && api.includes("pathname === 'settings/public'"), 'Public API 401 responses may trigger session refresh.');
-expect(renderer.includes('href="/ar/privacy"') && renderer.includes('href="/ar/terms"'), 'Consent text must link to the legal pages.');
-expect((renderer.match(/href="\/ar\/(?:privacy|terms)"/g) ?? []).length === 2, 'Legal pages must only be linked from registration consent.');
+expect(!renderer.includes('href="/ar/privacy"') && !renderer.includes('href="/ar/terms"'), 'Registration consent must not show the removed legal links.');
 
 for (const [path, source] of [['/admin', admin], ['/assistant/registrations', assistant]]) expect(source.includes(path), `${path} has no dispatcher entry.`);
 expect(admin.includes("pathname === '/admin/courses'") && admin.includes('/^\\/admin\\/courses\\/[^/]+/'), 'Admin course list/detail routes are missing.');

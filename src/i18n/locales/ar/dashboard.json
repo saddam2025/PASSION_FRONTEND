@@ -1,6 +1,7 @@
 {
   "title": "مساحة العمل",
   "content": "محتوى مساحة العمل",
+  "currencyRevenueSeparate": "الإيرادات بتتعرض لكل عملة لوحدها من غير تحويل.",
   "unauthorized": "مش مسموح لك تفتح الصفحة دي.",
   "breadcrumbs": "مسار التنقل",
   "mobileNavigation": "التنقل في مساحة العمل",

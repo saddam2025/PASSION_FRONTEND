@@ -5,7 +5,7 @@ import { normalizePhone as normalizePhoneDigits, isLikelyValidPhone } from '@/li
 export function normalizePhone(value: string): string {
   return `+${normalizePhoneDigits(value)}`;
 }
-export function buildSubmissionSchema(definition: FormDefinition) {
+export function buildSubmissionSchema(definition: FormDefinition, foreignPricingEnabled = false) {
   const shape: z.ZodRawShape = {
     fullName: z.string().trim().min(1, 'الحقل ده مطلوب.').min(2, 'اكتب الاسم كامل بشكل صحيح.').max(120, 'الاسم طويل زيادة.'),
     email: z
@@ -31,6 +31,7 @@ export function buildSubmissionSchema(definition: FormDefinition) {
     // participates in user validation.
     honeypot: z.string().optional().default(''),
   };
+  if (foreignPricingEnabled) shape.audience = z.enum(['egyptian', 'foreign'], { errorMap: () => ({ message: 'اختار الفئة المناسبة قبل التسجيل.' }) });
   for (const field of definition.fields) {
     const limit = field.maxLength ?? (field.type === 'textarea' ? 4000 : 300);
     let value: z.ZodTypeAny;
@@ -59,4 +60,5 @@ export type SubmissionValues = {
   email: string;
   phone: string;
   consent: true;
+  audience?: 'egyptian' | 'foreign';
 } & Record<string, string | boolean | undefined>;
