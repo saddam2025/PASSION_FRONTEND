@@ -76,6 +76,7 @@ export default function CourseDetailPage() {
               price: course.price,
               promoPrice: course.promoPrice,
               currency: course.currency,
+              foreignPricing: course.foreignPricing,
               startDate: course.startDate,
               registrationOpen: course.registrationOpen,
               pricingContactUs: course.price === null,
