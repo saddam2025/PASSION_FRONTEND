@@ -10,6 +10,8 @@ import { RouteTree } from './router';
 const mocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
   getPublishedBySlug: vi.fn(),
+  pixelInit: vi.fn(),
+  pixelTrack: vi.fn(),
 }));
 
 vi.mock('@/services/auth.api', () => ({
@@ -22,6 +24,13 @@ vi.mock('@/services/usePublicSettings', () => ({
 vi.mock('@/components/common/SmartImage', () => ({ SmartImage: () => null }));
 vi.mock('@/features/sections/PageRenderer', () => ({ PageRenderer: () => <div>محتوى صفحة الكورس</div> }));
 vi.mock('@/lib/useSeo', () => ({ useSeo: vi.fn() }));
+vi.mock('@/lib/metaPixel', () => ({
+  getMetaPixelConsentChoice: () => 'accepted',
+  initPixel: mocks.pixelInit,
+  isMetaPixelEnabled: () => true,
+  saveMetaPixelConsentChoice: vi.fn(),
+  track: mocks.pixelTrack,
+}));
 vi.mock('@/i18n/useLanguage', () => ({
   useLanguage: () => ({ language: 'ar' }),
   getBilingualText: (value: { ar?: string } | string | null | undefined) => typeof value === 'string' ? value : value?.ar ?? '',
@@ -81,6 +90,7 @@ describe('public and staff route policy', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getPublishedBySlug.mockResolvedValue({ status: 'ok', course });
+    mocks.pixelInit.mockReturnValue(true);
   });
   afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
@@ -89,6 +99,8 @@ describe('public and staff route policy', () => {
     renderAt('/');
     expect(await screen.findByText('staff-login-screen')).toBeTruthy();
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/auth/me'))).toHaveLength(1);
+    expect(mocks.pixelInit).not.toHaveBeenCalled();
+    expect(mocks.pixelTrack).not.toHaveBeenCalled();
   });
 
   it('routes an existing Admin session from / to the overview', async () => {
@@ -105,6 +117,17 @@ describe('public and staff route policy', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    ['/admin', { id: 'admin-1', email: 'admin@example.test', role: 'admin' as const, name: { ar: 'مدير' } }, 'admin-screen'],
+    ['/assistant/registrations', { id: 'assistant-1', email: 'assistant@example.test', role: 'assistant' as const, name: { ar: 'مساعد' } }, 'assistant-screen'],
+  ])('never initializes or tracks Meta Pixel on staff route %s', async (path, user, marker) => {
+    sessionFetch(user);
+    renderAt(path);
+    expect(await screen.findByText(marker)).toBeTruthy();
+    expect(mocks.pixelInit).not.toHaveBeenCalled();
+    expect(mocks.pixelTrack).not.toHaveBeenCalled();
+  });
+
   it.each(['/ar', '/ar/', '/login', '/ar/courses', '/ar/register-confirmation/ABC', '/ar/about', '/unknown/path'])('%s resolves to the staff entry when public pages are disabled', async (path) => {
     sessionFetch(null);
     renderAt(path);
@@ -117,6 +140,9 @@ describe('public and staff route policy', () => {
     expect(await screen.findByText('محتوى صفحة الكورس')).toBeTruthy();
     expect(fetchMock).not.toHaveBeenCalled();
     expect(mocks.getCurrentUser).not.toHaveBeenCalled();
+    await waitFor(() => expect(mocks.pixelInit).toHaveBeenCalledTimes(1));
+    expect(mocks.pixelTrack).toHaveBeenCalledWith('PageView');
+    expect(mocks.pixelTrack).toHaveBeenCalledWith('ViewContent', expect.objectContaining({ content_type: 'course', content_ids: ['sample-course'] }));
   });
 
   it('renders an unavailable course message without a catalog or other link', async () => {
@@ -125,6 +151,8 @@ describe('public and staff route policy', () => {
     renderAt('/ar/courses/unavailable');
     expect(await screen.findByText('الكورس ده مش متاح حاليًا')).toBeTruthy();
     expect(screen.queryByRole('link')).toBeNull();
+    expect(mocks.pixelInit).not.toHaveBeenCalled();
+    expect(mocks.pixelTrack).not.toHaveBeenCalled();
   });
 
   it('preserves query and hash while redirecting English course paths to Arabic', async () => {

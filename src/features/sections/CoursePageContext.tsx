@@ -56,6 +56,7 @@ export interface CoursePageContextValue {
   settings: CoursePageSettings;
   formDefinition: FormDefinition;
   mode: SectionMode;
+  onLead?: (reference: string) => void;
 }
 const CoursePageContext = createContext<CoursePageContextValue | null>(null);
 export function CoursePageProvider({

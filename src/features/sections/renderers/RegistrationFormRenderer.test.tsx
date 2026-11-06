@@ -8,6 +8,8 @@ import type { Section } from '@/schemas/sections';
 import { registrationsService } from '@/services/registrations';
 import { RegistrationServiceError } from '@/services/registrations.types';
 
+const onLead = vi.fn();
+
 vi.mock('@/services/registrations', () => ({
   registrationsService: { submit: vi.fn(), getConfirmation: vi.fn() },
 }));
@@ -37,6 +39,7 @@ const context: Omit<CoursePageContextValue, 'mode'> = {
     ],
     consentText: { ar: 'أوافق على استخدام بياناتي للتواصل معي', en: '' },
   },
+  onLead,
 };
 
 function renderPublicForm(courseOverrides: Partial<CoursePageContextValue['course']> = {}) {
@@ -103,6 +106,7 @@ describe('public course registration form', () => {
 
     fireEvent.click(submit);
     await waitFor(() => expect(registrationsService.submit).toHaveBeenCalledTimes(1));
+    expect(onLead).toHaveBeenCalledWith('PAS-123456');
     expect(registrationsService.submit).toHaveBeenCalledWith(expect.objectContaining({
       courseSlug: 'course-one', fullName: 'سلمى أحمد', email: 'salma@example.com', phone: '+201012345678',
       answers: { 'learning-goal': 'تطوير مهاراتي', 'course-track': 'management', 'contact-ok': true },
@@ -188,6 +192,7 @@ describe('public course registration form', () => {
     expect(await screen.findByText('الأماكن المتاحة في الكورس اكتملت.')).toBeTruthy();
     expect((screen.getByLabelText('الاسم الكامل') as HTMLInputElement).value).toBe('سلمى أحمد');
     expect(screen.queryByRole('heading', { name: 'تم حجز الكورس مبدئيًا' })).toBeNull();
+    expect(onLead).not.toHaveBeenCalled();
     expect(errorLog).toHaveBeenCalledWith('[Registration] request failed', { code: 'COURSE_FULL', requestId: 'request-123' });
   });
 });

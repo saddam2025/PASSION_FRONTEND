@@ -31,7 +31,7 @@ function createIdempotencyKey(): string {
 export default function RegistrationFormRenderer({ section, registrationTarget = false }: AnyRendererProps) {
   const { language } = useLanguage();
   const { t } = useTranslation('registration');
-  const { course, formDefinition, settings, mode } = useCoursePage();
+  const { course, formDefinition, settings, mode, onLead } = useCoursePage();
   const inert = mode !== 'public';
   const foreignPricing = course.foreignPricing?.enabled ? course.foreignPricing : undefined;
   const schema = useMemo(() => buildSubmissionSchema(formDefinition, Boolean(foreignPricing)), [formDefinition, foreignPricing]);
@@ -81,6 +81,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
         attribution: getRegistrationAttribution(),
       });
       if (!reference.reference) throw new Error('Missing registration reference');
+      onLead?.(reference.reference);
       setSuccess({ reference: reference.reference, name: String(values.fullName ?? ''), title: getBilingualText(course.title, language) });
     } catch (cause) {
       const { RegistrationServiceError } = await import('@/services/registrations.types');

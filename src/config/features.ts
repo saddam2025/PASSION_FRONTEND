@@ -15,3 +15,6 @@ export const FEATURE_FLAGS: FeatureFlags = {
   PUBLIC_SHELL_ENABLED: false,
   PUBLIC_CONFIRMATION_PAGE_ENABLED: false,
 };
+
+/** When enabled, Meta Pixel stays off until the visitor accepts the consent banner. */
+export const META_PIXEL_REQUIRES_CONSENT = false;

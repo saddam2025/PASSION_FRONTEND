@@ -25,5 +25,9 @@
   "continueWhatsApp": "استكمل الإجراءات على واتساب.",
   "whatsappNumberMissing": "احفظ رقم الحجز وتواصل مع الأكاديمية من بيانات التواصل الموجودة في الصفحة.",
   "statusReceived": "وصلنا طلبك",
-  "whatsappConfirmation": "أهلاً {name}، بخصوص حجز {course}، رقم الحجز {reference}."
+  "whatsappConfirmation": "أهلاً {name}، بخصوص حجز {course}، رقم الحجز {reference}.",
+  "metaPixelConsent": "بنستخدم Meta Pixel لقياس فعالية الإعلانات وتحسينها. تفاصيل أكتر في سياسة الخصوصية.",
+  "metaPixelAccept": "موافق",
+  "metaPixelReject": "رفض",
+  "metaPixelPrivacy": "سياسة الخصوصية"
 }

@@ -10,6 +10,8 @@ import { publicCoursesService as coursesService } from '@/services/courses';
 import type { CoursePageDetail } from '@/services/courses.types';
 import { useSeo } from '@/lib/useSeo';
 import { captureAttribution } from '@/lib/attribution';
+import { useLandingMetaPixel } from './useLandingMetaPixel';
+import { LandingPixelConsent } from './LandingPixelConsent';
 export default function CourseDetailPage() {
   const { slug = '' } = useParams();
   const { language } = useLanguage();
@@ -22,6 +24,7 @@ export default function CourseDetailPage() {
   const [loadError, setLoadError] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const jsonLdRef = useRef<HTMLScriptElement>(null);
+  const pixel = useLandingMetaPixel(course, language);
   useEffect(() => {
     captureAttribution(window.location.search, window.location.pathname);
   }, [slug]);
@@ -98,9 +101,10 @@ export default function CourseDetailPage() {
               registrationWhatsappTemplate: settings.registrationWhatsappTemplate,
             },
             formDefinition: course.formDefinition,
+            onLead: pixel.trackLead,
           } satisfies Omit<CoursePageContextValue, 'mode'>)
         : null,
-    [course, settings],
+    [course, settings, pixel.trackLead],
   );
   useSeo({
     title: course
@@ -165,6 +169,13 @@ export default function CourseDetailPage() {
         </nav>
       )}
       <PageRenderer config={course.pageConfig} context={context!} />
+      {pixel.showConsent && (
+        <LandingPixelConsent
+          privacyUrl={settings.privacyUrl}
+          privacyFallback={`/${language}/privacy`}
+          onChoose={pixel.chooseConsent}
+        />
+      )}
     </>
   );
 }
