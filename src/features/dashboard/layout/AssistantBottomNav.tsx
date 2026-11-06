@@ -21,7 +21,7 @@ export function AssistantBottomNav() {
   };
 
   return (
-    <nav aria-label={t('mobileNavigation')} className="z-30 shrink-0 border-t border-border bg-surface/95 px-3 pt-1 shadow-soft backdrop-blur-md pb-[max(0.35rem,env(safe-area-inset-bottom))]">
+    <nav aria-label={t('mobileNavigation')} className="fixed start-0 end-0 bottom-0 z-40 border-t border-border bg-surface/95 px-3 pt-1 shadow-soft backdrop-blur-md pb-[max(0.35rem,env(safe-area-inset-bottom))] md:hidden">
       <div className="mx-auto grid w-full max-w-md grid-cols-3 justify-items-center">
         <Link to={`${registrationsPath}#lead-search`} onClick={focusSearch} className={cn(itemClass, 'text-muted hover:text-primary-strong')} aria-label={t('searchAction')}>
           <Search aria-hidden="true" size={20} />
