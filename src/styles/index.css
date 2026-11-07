@@ -142,6 +142,32 @@ button {
   outline: 2px solid var(--color-focus, var(--color-primary));
   outline-offset: 2px;
 }
+.dashboard-route-progress {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: -0.75rem;
+  inset-inline: 0;
+  height: 2px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  background: transparent;
+  transition: opacity 120ms ease;
+}
+.dashboard-route-progress[data-active='true'] { opacity: 1; }
+.dashboard-route-progress::after {
+  display: block;
+  width: 34%;
+  height: 100%;
+  background: var(--color-primary);
+  content: '';
+  transform: translateX(300%);
+}
+.dashboard-route-progress[data-active='true']::after { animation: dashboard-progress 900ms ease-in-out infinite; }
+@keyframes dashboard-progress { to { transform: translateX(-300%); } }
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-route-progress, .dashboard-route-progress::after { animation: none !important; transition: none !important; }
+}
 ::selection {
   color: var(--color-secondary);
   background: rgb(0 210 255 / 28%);

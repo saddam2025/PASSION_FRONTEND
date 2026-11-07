@@ -16,6 +16,7 @@ import { AuthLayout } from '@/features/auth/AuthLayout';
 import { arabicCoursePath } from '@/lib/courseLinks';
 import { AuthProvider, useAuth } from '@/app/AuthContext';
 import { FEATURE_FLAGS, type FeatureFlags } from '@/config/features';
+import { BootSplashGate } from '@/app/BootSplashGate';
 
 const HomePage = lazy(() => import('@/features/pages/HomePage'));
 const CoursesPage = lazy(() => import('@/features/pages/CoursesPage'));
@@ -95,7 +96,7 @@ export function RouteTree({ features = FEATURE_FLAGS }: { features?: FeatureFlag
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <AuthProvider><RouteTree /></AuthProvider>
+      <AuthProvider><BootSplashGate /><RouteTree /></AuthProvider>
     </BrowserRouter>
   );
 }

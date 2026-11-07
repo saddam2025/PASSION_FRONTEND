@@ -3,12 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { AppRouter } from '@/app/router';
 import { AppProviders } from '@/app/providers';
 import { AppErrorBoundary } from '@/app/AppErrorBoundary';
-import '@fontsource/inter/400.css';
-import '@fontsource/inter/700.css';
-import '@fontsource/cairo/400.css';
-import '@fontsource/cairo/500.css';
-import '@fontsource/cairo/600.css';
-import '@fontsource/cairo/700.css';
+import '@/styles/fonts.css';
 import '@/styles/index.css';
 import { captureAttribution } from '@/lib/attribution';
 

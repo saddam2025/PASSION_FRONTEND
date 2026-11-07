@@ -1,6 +1,6 @@
 import { useEffect, useState, type PropsWithChildren } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { motion, useReducedMotion } from 'framer-motion';
+import { LazyMotion, domAnimation, m, useReducedMotion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSidebarPreference } from '@/features/dashboard/layout/useSidebarPreference';
@@ -12,7 +12,8 @@ import { useLanguage } from '@/i18n/useLanguage';
 import type { DashboardArea } from '@/features/dashboard/nav.config';
 import { NewCourseDialogProvider } from '@/features/courses/newCourseDialog';
 import { usePublicSettings } from '@/services/usePublicSettings';
-import { RouteTransition } from '@/components/common/motion';
+import { prefetchDashboardRoutes } from '@/app/prefetchDashboardRoute';
+import { DashboardRouteTransition } from '@/features/dashboard/layout/DashboardRouteTransition';
 
 export function DashboardLayout({ area, children }: PropsWithChildren<{ area: DashboardArea }>) {
   const { collapsed, toggle } = useSidebarPreference();
@@ -26,6 +27,13 @@ export function DashboardLayout({ area, children }: PropsWithChildren<{ area: Da
   useEffect(() => {
     setDrawerOpen(false);
   }, [pathname]);
+  useEffect(() => {
+    const schedule = window.setTimeout(() => {
+      if ('requestIdleCallback' in window) window.requestIdleCallback(() => prefetchDashboardRoutes(area), { timeout: 1500 });
+      else prefetchDashboardRoutes(area);
+    }, 250);
+    return () => window.clearTimeout(schedule);
+  }, [area]);
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'b') return;
@@ -44,6 +52,7 @@ export function DashboardLayout({ area, children }: PropsWithChildren<{ area: Da
   }, [toggle]);
 
   return (
+    <LazyMotion features={domAnimation}>
     <NewCourseDialogProvider>
       <div className="flex h-dvh min-h-0 overflow-hidden bg-transparent text-ink">
         <div className="hidden md:flex">
@@ -57,7 +66,7 @@ export function DashboardLayout({ area, children }: PropsWithChildren<{ area: Da
             aria-label={t('content')}
             className="dashboard-scroll min-h-0 min-w-0 w-full max-w-full flex-1 overflow-y-auto overscroll-contain ps-container pe-container pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-6 outline-none md:pb-8 md:pt-8"
           >
-            <RouteTransition><div className="ms-auto me-auto grid grid-cols-[minmax(0,1fr)] min-w-0 w-full max-w-7xl gap-8">{children}</div></RouteTransition>
+            <DashboardRouteTransition><div className="ms-auto me-auto grid grid-cols-[minmax(0,1fr)] min-w-0 w-full max-w-7xl gap-8">{children}</div></DashboardRouteTransition>
           </main>
         </div>
         {area === 'assistant'
@@ -68,7 +77,7 @@ export function DashboardLayout({ area, children }: PropsWithChildren<{ area: Da
           <Dialog.Portal>
             <Dialog.Overlay className="fixed start-0 end-0 top-0 bottom-0 z-50 bg-secondary/50 backdrop-blur-sm transition-opacity duration-200 data-[state=open]:opacity-100 data-[state=closed]:opacity-0" />
             <Dialog.Content asChild>
-              <motion.div
+              <m.div
                 initial={{ x: reduceMotion ? 0 : language === 'ar' ? '100%' : '-100%' }}
                 animate={{ x: 0 }}
                 transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.16, 1, 0.3, 1] }}
@@ -82,11 +91,12 @@ export function DashboardLayout({ area, children }: PropsWithChildren<{ area: Da
                   onNavigate={() => setDrawerOpen(false)}
                   settings={settings}
                 />
-              </motion.div>
+              </m.div>
             </Dialog.Content>
           </Dialog.Portal>
         </Dialog.Root>
       </div>
     </NewCourseDialogProvider>
+    </LazyMotion>
   );
 }

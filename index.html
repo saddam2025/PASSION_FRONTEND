@@ -6,6 +6,52 @@
     <meta name="theme-color" content="#ffffff" />
     <meta name="description" content="منصة تعليم وتدريب متخصصة في تطوير المهارات والقيادة" />
     <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <link rel="preload" href="/fonts/cairo-arabic-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <style>
+      #boot-splash { display: none; position: fixed; inset: 0; z-index: 9999; place-items: center; background: #f8fafc; color: #181a20; font-family: Cairo, sans-serif; transition: opacity 280ms ease; }
+      #boot-splash.is-visible { display: grid; }
+      #boot-splash.is-hiding { opacity: 0; pointer-events: none; }
+      #boot-splash-card { display: grid; justify-items: center; gap: 18px; width: min(88vw, 320px); }
+      #boot-splash img { width: 148px; height: 72px; object-fit: contain; animation: boot-pulse 1.8s ease-in-out infinite; }
+      #boot-splash-track { width: 100%; height: 3px; overflow: hidden; border-radius: 999px; background: #dbeafe; }
+      #boot-splash-track::after { display: block; width: 36%; height: 100%; border-radius: inherit; background: #2563eb; content: ''; animation: boot-progress 1.25s ease-in-out infinite; }
+      #boot-splash-message { font-size: 15px; }
+      #boot-splash-retry { display: none; border: 0; background: transparent; color: #1d4ed8; font: inherit; text-decoration: underline; cursor: pointer; }
+      #boot-splash.has-error #boot-splash-track { display: none; }
+      #boot-splash.has-error #boot-splash-retry { display: inline; }
+      @keyframes boot-pulse { 50% { opacity: .7; transform: scale(.98); } }
+      @keyframes boot-progress { from { transform: translateX(280%); } to { transform: translateX(-280%); } }
+      @media (prefers-reduced-motion: reduce) { #boot-splash, #boot-splash img, #boot-splash-track::after { animation: none; transition: none; } }
+    </style>
+    <script>
+      (() => {
+        const path = location.pathname;
+        const dashboard = /^\/(admin|assistant)(\/|$)/.test(path);
+        const auth = path === '/' || /^\/ar\/(login|invite(?:\/|$)|forgot-password$|reset-password(?:\/|$))/.test(path);
+        if (!dashboard && !auth) return;
+        const start = Date.now();
+        const splash = document.createElement('div');
+        splash.id = 'boot-splash';
+        splash.className = 'is-visible';
+        splash.dataset.startedAt = String(start);
+        splash.innerHTML = '<div id="boot-splash-card"><img src="/images/academy-logo.png" width="148" height="72" alt="الأكاديمية"><div id="boot-splash-track" aria-hidden="true"></div><span id="boot-splash-message">جاري التحميل</span><button id="boot-splash-retry" type="button">جرّب تاني</button></div>';
+        document.body.append(splash);
+        document.getElementById('boot-splash-retry').addEventListener('click', () => location.reload());
+        window.addEventListener('passion:boot-ready', () => {
+          const wait = Math.max(0, 400 - (Date.now() - start));
+          setTimeout(() => {
+            splash.classList.add('is-hiding');
+            setTimeout(() => splash.remove(), 300);
+          }, wait);
+        }, { once: true });
+        setTimeout(() => {
+          if (!splash.isConnected || splash.classList.contains('is-hiding')) return;
+          splash.classList.add('has-error');
+          document.getElementById('boot-splash-message').textContent = 'حصلت مشكلة في التحميل';
+        }, 12000);
+      })();
+    </script>
     <title>أكاديمية باشن</title>
   </head>
   <body>

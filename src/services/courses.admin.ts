@@ -52,6 +52,13 @@ export const coursesAdminService = {
     return res.data;
   },
 
+  async duplicate(id: string, input: { title: { ar: string; en?: string }; slug: string }) {
+    await requireAdmin();
+    const res = await coursesService.duplicate(id, input);
+    if (!res.ok) throw new CourseServiceError(res.code, res.message, res.details);
+    return res.data;
+  },
+
   async checkSlug(slug: string, exceptId?: string): Promise<boolean> {
     await requireAdmin();
     const res = await coursesService.checkSlug(slug, exceptId);

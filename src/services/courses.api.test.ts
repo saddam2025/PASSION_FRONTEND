@@ -43,6 +43,24 @@ describe('API course and public registration adapters', () => {
     expect(publicPage.formDefinition.fields[0]?.id).toBe('experience'); expect(publicPage.seoTitle?.ar).toBe('كورس تجريبي'); expect(publicPage.price).toBe(1200);
   });
 
+  it('posts a duplicate request to the documented endpoint and maps the returned draft', async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      calls.push({ url: String(url), init });
+      if (String(url).endsWith('/auth/csrf')) return json({ csrfToken: 'csrf-test' });
+      return json({ course: { ...courseWire(), id: '507f1f77bcf86cd799439099', slug: 'copy-course', status: 'draft', featured: false, version: 1, published: null, publishedAt: undefined, slugHistory: [] } }, 201);
+    }));
+
+    const result = await apiCoursesService.duplicate('source-course', { title: { ar: 'نسخة من كورس تجريبي' }, slug: 'copy-course' });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.slug).toBe('copy-course');
+    const request = calls.find(({ url }) => url.endsWith('/courses/source-course/duplicate'));
+    expect(request).toBeDefined();
+    expect(request?.init?.method).toBe('POST');
+    expect(JSON.parse(String(request?.init?.body))).toEqual({ title: { ar: 'نسخة من كورس تجريبي' }, slug: 'copy-course' });
+    expect(new Headers(request?.init?.headers).get('X-CSRF-Token')).toBe('csrf-test');
+  });
+
   it('strips stored USD values when foreign pricing is disabled before saving a snapshot', () => {
     const draft = snapshot();
     draft.details.foreignPricing = { enabled: false, price: 15000, promoPrice: 12000, currency: 'USD', contactUs: false };
@@ -91,6 +109,20 @@ describe('API course and public registration adapters', () => {
     const publish = await apiCoursesService.publish('507f1f77bcf86cd799439011', 4);
     expect(publish).toMatchObject({ ok: false, code: 'READINESS_FAILED' });
     expect(JSON.parse(String(calls.at(-1)?.init?.body))).toEqual({ expectedVersion: 4 });
+  });
+
+  it('duplicates a course draft with the generated title and slug through the API endpoint', async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    const wire = { ...courseWire(), id: '507f1f77bcf86cd799439013', slug: 'copy-course', status: 'draft', featured: false, version: 1, publishedAt: undefined, published: null };
+    vi.stubGlobal('fetch', vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      calls.push({ url: String(url), init });
+      if (String(url).endsWith('/auth/csrf')) return json({ csrfToken: 'csrf' });
+      return json({ course: wire }, 201);
+    }));
+    const result = await apiCoursesService.duplicate('507f1f77bcf86cd799439011', { title: { ar: 'نسخة من الكورس' }, slug: 'copy-course' });
+    expect(result).toMatchObject({ ok: true, data: { id: '507f1f77bcf86cd799439013', slug: 'copy-course', status: 'draft', featured: false, version: 1, published: null } });
+    expect(calls.at(-1)?.url).toContain('/courses/507f1f77bcf86cd799439011/duplicate');
+    expect(JSON.parse(String(calls.at(-1)?.init?.body))).toEqual({ title: { ar: 'نسخة من الكورس' }, slug: 'copy-course' });
   });
 
   it('maps legacy slugs to replaceable redirects and unavailable public pages to notFound', async () => {

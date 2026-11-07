@@ -5,3 +5,11 @@ export function slugFromArabic(title: string, fallbackId = crypto.randomUUID().s
   const slug = latin.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80).replace(/-$/g, '');
   return slug.length >= 3 ? slug : `course-${fallbackId.slice(0, 4)}`;
 }
+
+/** Creates a valid, collision-resistant slug for a course copy. */
+export function courseCopySlug(title: string, suffix = crypto.randomUUID().replace(/-/g, '').slice(0, 8)): string {
+  const safeSuffix = suffix.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8) || crypto.randomUUID().replace(/-/g, '').slice(0, 8);
+  const generated = slugFromArabic(title, safeSuffix);
+  const base = (generated.startsWith('course-') ? 'course' : generated).slice(0, 80 - safeSuffix.length - 1).replace(/-+$/g, '');
+  return `${base || 'course'}-${safeSuffix}`;
+}

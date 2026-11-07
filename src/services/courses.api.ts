@@ -27,7 +27,7 @@ function courseFromWire(input: WireCourse): Course {
 export function mapAdminCourseListItem(input: WireCourse): CourseListItem {
   const course = courseFromWire(input);
   return {
-    id: course.id, slug: course.slug, status: course.status,
+    id: course.id, slug: course.slug, status: course.status, ...(course.deletedAt ? { deletedAt: course.deletedAt } : {}),
     hasUnpublishedChanges: typeof input.hasUnpublishedChanges === 'boolean' ? input.hasUnpublishedChanges : hasUnpublishedChanges(course), featured: course.featured,
     title: bilingual(course.draft.details.title),
     ...(course.published ? { publishedTitle: bilingual(course.published.details.title), publishedWhatsappNumber: course.published.details.whatsappOverrides?.number } : {}),
@@ -121,6 +121,7 @@ export const apiCoursesService = {
   },
   async get(id: string): Promise<Result<Course>> { try { const raw = await apiRequest<{ course: WireCourse }>(`courses/${encodeURIComponent(id)}`); return ok(courseFromWire(raw.course)); } catch (error) { return fail(error); } },
   async create(input: CreateCourseInput): Promise<Result<Course>> { try { const draft = initialDraft(input); const raw = await apiRequest<{ course: WireCourse }>('courses', { method: 'POST', body: JSON.stringify({ slug: input.slug, draft, featured: false }) }); invalidateCourseCaches(); return ok(courseFromWire(raw.course)); } catch (error) { return fail(error); } },
+  async duplicate(id: string, input: { title: { ar: string; en?: string }; slug: string }): Promise<Result<Course>> { try { const raw = await apiRequest<{ course: WireCourse }>(`courses/${encodeURIComponent(id)}/duplicate`, { method: 'POST', body: JSON.stringify(input) }); invalidateCourseCaches(); return ok(courseFromWire(raw.course)); } catch (error) { return fail(error); } },
   async saveDraft(id: string, draft: Snapshot, expectedVersion?: number): Promise<Result<Course>> { try { const raw = await apiRequest<{ course: WireCourse }>(`courses/${encodeURIComponent(id)}/draft`, { method: 'PUT', body: JSON.stringify({ expectedVersion: expectedVersion ?? 0, draft: asSnapshot(draft) }) }); invalidateCourseCaches(); return ok(courseFromWire(raw.course)); } catch (error) { return fail(error); } },
   async publish(id: string, expectedVersion?: number): Promise<Result<Course>> { return this.statusAction(id, 'publish', expectedVersion); },
   async unpublish(id: string, expectedVersion?: number): Promise<Result<Course>> { return this.statusAction(id, 'unpublish', expectedVersion); },
