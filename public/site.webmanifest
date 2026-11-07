@@ -1,0 +1,26 @@
+{
+  "name": "أكاديمية باشن",
+  "short_name": "باشن",
+  "description": "منصة تعليم وتدريب متخصصة في تطوير المهارات والقيادة",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/ar/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/images/passion-app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/passion-app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

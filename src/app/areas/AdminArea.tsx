@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { RequireAuth, RequireRole } from '@/app/AuthContext';
-import { RouteSkeleton } from '@/components/ui/feedback';
+import { LoadingSplash } from '@/components/common/LoadingSplash';
 import { DashboardLayout } from '@/features/dashboard/layout/DashboardLayout';
 
 const AdminPage = lazy(() => import('@/features/pages/AdminPage'));
@@ -10,7 +10,7 @@ export default function AdminArea() {
     <RequireAuth>
       <RequireRole roles={['admin']}>
         <DashboardLayout area="admin">
-          <Suspense fallback={<RouteSkeleton />}>
+          <Suspense fallback={<LoadingSplash />}>
             <AdminPage />
           </Suspense>
         </DashboardLayout>

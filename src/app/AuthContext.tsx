@@ -9,9 +9,9 @@ import {
   type PropsWithChildren,
 } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import type { AuthUser, LoginInput, UserRole } from '@/services/auth.types';
 import { apiAuthService } from '@/services/auth.api';
+import { LoadingSplash } from '@/components/common/LoadingSplash';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -69,25 +69,13 @@ export function useAuth() {
 export function RequireAuth({ children }: PropsWithChildren) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const { t } = useTranslation('common');
-  if (loading)
-    return (
-      <div className="mx-auto max-w-5xl ps-container pe-container py-12">
-        <span role="status">{t('loading')}</span>
-      </div>
-    );
+  if (loading) return <LoadingSplash />;
   if (!user) return <Navigate to="/" state={{ from: location }} replace />;
   return children;
 }
 export function RequireRole({ children, roles }: PropsWithChildren<{ roles: UserRole[] }>) {
   const { user, loading } = useAuth();
-  const { t } = useTranslation('common');
-  if (loading)
-    return (
-      <div className="mx-auto max-w-5xl ps-container pe-container py-12">
-        <span role="status">{t('loading')}</span>
-      </div>
-    );
+  if (loading) return <LoadingSplash />;
   if (!user || !roles.includes(user.role)) return <Navigate to="/not-authorized" replace />;
   return children;
 }

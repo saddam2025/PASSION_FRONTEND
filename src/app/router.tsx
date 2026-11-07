@@ -17,6 +17,7 @@ import { arabicCoursePath } from '@/lib/courseLinks';
 import { AuthProvider, useAuth } from '@/app/AuthContext';
 import { FEATURE_FLAGS, type FeatureFlags } from '@/config/features';
 import { BootSplashGate } from '@/app/BootSplashGate';
+import { LoadingSplash } from '@/components/common/LoadingSplash';
 
 const HomePage = lazy(() => import('@/features/pages/HomePage'));
 const CoursesPage = lazy(() => import('@/features/pages/CoursesPage'));
@@ -36,7 +37,7 @@ const NotAuthorizedPage = lazy(() => import('@/features/pages/NotAuthorizedPage'
 
 function StaffEntry() {
   const { user, loading } = useAuth();
-  if (loading) return <RouteSkeleton />;
+  if (loading) return <LoadingSplash />;
   if (user) return <Navigate to={user.role === 'admin' ? '/admin' : '/assistant/registrations'} replace />;
   return <AuthLayout><LoginPage /></AuthLayout>;
 }
@@ -60,7 +61,7 @@ function LanguageRoute() {
 export function RouteTree({ features = FEATURE_FLAGS }: { features?: FeatureFlags } = {}) {
   const location = useLocation();
   return (
-      <Suspense fallback={<RouteSkeleton />}>
+      <Suspense fallback={/^\/(admin|assistant)(\/|$)/.test(location.pathname) ? <LoadingSplash /> : <RouteSkeleton />}>
         <Routes location={location}>
           <Route path="/" element={<StaffEntry />} />
           <Route path="/login" element={<LoginRedirect />} />
