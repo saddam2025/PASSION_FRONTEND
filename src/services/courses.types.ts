@@ -18,7 +18,6 @@ export interface CourseSummary {
   promoPrice: number | null;
   pricingContactUs?: boolean;
   currency: string;
-  foreignPricing?: { enabled: boolean; price: number | null; promoPrice: number | null; currency: 'USD'; contactUs?: boolean };
   startDate: string;
   duration: BilingualText;
   deliveryMethod: 'online' | 'inPerson' | 'hybrid' | '';

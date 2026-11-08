@@ -11,18 +11,17 @@ const course: CourseSummary = {
   category: { ar: 'إدارة', en: '' }, instructorName: { ar: '', en: '' },
   coverImage: { src: '/cover.webp', alt: { ar: '', en: '' }, decorative: true },
   price: 2000, promoPrice: 1800, pricingContactUs: false, currency: 'EGP',
-  foreignPricing: { enabled: true, price: 150, promoPrice: 125, currency: 'USD' },
   startDate: '', duration: { ar: '', en: '' }, deliveryMethod: '', publishedAt: '', featured: false,
 };
 
-describe('public course card dual-currency prices', () => {
+describe('public course card selected-currency price', () => {
   afterEach(() => cleanup());
 
-  it('shows separately labeled EGP and USD prices with their promotional amounts', () => {
-    render(<LanguageProvider><MemoryRouter><CourseCard course={course} /></MemoryRouter></LanguageProvider>);
-    expect(screen.getByText('السعر للمصريين: 1,800 ج.م')).toBeTruthy();
-    expect(screen.getByText('السعر للأجانب: 125 $')).toBeTruthy();
-    expect(screen.getByText('2,000 ج.م')).toBeTruthy();
+  it('shows one selected USD price and its promotional amount', () => {
+    const usdCourse = { ...course, price: 150, promoPrice: 125, currency: 'USD' };
+    render(<LanguageProvider><MemoryRouter><CourseCard course={usdCourse} /></MemoryRouter></LanguageProvider>);
+    expect(screen.getByText('125 $')).toBeTruthy();
     expect(screen.getByText('150 $')).toBeTruthy();
+    expect(screen.queryByText(/المصريين|الأجانب/)).toBeNull();
   });
 });

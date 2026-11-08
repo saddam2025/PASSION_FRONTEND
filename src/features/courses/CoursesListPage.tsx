@@ -37,7 +37,7 @@ export default function CoursesListPage() {
     } catch (error) { toast.notify({ title: error instanceof Error ? error.message : 'حصلت مشكلة، جرّب تاني.', tone: 'danger' }); }
   };
   if (result.isPending) return <div className="grid gap-3">{Array.from({length:3},(_,index)=><Skeleton key={index} variant="card"/>)}</div>;
-  if (result.isError || !result.data) return <ErrorState title="حصلت مشكلة في تحميل الكورسات، جرّب تاني." onRetry={()=>void result.refetch()}/>;
+  if (result.isError || !result.data) return <ErrorState title={result.error instanceof Error ? result.error.message : 'حصلت مشكلة في تحميل الكورسات، جرّب تاني.'} onRetry={()=>void result.refetch()}/>;
   const courses = result.data.items;
   return <main className="grid gap-5"><header className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-bold">{t('title','الكورسات')}</h1><p className="text-sm text-muted">إدارة الكورسات وصفحاتها العامة.</p></div><Button onClick={newCourse.open}><Plus size={16}/>أنشئ كورس</Button></header>
     <div className="flex flex-wrap gap-3"><label className="relative min-w-56 flex-1"><Search size={16} className="absolute start-3 top-3 text-muted"/><Input value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="ابحث باسم الكورس أو الرابط" className="ps-9"/></label><select value={status} onChange={(event)=>setStatus(event.target.value)} className="min-h-11 rounded-xs border border-border bg-surface px-3 text-sm"><option value="all">كل الحالات</option><option value="draft">مسودة</option><option value="published">منشور</option><option value="archived">مؤرشف</option></select></div>

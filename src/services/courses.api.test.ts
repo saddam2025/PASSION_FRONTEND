@@ -43,6 +43,25 @@ describe('API course and public registration adapters', () => {
     expect(publicPage.formDefinition.fields[0]?.id).toBe('experience'); expect(publicPage.seoTitle?.ar).toBe('كورس تجريبي'); expect(publicPage.price).toBe(1200);
   });
 
+  it('normalizes legacy foreign pricing before validating admin list snapshots', () => {
+    const draft = snapshot();
+    draft.details.pricing = { price: 250000, promo: null, currency: 'EGP', contactUs: false };
+    const legacyDetails = {
+      ...draft.details,
+      foreignPricing: { enabled: true, price: 50000, promoPrice: 40000, contactUs: false },
+    };
+    const wire = {
+      ...courseWire(),
+      draft: { ...draft, details: legacyDetails },
+      published: { ...draft, details: legacyDetails },
+    };
+
+    const item = mapAdminCourseListItem(wire);
+
+    expect(item.title.ar).toBe('كورس تجريبي');
+    expect(item.status).toBe('published');
+  });
+
   it('posts a duplicate request to the documented endpoint and maps the returned draft', async () => {
     const calls: Array<{ url: string; init?: RequestInit }> = [];
     vi.stubGlobal('fetch', vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
@@ -61,21 +80,21 @@ describe('API course and public registration adapters', () => {
     expect(new Headers(request?.init?.headers).get('X-CSRF-Token')).toBe('csrf-test');
   });
 
-  it('strips stored USD values when foreign pricing is disabled before saving a snapshot', () => {
+  it('keeps the selected currency and single offer in the saved snapshot', () => {
     const draft = snapshot();
-    draft.details.foreignPricing = { enabled: false, price: 15000, promoPrice: 12000, currency: 'USD', contactUs: false };
-    expect(asSnapshot(draft).details.foreignPricing).toEqual({ enabled: false, price: null, promoPrice: null, currency: 'USD' });
+    draft.details.pricing = { price: 15000, promo: 12000, currency: 'USD' };
+    expect(asSnapshot(draft).details.pricing).toMatchObject({ price: 15000, promo: 12000, currency: 'USD' });
+    expect(asSnapshot(draft).details).not.toHaveProperty('foreignPricing');
   });
 
-  it('maps the Egyptian contact-for-price flag and the optional USD offer from public course summaries', () => {
+  it('maps a legacy USD offer to the single selected price in public course summaries', () => {
     const summary = mapPublicCourseSummary({
       slug: 'dual-price', title: { ar: 'كورس', en: '' }, shortDescription: { ar: 'وصف', en: '' },
       category: { ar: 'إدارة' }, instructorName: { ar: 'مدرب' }, coverImage: { src: '/cover.webp', alt: { ar: '' } },
       price: null, promoPrice: null, currency: 'EGP', pricingContactUs: true,
       foreignPricing: { enabled: true, price: 15000, promoPrice: 12500, currency: 'USD', contactUs: false },
     });
-    expect(summary.pricingContactUs).toBe(true);
-    expect(summary.foreignPricing).toEqual({ enabled: true, price: 150, promoPrice: 125, currency: 'USD' });
+    expect(summary).toMatchObject({ price: 150, promoPrice: 125, currency: 'USD', pricingContactUs: false });
   });
 
   it('sends expectedVersion with the complete snapshot and maps a stale-version conflict', async () => {
@@ -143,18 +162,6 @@ describe('API course and public registration adapters', () => {
     expect(calls.at(-1)?.url).toContain('/public/registrations');
     expect(sent.answers).toEqual({ experience: 'سنتين' }); expect(sent.idempotencyKey).toBe('stable-key'); expect(sent.website).toBe(''); expect(sent.formStartedAt).toBe(1_800_000_000_000); expect(sent.attribution.utm_campaign).toBe('launch');
     expect(sent).not.toHaveProperty('audience');
-  });
-
-  it('sends the selected audience and maps an API audience validation error to the Arabic field message', async () => {
-    const calls: Array<{ url: string; init?: RequestInit }> = [];
-    vi.stubGlobal('fetch', vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
-      calls.push({ url: String(url), init });
-      if (String(url).endsWith('/auth/csrf')) return json({ csrfToken: 'csrf' });
-      return json({ error: { code: 'VALIDATION_ERROR', details: [{ field: 'audience' }] } }, 422);
-    }));
-    await expect(apiRegistrationsService.submit({ courseSlug: 'dual-price', audience: 'foreign', answers: {}, idempotencyKey: 'audience-key', honeypot: '', formStartedAt: 1_800_000_000_000 })).rejects.toMatchObject({ fieldErrors: { audience: 'اختار الفئة المناسبة قبل التسجيل.' } });
-    const sent = JSON.parse(String(calls.at(-1)?.init?.body));
-    expect(sent.audience).toBe('foreign');
   });
 
   it('confirms success only with reference and never expects PII', async () => {

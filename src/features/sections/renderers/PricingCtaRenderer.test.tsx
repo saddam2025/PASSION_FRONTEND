@@ -17,26 +17,23 @@ function renderPricing(course: CoursePageContextValue['course']) {
   return render(<LanguageProvider><CoursePageProvider value={{ course, settings: { academyName: { ar: 'الأكاديمية', en: '' }, whatsappNumber: '', phone: '', email: '' }, formDefinition: { fields: [] }, mode: 'public' }}><PricingCtaRenderer section={section} mode="public" /></CoursePageProvider></LanguageProvider>);
 }
 
-describe('dual-currency public pricing section', () => {
+describe('single selected-currency public pricing section', () => {
   afterEach(() => cleanup());
   it('keeps the single existing Egyptian price when foreign pricing is disabled', () => {
     renderPricing(baseCourse);
     expect(screen.getByText('2,000 ج.م')).toBeTruthy();
-    expect(screen.queryByText('للأجانب')).toBeNull();
+    expect(screen.queryByText(/المصريين|الأجانب/)).toBeNull();
   });
 
-  it('shows two labeled offers, promotional amounts and contact pricing when enabled', () => {
-    renderPricing({ ...baseCourse, promoPrice: 1800, foreignPricing: { enabled: true, price: 150, promoPrice: 125, currency: 'USD', contactUs: false } });
-    expect(screen.getByText('للمصريين')).toBeTruthy();
-    expect(screen.getByText('للأجانب')).toBeTruthy();
-    expect(screen.getByText('1,800 ج.م')).toBeTruthy();
+  it('shows one USD offer and its promotional amount when USD is selected', () => {
+    renderPricing({ ...baseCourse, price: 150, promoPrice: 125, currency: 'USD' });
     expect(screen.getByText('$125').getAttribute('dir')).toBe('ltr');
-    expect(screen.getByText('2,000 ج.م')).toBeTruthy();
     expect(screen.getByText('$150').getAttribute('dir')).toBe('ltr');
+    expect(screen.queryByText(/المصريين|الأجانب/)).toBeNull();
   });
 
-  it('shows the contact-for-price state independently for either currency', () => {
-    renderPricing({ ...baseCourse, price: null, pricingContactUs: true, foreignPricing: { enabled: true, price: null, promoPrice: null, currency: 'USD', contactUs: true } });
-    expect(screen.getAllByText('كلم الأكاديمية عشان تعرف تفاصيل الكورس.')).toHaveLength(2);
+  it('shows a single contact-for-price state in the selected currency', () => {
+    renderPricing({ ...baseCourse, price: null, pricingContactUs: true, currency: 'USD' });
+    expect(screen.getAllByText('تواصل لمعرفة السعر')).toHaveLength(1);
   });
 });

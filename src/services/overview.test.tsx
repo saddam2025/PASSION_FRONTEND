@@ -21,7 +21,6 @@ const chartsResponse: OverviewChartsData = {
   funnel: { registered: 10, contacted: 8, awaitingPayment: 4, paid: 3, cancelled: 1 },
   paymentStatusDistribution: [{ status: 'paid', count: 3 }, { status: 'unpaid', count: 2 }],
   byCourse: [{ courseId: 'c1', title: 'كورس', registrations: 3, paid: 2 }, { courseId: null, title: 'أخرى', registrations: 1, paid: 0 }],
-  byAudience: [{ audience: 'egyptian', registrations: 3, paid: 2 }, { audience: 'foreign', registrations: 1, paid: 0 }],
 };
 const overviewData = mapOverviewResponse(overviewResponse, '30d');
 const moneyData: OverviewData = { ...overviewData, totalRegistrations: 0, registrations: 0, paid: 0, unpaid: 0, revenueByCurrency: [], courses: [] };
@@ -169,7 +168,7 @@ describe('Admin overview interactions', () => {
     expect(screen.getByRole('heading', { name: 'مسار التسجيل' })).toBeTruthy();
     const headings = [...document.querySelectorAll('h2')].map((heading) => heading.textContent);
     expect(headings.indexOf('التسجيلات عبر الزمن')).toBeLessThan(headings.lastIndexOf('التسجيلات حسب الكورس'));
-    expect(document.querySelectorAll('table.sr-only').length).toBeGreaterThanOrEqual(7);
+    expect(document.querySelectorAll('table.sr-only').length).toBeGreaterThanOrEqual(6);
   });
 });
 

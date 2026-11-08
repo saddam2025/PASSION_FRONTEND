@@ -42,13 +42,11 @@ describe('Slice 4A course details and form schemas', () => {
     expect(CourseDetailsSchema.safeParse({ ...details(), enrollment: { capacity: 0, registrationOpen: true } }).success).toBe(false);
     expect(CourseDetailsSchema.safeParse({ ...details(), enrollment: { capacity: null, registrationOpen: true } }).success).toBe(true);
   });
-  it('validates optional USD pricing only while enabled and enforces positive price and lower promo', () => {
-    const disabledWithOldValues = { ...details(), foreignPricing: { enabled: false, price: 50_000, promoPrice: 60_000, currency: 'USD' as const } };
-    expect(CourseDetailsSchema.safeParse(disabledWithOldValues).success).toBe(true);
-    expect(CourseDetailsSchema.safeParse({ ...details(), foreignPricing: { enabled: true, price: 25_000, promoPrice: 20_000, currency: 'USD' } }).success).toBe(true);
-    expect(CourseDetailsSchema.safeParse({ ...details(), foreignPricing: { enabled: true, price: 0, promoPrice: null, currency: 'USD' } }).success).toBe(false);
-    expect(CourseDetailsSchema.safeParse({ ...details(), foreignPricing: { enabled: true, price: 20_000, promoPrice: 20_000, currency: 'USD' } }).success).toBe(false);
-    expect(CourseDetailsSchema.safeParse({ ...details(), foreignPricing: { enabled: true, price: null, promoPrice: null, currency: 'USD', contactUs: true } }).success).toBe(true);
+  it('supports a single course price in either EGP or USD', () => {
+    expect(CourseDetailsSchema.safeParse({ ...details(), pricing: { price: 25_000, promo: 20_000, currency: 'USD' } }).success).toBe(true);
+    expect(CourseDetailsSchema.safeParse({ ...details(), pricing: { price: 0, currency: 'USD' } }).success).toBe(false);
+    expect(CourseDetailsSchema.safeParse({ ...details(), pricing: { price: 20_000, promo: 20_000, currency: 'EGP' } }).success).toBe(false);
+    expect(CourseDetailsSchema.safeParse({ ...details(), pricing: { price: null, currency: 'USD', contactUs: true } }).success).toBe(true);
   });
   it('validates slug patterns and WhatsApp phone, URL and template tokens', () => {
     expect(CourseDetailsSchema.safeParse({ ...details(), slug: 'valid-course' }).success).toBe(true);
@@ -103,12 +101,12 @@ describe('Slice 4A course details and form schemas', () => {
 });
 
 describe('Slice 4A sections, SEO and readiness', () => {
-  it('reports enabled foreign pricing readiness on the exact price fields and accepts contact pricing', () => {
+  it('reports missing single-price readiness on the selected currency and accepts contact pricing', () => {
     const base = readySnapshot();
-    const missing = { ...base, details: { ...base.details, foreignPricing: { enabled: true, price: null, promoPrice: null, currency: 'USD' as const, contactUs: false } } };
-    expect(checkReadiness(missing).errors).toContainEqual(expect.objectContaining({ path: 'details.foreignPricing.price', tab: 'details' }));
-    const contact = { ...missing, details: { ...missing.details, foreignPricing: { ...missing.details.foreignPricing, contactUs: true } } };
-    expect(checkReadiness(contact).errors.some((entry) => entry.path.includes('foreignPricing'))).toBe(false);
+    const missing = { ...base, details: { ...base.details, pricing: { price: null, currency: 'USD' as const, contactUs: false } } };
+    expect(checkReadiness(missing).errors).toContainEqual(expect.objectContaining({ path: 'details.pricing.price', tab: 'details' }));
+    const contact = { ...missing, details: { ...missing.details, pricing: { ...missing.details.pricing, contactUs: true } } };
+    expect(checkReadiness(contact).errors.some((entry) => entry.path.includes('pricing'))).toBe(false);
   });
   it('supplies default content and hides empty sections, including the four new editors', () => {
     const curriculum = SectionSchema.parse({ id: '11111111-1111-4111-8111-111111111111', type: 'curriculum' });

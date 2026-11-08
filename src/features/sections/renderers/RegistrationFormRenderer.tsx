@@ -33,8 +33,7 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
   const { t } = useTranslation('registration');
   const { course, formDefinition, settings, mode, onLead } = useCoursePage();
   const inert = mode !== 'public';
-  const foreignPricing = course.foreignPricing?.enabled ? course.foreignPricing : undefined;
-  const schema = useMemo(() => buildSubmissionSchema(formDefinition, Boolean(foreignPricing)), [formDefinition, foreignPricing]);
+  const schema = useMemo(() => buildSubmissionSchema(formDefinition), [formDefinition]);
   const idempotencyKey = useRef<string | null>(null);
   const submissionIdempotencyKey = idempotencyKey.current ?? createIdempotencyKey();
   idempotencyKey.current = submissionIdempotencyKey;
@@ -72,7 +71,6 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
         fullName: values.fullName,
         email: values.email,
         phone: values.phone,
-        ...(foreignPricing && values.audience ? { audience: values.audience } : {}),
         answers,
         consent: Boolean(values.consent),
         idempotencyKey: submissionIdempotencyKey,
@@ -209,20 +207,11 @@ export default function RegistrationFormRenderer({ section, registrationTarget =
               />
             )}
           />
-          {foreignPricing && <fieldset className="grid gap-2 rounded-sm border border-border p-4" aria-describedby={form.formState.errors.audience ? 'audience-error' : undefined}>
-            <legend className="px-1 font-semibold">{t('audienceLabel')}</legend>
-            {(['egyptian', 'foreign'] as const).map((audience) => <label key={audience} className="flex min-h-11 items-center gap-2">
-              <input id={audience === 'egyptian' ? 'field-audience' : undefined} type="radio" value={audience} disabled={inert} {...form.register('audience')} />
-              <span>{t(audience === 'egyptian' ? 'egyptianAudience' : 'foreignAudience')}</span>
-            </label>)}
-            {form.formState.errors.audience?.message && <p id="audience-error" role="alert" className="text-sm text-danger">{form.formState.errors.audience.message}</p>}
-            {form.watch('audience') && <p className="text-sm font-semibold" aria-live="polite">{t('applicablePrice')}: {(() => {
-              const isForeign = form.watch('audience') === 'foreign';
-              const selected = isForeign ? foreignPricing : { price: course.price, promoPrice: course.promoPrice, contactUs: course.pricingContactUs };
-              if (selected.contactUs || selected.price === null) return t('contactForPrice');
-              return formatPrice(selected.promoPrice ?? selected.price, isForeign ? 'USD' : course.currency, language);
-            })()}</p>}
-          </fieldset>}
+          {course.pricingContactUs || course.price === null ? (
+            <p className="text-sm font-semibold" aria-live="polite">{t('contactForPrice')}</p>
+          ) : (
+            <p className="text-sm font-semibold" aria-live="polite">{t('price')}: {formatPrice(course.promoPrice ?? course.price, course.currency, language)}</p>
+          )}
           {formDefinition.fields.map((fieldDefinition) => {
             const fieldName = fieldDefinition.id as keyof SubmissionValues;
             return (

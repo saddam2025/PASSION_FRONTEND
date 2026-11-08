@@ -116,35 +116,11 @@ describe('public course registration form', () => {
     expect(await screen.findByRole('heading', { name: 'تم حجز الكورس مبدئيًا' })).toBeTruthy();
   });
 
-  it('requires an audience only when foreign pricing is enabled, previews the matching offer, and submits it', async () => {
-    vi.mocked(registrationsService.submit).mockResolvedValue({ reference: 'PAS-USD123', status: 'received' });
-    const mountedAt = Date.now();
-    const now = vi.spyOn(Date, 'now').mockReturnValue(mountedAt);
-    renderPublicForm({ foreignPricing: { enabled: true, price: 150, promoPrice: 125, currency: 'USD' } });
-    expect(await screen.findByRole('group', { name: 'التسجيل حسب الفئة' })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: 'أنا مصري' }).getAttribute('checked')).toBeNull();
-    fireEvent.click(screen.getByRole('radio', { name: 'أنا من خارج مصر' }));
-    expect(screen.getByText('السعر المناسب: 125 $')).toBeTruthy();
-    fireEvent.change(screen.getByLabelText('الاسم الكامل'), { target: { value: 'سلمى أحمد' } });
-    fireEvent.change(screen.getByLabelText('البريد الإلكتروني'), { target: { value: 'salma@example.com' } });
-    fireEvent.change(screen.getByLabelText('رقم الهاتف'), { target: { value: '01012345678' } });
-    fireEvent.change(screen.getByLabelText('هدفك من الكورس'), { target: { value: 'تطوير مهاراتي' } });
-    const select = screen.getByRole('combobox');
-    fireEvent.pointerDown(select, { button: 0, ctrlKey: false });
-    fireEvent.keyDown(select, { key: 'ArrowDown' });
-    fireEvent.click(await screen.findByRole('option', { name: 'إدارة' }));
-    fireEvent.click(screen.getByRole('checkbox', { name: 'أوافق على التواصل' }));
-    fireEvent.click(screen.getByRole('checkbox', { name: /أوافق على استخدام بياناتي للتواصل معي/ }));
-    now.mockReturnValue(mountedAt + 2100);
-    fireEvent.click(screen.getByRole('button', { name: 'سجّل دلوقتي' }));
-    await waitFor(() => expect(registrationsService.submit).toHaveBeenCalledWith(expect.objectContaining({ audience: 'foreign' })));
-  });
-
-  it('blocks submission until a foreign-pricing audience is selected', async () => {
-    renderPublicForm({ foreignPricing: { enabled: true, price: 150, promoPrice: null, currency: 'USD' } });
-    fireEvent.click(await screen.findByRole('button', { name: 'سجّل دلوقتي' }));
-    expect(await screen.findByText('اختار الفئة المناسبة قبل التسجيل.')).toBeTruthy();
-    expect(registrationsService.submit).not.toHaveBeenCalled();
+  it('shows one USD offer and has no audience selector', async () => {
+    renderPublicForm({ price: 150, promoPrice: 125, currency: 'USD' });
+    expect(await screen.findByText(/125/)).toBeTruthy();
+    expect(screen.queryByRole('radio')).toBeNull();
+    expect(screen.queryByRole('group', { name: 'التسجيل حسب الفئة' })).toBeNull();
   });
 
   it('keeps the consent checkbox text without legal page links', async () => {

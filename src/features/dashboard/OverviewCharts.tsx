@@ -81,11 +81,10 @@ export default function OverviewCharts({ data, error, retry }: { data?: Overview
   if (error || !data) return <section className="rounded-sm border border-border bg-surface p-4"><ChartsError message={error || t('charts.unavailable')} retry={retry} /></section>;
   const statuses = statusKeys.map((status) => ({ name: t(`charts.status.${status}`), count: data.paymentStatusDistribution.find((row) => row.status === status)?.count ?? 0 }));
   const courses = data.byCourse.map((item) => ({ name: item.courseId === null ? t('charts.otherCourses') : item.title, count: item.registrations }));
-  const audience = data.byAudience?.map((item) => ({ name: item.audience === 'egyptian' ? t('charts.egyptians') : t('charts.foreigners'), count: item.registrations }));
   return <div className="grid min-w-0 gap-4">
     <ChartCard title={t('charts.registrationsTitle')} retryLabel={t('charts.retry')} summary={t('charts.registrationSummary')}><RegistrationsChart data={data} /></ChartCard>
     <ChartCard title={t('charts.revenue')} retryLabel={t('charts.retry')}><p className="mb-3 text-sm text-muted">{t('currencyRevenueSeparate')}</p><RevenueCharts data={data} /></ChartCard>
     <div className="grid min-w-0 gap-4 xl:grid-cols-2"><ChartCard title={t('charts.funnel')} retryLabel={t('charts.retry')}><FunnelChart funnel={data.funnel} /></ChartCard><ChartCard title={t('charts.paymentStatus')} retryLabel={t('charts.retry')}><DistributionDonut title={t('charts.paymentStatus')} rows={statuses} /></ChartCard></div>
-    <div className="grid min-w-0 gap-4 xl:grid-cols-2"><ChartCard title={t('charts.byCourse')} retryLabel={t('charts.retry')}><DistributionDonut title={t('charts.byCourse')} rows={courses} /></ChartCard>{audience && <ChartCard title={t('charts.byAudience')} retryLabel={t('charts.retry')}><DistributionDonut title={t('charts.byAudience')} rows={audience} /></ChartCard>}</div>
+    <ChartCard title={t('charts.byCourse')} retryLabel={t('charts.retry')}><DistributionDonut title={t('charts.byCourse')} rows={courses} /></ChartCard>
   </div>;
 }

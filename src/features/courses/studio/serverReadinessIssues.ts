@@ -8,9 +8,6 @@ function normalizePath(value: unknown): string {
 }
 
 function arabicMessage(path: string): string {
-  if (path.includes('foreignPricing.promoPrice')) return 'سعر العرض للأجانب لازم يكون أقل من السعر الأساسي.';
-  if (path.includes('foreignPricing.price')) return 'راجع سعر الأجانب أو اختار التواصل لمعرفة السعر.';
-  if (path.includes('foreignPricing')) return 'نسخة الخادم المتصلة لا تدعم إعداد التسعير بعملة أجنبية. يلزم تحديث الباك إند قبل نشر الكورس.';
   if (path.includes('pricing.promo')) return 'سعر العرض لازم يكون أقل من السعر الأساسي.';
   if (path.includes('pricing.price')) return 'راجع السعر أو اختار التواصل لمعرفة السعر.';
   if (path.includes('slug')) return 'اكتب رابط مختصر صالح ومتاح للكورس.';
@@ -41,12 +38,7 @@ export function serverReadinessIssues(details: unknown): ReadinessIssue[] {
 
   const result = new Map<string, ReadinessIssue>();
   for (const candidate of candidates) {
-    let path = normalizePath(candidate.field ?? candidate.path);
-    const keys = Array.isArray(candidate.keys) ? candidate.keys : [];
-    // Older API deployments reject the newer optional foreign-pricing field at the details object level.
-    if (candidate.code === 'unrecognized_keys' && keys.includes('foreignPricing') && /^details$/.test(path)) {
-      path = 'details.foreignPricing';
-    }
+    const path = normalizePath(candidate.field ?? candidate.path);
     if (!path) continue;
     const sectionFromPath = path.match(/^page\.sections\.([^.]+)/)?.[1];
     const sectionId = typeof candidate.sectionId === 'string' ? candidate.sectionId : sectionFromPath;

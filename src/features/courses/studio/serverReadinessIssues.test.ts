@@ -8,23 +8,10 @@ describe('serverReadinessIssues', () => {
     ]);
   });
 
-  it('normalizes Zod draft paths and replaces non-Arabic validator messages with a useful Arabic hint', () => {
-    expect(serverReadinessIssues([{ path: ['draft', 'details', 'foreignPricing', 'price'], message: 'Invalid input' }])).toEqual([
-      { path: 'details.foreignPricing.price', tab: 'details', message: 'راجع سعر الأجانب أو اختار التواصل لمعرفة السعر.' },
+  it('normalizes selected-price draft paths and replaces non-Arabic validator messages with a useful Arabic hint', () => {
+    expect(serverReadinessIssues([{ path: ['draft', 'details', 'pricing', 'price'], message: 'Invalid input' }])).toEqual([
+      { path: 'details.pricing.price', tab: 'details', message: 'راجع السعر أو اختار التواصل لمعرفة السعر.' },
     ]);
-  });
-
-  it('maps a backend that rejects foreignPricing to its exact editable setting', () => {
-    expect(serverReadinessIssues([{
-      code: 'unrecognized_keys',
-      keys: ['foreignPricing'],
-      path: ['draft', 'details'],
-      message: "Unrecognized key(s) in object: 'foreignPricing'",
-    }])).toEqual([{
-      path: 'details.foreignPricing',
-      tab: 'details',
-      message: 'نسخة الخادم المتصلة لا تدعم إعداد التسعير بعملة أجنبية. يلزم تحديث الباك إند قبل نشر الكورس.',
-    }]);
   });
 
   it('supports flattened Zod field errors and ignores malformed details', () => {

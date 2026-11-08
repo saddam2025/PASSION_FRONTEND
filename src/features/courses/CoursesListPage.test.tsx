@@ -19,10 +19,11 @@ const course = {
   coverImage: { src: '', alt: { ar: '', en: '' } }, updatedAt: '', createdAt: '', version: 1,
 };
 
-function renderList(role: string, deletedAt?: string) {
+function renderList(role: string, deletedAt?: string, error?: Error) {
   authRole.current = role;
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  vi.mocked(coursesAdminService.list).mockResolvedValue({
+  if (error) vi.mocked(coursesAdminService.list).mockRejectedValue(error);
+  else vi.mocked(coursesAdminService.list).mockResolvedValue({
     items: [{ ...course, ...(deletedAt ? { deletedAt } : {}) }], total: 1, page: 1, pageSize: 50,
     pageCount: 1, counts: { all: 1, published: 0, draft: 1, archived: 0, unpublished_changes: 0 },
   });
@@ -57,5 +58,10 @@ describe('course list duplication action', () => {
     await screen.findByText('كورس تجريبي');
     fireEvent.keyDown(screen.getByRole('button', { name: /الإجراءات/ }), { key: 'Enter' });
     expect(screen.queryByRole('menuitem', { name: 'تكرار' })).toBeNull();
+  });
+
+  it('shows the mapped API error when loading the course list fails', async () => {
+    renderList('admin', undefined, new Error('انتهت جلسة الدخول. سجّل دخولك تاني وبعدها جرّب النشر.'));
+    expect((await screen.findByRole('alert')).textContent).toContain('انتهت جلسة الدخول. سجّل دخولك تاني وبعدها جرّب النشر.');
   });
 });

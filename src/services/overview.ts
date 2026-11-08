@@ -30,7 +30,6 @@ export interface OverviewChartsData {
   funnel: { registered: number; contacted: number; awaitingPayment: number; paid: number; cancelled: number };
   paymentStatusDistribution: Array<{ status: string; count: number }>;
   byCourse: Array<{ courseId: string | null; slug?: string | null; title: string; registrations: number; paid: number }>;
-  byAudience?: Array<{ audience: string; registrations: number; paid: number }>;
 }
 
 export function overviewQuery(query: OverviewQuery, now = new Date()): URLSearchParams {

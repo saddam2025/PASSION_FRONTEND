@@ -49,15 +49,6 @@ export function checkReadiness(snapshot: CourseSnapshot, slug?: string): {
     issue('details', 'details.pricing.promo', 'سعر الخصم لازم يكون أقل من السعر الأساسي.', promo);
   }
 
-  const foreignPricing = details.foreignPricing;
-  if (foreignPricing.enabled) {
-    if (foreignPricing.contactUs !== true && (foreignPricing.price == null || foreignPricing.price <= 0)) {
-      issue('details', 'details.foreignPricing.price', 'اكتب سعر الأجانب أو اختار التواصل لمعرفة السعر.', foreignPricing.price);
-    }
-    if (foreignPricing.promoPrice != null && (foreignPricing.price == null || foreignPricing.promoPrice >= foreignPricing.price)) {
-      issue('details', 'details.foreignPricing.promoPrice', 'سعر العرض لازم يكون أقل من السعر الأساسي.', foreignPricing.promoPrice);
-    }
-  }
 
   const visible = (page?.sections ?? []).filter((section: Section) => section.visible);
   const filled = visible.filter((section) => !isSectionEmpty(section, { price, promoPrice: promo ?? null, contactUs: details.pricing.contactUs === true, instructor: details.instructor }));

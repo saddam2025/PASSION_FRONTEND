@@ -12,6 +12,25 @@ type WireList = { items: WireCourse[]; total: number; page: number; pageSize: nu
 const ok = <T,>(data: T): Result<T> => ({ ok: true, data });
 const fail = <T,>(error: unknown): Result<T> => ({ ok: false, code: error instanceof ApiError ? error.code : 'NETWORK_ERROR', message: error instanceof Error ? error.message : 'حصلت مشكلة، جرّب تاني.', details: error instanceof ApiError ? error.details : undefined });
 const bilingual = (value: unknown): { ar: string; en: string } => typeof value === 'string' ? { ar: value, en: '' } : value && typeof value === 'object' ? { ar: String((value as Record<string, unknown>).ar ?? ''), en: '' } : { ar: '', en: '' };
+function normalizeLegacyDetails(value: unknown) {
+  if (!value || typeof value !== 'object') return value;
+  const details = value as Record<string, unknown>;
+  const legacy = details.foreignPricing as { enabled?: boolean; price?: number | null; promoPrice?: number | null; contactUs?: boolean } | undefined;
+  if (legacy?.enabled !== true) {
+    const current = { ...details };
+    delete current.foreignPricing;
+    return current;
+  }
+  const pricing = (details.pricing && typeof details.pricing === 'object' ? details.pricing : {}) as Record<string, unknown>;
+  const current = { ...details };
+  delete current.foreignPricing;
+  return { ...current, pricing: { ...pricing, price: legacy.price ?? null, promo: legacy.promoPrice ?? undefined, promoPrice: undefined, currency: 'USD', contactUs: legacy.contactUs === true } };
+}
+function normalizeLegacySnapshot(value: unknown) {
+  if (!value || typeof value !== 'object') return value;
+  const snapshot = value as Record<string, unknown>;
+  return { ...snapshot, details: normalizeLegacyDetails(snapshot.details) };
+}
 export function invalidateCourseCaches(client: { invalidateQueries(options: { queryKey: readonly unknown[] }): unknown } = appQueryClient) {
   void client.invalidateQueries({ queryKey: ['public-courses'] });
   void client.invalidateQueries({ queryKey: ['public-course'] });
@@ -20,7 +39,9 @@ export function invalidateCourseCaches(client: { invalidateQueries(options: { qu
 }
 function courseFromWire(input: WireCourse): Course {
   const course = Object.fromEntries(Object.entries(input).filter(([key]) => key !== 'hasUnpublishedChanges'));
-  const parsed = CourseSchema.safeParse({ ...course, id: String(input.id ?? ''), createdBy: String(input.createdBy ?? 'api'), deletedAt: input.deletedAt ?? undefined, draft: input.draft, published: input.published ?? null });
+  course.draft = normalizeLegacySnapshot(course.draft);
+  if (course.published) course.published = normalizeLegacySnapshot(course.published);
+  const parsed = CourseSchema.safeParse({ ...course, id: String(input.id ?? ''), createdBy: String(input.createdBy ?? 'api'), deletedAt: input.deletedAt ?? undefined });
   if (!parsed.success) throw new Error('بيانات الكورس المستلمة غير مكتملة.');
   return parsed.data;
 }
@@ -41,22 +62,20 @@ export function mapAdminCourseListItem(input: WireCourse): CourseListItem {
 }
 export function mapPublicCourseSummary(input: Record<string, unknown>): CourseSummary {
   const details = input;
+  const legacyForeign = details.foreignPricing && typeof details.foreignPricing === 'object' ? details.foreignPricing as { enabled?: boolean; price?: number | null; promoPrice?: number | null; contactUs?: boolean } : undefined;
+  const useLegacyForeign = legacyForeign?.enabled === true;
+  const selectedPrice = useLegacyForeign ? legacyForeign.price : details.price;
+  const selectedPromo = useLegacyForeign ? legacyForeign.promoPrice : details.promoPrice;
+  const selectedCurrency = useLegacyForeign ? 'USD' : details.currency;
   return {
     slug: String(details.slug ?? ''), title: bilingual(details.title), shortDescription: bilingual(details.shortDescription),
     seoTitle: bilingual(details.seoTitle), seoDescription: bilingual(details.seoDescription), noindex: Boolean(details.noindex),
     ...(details.ogImage ? { ogImage: details.ogImage as CourseSummary['ogImage'] } : {}), category: bilingual(details.category), instructorName: bilingual(details.instructorName),
     coverImage: { ...(details.coverImage as CourseSummary['coverImage']), alt: bilingual((details.coverImage as { alt?: unknown } | undefined)?.alt) },
     // API snapshots use integer minor units; public formatters consume major units.
-    price: typeof details.price === 'number' ? details.price / 100 : null,
-    promoPrice: typeof details.promoPrice === 'number' ? details.promoPrice / 100 : null, currency: String(details.currency ?? 'EGP'),
-    pricingContactUs: details.pricingContactUs === true || details.contactUs === true || details.price == null,
-    ...(details.foreignPricing && typeof details.foreignPricing === 'object' && (details.foreignPricing as { enabled?: unknown }).enabled === true ? { foreignPricing: {
-      enabled: true,
-      price: typeof (details.foreignPricing as { price?: unknown }).price === 'number' ? Number((details.foreignPricing as { price: number }).price) / 100 : null,
-      promoPrice: typeof (details.foreignPricing as { promoPrice?: unknown }).promoPrice === 'number' ? Number((details.foreignPricing as { promoPrice: number }).promoPrice) / 100 : null,
-      currency: 'USD' as const,
-      ...((details.foreignPricing as { contactUs?: unknown }).contactUs === true ? { contactUs: true } : {}),
-    } } : {}),
+    price: typeof selectedPrice === 'number' ? selectedPrice / 100 : null,
+    promoPrice: typeof selectedPromo === 'number' ? selectedPromo / 100 : null, currency: String(selectedCurrency ?? 'EGP'),
+    pricingContactUs: (useLegacyForeign ? legacyForeign?.contactUs : details.pricingContactUs === true || details.contactUs === true) === true || selectedPrice == null,
     startDate: String(details.startDate ?? ''), duration: bilingual(details.duration),
     deliveryMethod: details.deliveryMethod === 'inPerson' || details.deliveryMethod === 'online' || details.deliveryMethod === 'hybrid' ? details.deliveryMethod : '',
     publishedAt: String(details.publishedAt ?? ''), featured: Boolean(details.featured), accreditationVerified: Boolean(details.accreditationVerified),
@@ -72,8 +91,7 @@ export function mapPublicCoursePage(input: Record<string, unknown>): CoursePageD
     title: input.title, shortDescription: input.shortDescription, category: (input.category as { ar?: string } | undefined)?.ar ?? '',
     instructor: input.instructor ?? { name: input.instructorName ?? { ar: '' } }, coverImage: input.coverImage,
     delivery: input.delivery ?? { method: input.deliveryMethod === 'inPerson' ? 'in_person' : input.deliveryMethod || 'online' },
-    schedule: input.schedule ?? { startDate: input.startDate }, pricing: { price: input.price ?? null, promoPrice: input.promoPrice ?? undefined, currency: input.currency ?? 'EGP' },
-    foreignPricing: input.foreignPricing ?? { enabled: false },
+    schedule: input.schedule ?? { startDate: input.startDate }, pricing: { price: summary.price == null ? null : Math.round(summary.price * 100), promo: summary.promoPrice == null ? undefined : Math.round(summary.promoPrice * 100), currency: summary.currency },
     enrollment: { registrationOpen: input.registrationOpen === true }, accreditation: input.accreditation ?? { verifiedByAcademy: input.accreditationVerified === true },
   }, page: input.pageConfig, form: input.formDefinition, seo: { title: input.seoTitle ?? input.title, description: input.seoDescription ?? input.shortDescription, noindex: input.noindex, ogImage: input.ogImage } });
   return { ...summary, id: String(input.id ?? input.slug), registrationOpen: input.registrationOpen === true,
@@ -144,9 +162,6 @@ export const apiPublicCoursesService: CoursesService = {
 
 export function asSnapshot(value: Snapshot): Snapshot {
   const copy = JSON.parse(JSON.stringify(value)) as Snapshot;
-  if (!copy.details.foreignPricing.enabled) {
-    copy.details.foreignPricing = { enabled: false, price: null, promoPrice: null, currency: 'USD' };
-  }
   return SnapshotSchema.parse(copy);
 }
 

@@ -70,10 +70,10 @@ describe('Meta Pixel for published landing pages', () => {
     });
   });
 
-  it('omits value and currency for a dual offer before audience selection', () => {
-    renderHook(() => useLandingMetaPixel(course({ foreignPricing: { enabled: true, price: 150, promoPrice: null, currency: 'USD' } }), 'ar'));
+  it('tracks the one selected USD offer without audience selection', () => {
+    renderHook(() => useLandingMetaPixel(course({ price: 150, currency: 'USD' }), 'ar'));
     const viewContent = trackedEvents().find((args) => args[1] === 'ViewContent');
-    expect(viewContent?.[2]).toEqual({ content_name: 'كورس تجريبي', content_type: 'course', content_ids: ['course-one'] });
+    expect(viewContent?.[2]).toEqual({ content_name: 'كورس تجريبي', content_type: 'course', content_ids: ['course-one'], currency: 'USD', value: 150 });
   });
 
   it('fires Lead once per reference with course-only parameters and the reference as eventID', () => {

@@ -163,7 +163,6 @@ export default function CustomerPage() {
                   <p dir="ltr">
                     {t('reference')}: {enrollment.reference}
                   </p>
-                  <p>{t('audience')}: {t(enrollment.audience === 'foreign' ? 'foreignAudience' : 'egyptianAudience')}</p>
                   <time dir="ltr" className="text-sm text-muted">
                     {formatDate(enrollment.registeredAt)}
                   </time>

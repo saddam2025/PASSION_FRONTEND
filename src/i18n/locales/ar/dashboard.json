@@ -48,10 +48,7 @@
     "cancelled": "ملغي",
     "paymentStatus": "حالة الدفع",
     "byCourse": "التسجيلات حسب الكورس",
-    "byAudience": "التسجيلات حسب الجمهور",
     "otherCourses": "كورسات تانية",
-    "egyptians": "مصريين",
-    "foreigners": "أجانب",
     "status": {
       "unpaid": "غير مدفوع",
       "partially_paid": "مدفوع جزئيًا",

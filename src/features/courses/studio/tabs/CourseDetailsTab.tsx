@@ -23,10 +23,9 @@ export function CourseDetailsTab({ course, snapshot, onChange, assistant }: { co
   const [slug, setSlug] = useState(course.slug);
   const [slugEdited, setSlugEdited] = useState(false);
   const [slugStatus, setSlugStatus] = useState<'checking'|'available'|'taken'|'invalid'|'reserved'>('available');
-  const [foreignPriceInput, setForeignPriceInput] = useState('');
-  const [foreignPromoInput, setForeignPromoInput] = useState('');
   const [priceInput, setPriceInput] = useState('');
   const [promoInput, setPromoInput] = useState('');
+  const [currency, setCurrency] = useState<'EGP' | 'USD'>(details.pricing.currency);
   const admin = user?.role === 'admin' && !assistant;
   const setDetails = (patch: Partial<Details>) => onChange({ ...snapshot, details: { ...details, ...patch } });
   const updateText = (field: 'title'|'shortDescription', ar: string) => {
@@ -60,7 +59,6 @@ export function CourseDetailsTab({ course, snapshot, onChange, assistant }: { co
   }, [slug, course.id]);
   const saveSlugToDraft = (value: string) => { setSlug(value); setSlugEdited(true); setDetails({ slug: value }); };
   const pricing = details.pricing;
-  const foreignPricing = details.foreignPricing;
   const accreditation = details.accreditation;
   const overrides = details.whatsappOverrides ?? {};
   const promo = pricing.promo ?? pricing.promoPrice;
@@ -74,15 +72,12 @@ export function CourseDetailsTab({ course, snapshot, onChange, assistant }: { co
   const message = overrides.messageTemplate?.ar ?? '';
   const messageError = hasInvalidWhatsappTokens(message);
   const moneyValue = (minor: number | null | undefined) => minor == null ? '' : minorToMajorText(minor);
-  const moneyOnChange = (value: string) => value === '' ? null : majorToMinor(value, 'EGP');
+  const moneyOnChange = (value: string, selectedCurrency: 'EGP' | 'USD') => value === '' ? null : majorToMinor(value, selectedCurrency);
   useEffect(() => {
     setPriceInput(moneyValue(pricing.price));
     setPromoInput(moneyValue(promo));
-  }, [course.id, pricing.price, promo]);
-  useEffect(() => {
-    setForeignPriceInput(moneyValue(foreignPricing.price));
-    setForeignPromoInput(moneyValue(foreignPricing.promoPrice));
-  }, [course.id, foreignPricing.price, foreignPricing.promoPrice]);
+    setCurrency(pricing.currency);
+  }, [course.id, pricing.price, promo, pricing.currency]);
   return <div className="grid gap-5">
     <section className="grid gap-4 rounded-md border border-border bg-surface p-4 sm:p-5">
       <h2 className="text-xl font-bold">تفاصيل الكورس</h2>
@@ -107,24 +102,10 @@ export function CourseDetailsTab({ course, snapshot, onChange, assistant }: { co
     <section className="grid gap-4 rounded-md border border-border bg-surface p-4 sm:p-5">
       <h2 className="text-lg font-bold">{t('sections.pricing')}</h2>
       <div className="grid gap-3 rounded-sm border border-border p-4">
-        <h3 className="font-semibold">{t('egyptianPrice')}</h3>
+        <label className="grid gap-1.5 text-sm font-semibold">العملة<select className="min-h-11 rounded-xs border border-border bg-surface px-3" value={currency} onChange={(event) => { const next = event.target.value as 'EGP' | 'USD'; setCurrency(next); setDetails({ pricing: { ...pricing, currency: next } }); }}><option value="EGP">جنيه مصري (EGP)</option><option value="USD">دولار أمريكي (USD)</option></select></label>
         <label className="flex min-h-11 items-center gap-2 text-sm"><Checkbox checked={pricing.contactUs === true} onCheckedChange={(checked) => setDetails({ pricing: { ...pricing, contactUs: checked === true, price: checked ? null : pricing.price, promo: checked ? null : pricing.promo } })} />تواصل لمعرفة السعر</label>
-        {pricing.contactUs !== true && <><div className="grid gap-3 sm:grid-cols-2"><label className="grid gap-1.5 text-sm">السعر بالجنيه المصري · مطلوب<Input data-readiness-path="details.pricing.price" type="text" inputMode="decimal" dir="ltr" value={priceInput} onChange={(e) => { const raw = e.target.value; setPriceInput(raw); try { setDetails({ pricing: { ...pricing, price: moneyOnChange(raw) } }); } catch { /* Inline validation explains the accepted precision. */ } }} aria-invalid={amountError(priceInput, 'EGP')} />{amountError(priceInput, 'EGP') && <span role="alert" className="text-danger">{t('moneyPrecisionError')}</span>}</label><label data-readiness-path="details.pricing.promo" className="grid gap-1.5 text-sm">سعر العرض<Input type="text" inputMode="decimal" dir="ltr" value={promoInput} onChange={(e) => { const raw = e.target.value; setPromoInput(raw); try { setDetails({ pricing: { ...pricing, promo: moneyOnChange(raw) ?? undefined, promoPrice: undefined } }); } catch { /* Inline validation explains the accepted precision. */ } }} aria-invalid={promoError || amountError(promoInput, 'EGP')} />{amountError(promoInput, 'EGP') && <span role="alert" className="text-danger">{t('moneyPrecisionError')}</span>}</label></div>{promoError && <p role="alert" className="text-sm text-danger">سعر العرض لازم يكون أقل من السعر الأساسي.</p>}</>}
+        {pricing.contactUs !== true && <><div className="grid gap-3 sm:grid-cols-2"><label className="grid gap-1.5 text-sm">السعر {currency === 'EGP' ? 'بالجنيه المصري' : 'بالدولار الأمريكي'} · مطلوب<Input data-readiness-path="details.pricing.price" type="text" inputMode="decimal" dir="ltr" value={priceInput} onChange={(e) => { const raw = e.target.value; setPriceInput(raw); try { setDetails({ pricing: { ...pricing, price: moneyOnChange(raw, currency) } }); } catch { /* Inline validation explains the accepted precision. */ } }} aria-invalid={amountError(priceInput, currency)} />{amountError(priceInput, currency) && <span role="alert" className="text-danger">{t('moneyPrecisionError')}</span>}</label><label data-readiness-path="details.pricing.promo" className="grid gap-1.5 text-sm">سعر العرض بنفس العملة<Input type="text" inputMode="decimal" dir="ltr" value={promoInput} onChange={(e) => { const raw = e.target.value; setPromoInput(raw); try { setDetails({ pricing: { ...pricing, promo: moneyOnChange(raw, currency) ?? undefined, promoPrice: undefined } }); } catch { /* Inline validation explains the accepted precision. */ } }} aria-invalid={promoError || amountError(promoInput, currency)} />{amountError(promoInput, currency) && <span role="alert" className="text-danger">{t('moneyPrecisionError')}</span>}</label></div>{promoError && <p role="alert" className="text-sm text-danger">سعر العرض لازم يكون أقل من السعر الأساسي.</p>}</>}
       </div>
-      <label data-readiness-path="details.foreignPricing" className="flex min-h-11 items-center gap-2 text-sm"><Checkbox checked={foreignPricing.enabled} onCheckedChange={(checked) => {
-        if (checked) { setDetails({ foreignPricing: { enabled: true, price: null, promoPrice: null, currency: 'USD', contactUs: false } }); return; }
-        const hasValues = foreignPricing.price != null || foreignPricing.promoPrice != null || foreignPricing.contactUs === true;
-        if (hasValues && !window.confirm(t('disableForeignPricingConfirm'))) return;
-        setDetails({ foreignPricing: { enabled: false, price: null, promoPrice: null, currency: 'USD', contactUs: false } });
-      }} />{t('foreignPricingToggle')}</label>
-      {foreignPricing.enabled && <div className="grid gap-3 rounded-sm border border-border p-4">
-        <h3 className="font-semibold">{t('foreignPrice')}</h3>
-        <label className="flex min-h-11 items-center gap-2 text-sm"><Checkbox checked={foreignPricing.contactUs === true} onCheckedChange={(checked) => setDetails({ foreignPricing: { ...foreignPricing, contactUs: checked === true, price: checked ? null : foreignPricing.price, promoPrice: checked ? null : foreignPricing.promoPrice } })} />{t('contactForForeignPrice')}</label>
-        {foreignPricing.contactUs !== true && <div className="grid gap-3 sm:grid-cols-2">
-          <label className="grid gap-1.5 text-sm" data-readiness-path="details.foreignPricing.price">{t('foreignBasePrice')} · {t('required')}<span className="flex"><Input className="min-w-0 flex-1" type="text" inputMode="decimal" dir="ltr" value={foreignPriceInput} onChange={(event) => { const raw = event.target.value; setForeignPriceInput(raw); if (!raw) { setDetails({ foreignPricing: { ...foreignPricing, price: null, promoPrice: null } }); setForeignPromoInput(''); return; } try { setDetails({ foreignPricing: { ...foreignPricing, price: majorToMinor(raw, 'USD') } }); } catch { /* Inline validation below explains the accepted precision. */ } }} aria-invalid={amountError(foreignPriceInput, 'USD')} /><span className="inline-flex items-center rounded-e-xs border border-s-0 border-border bg-canvas px-3">USD</span></span>{amountError(foreignPriceInput, 'USD') && <span role="alert" className="text-danger">{t('moneyPrecisionError')}</span>}</label>
-          <label className="grid gap-1.5 text-sm" data-readiness-path="details.foreignPricing.promoPrice">{t('foreignPromoPrice')}<span className="flex"><Input className="min-w-0 flex-1" type="text" inputMode="decimal" dir="ltr" value={foreignPromoInput} onChange={(event) => { const raw = event.target.value; setForeignPromoInput(raw); if (!raw) { setDetails({ foreignPricing: { ...foreignPricing, promoPrice: null } }); return; } try { setDetails({ foreignPricing: { ...foreignPricing, promoPrice: majorToMinor(raw, 'USD') } }); } catch { /* Inline validation below explains the accepted precision. */ } }} aria-invalid={amountError(foreignPromoInput, 'USD') || (foreignPricing.price != null && foreignPricing.promoPrice != null && foreignPricing.promoPrice >= foreignPricing.price)} /><span className="inline-flex items-center rounded-e-xs border border-s-0 border-border bg-canvas px-3">USD</span></span>{amountError(foreignPromoInput, 'USD') && <span role="alert" className="text-danger">{t('moneyPrecisionError')}</span>}{foreignPricing.price != null && foreignPricing.promoPrice != null && foreignPricing.promoPrice >= foreignPricing.price && <span role="alert" className="text-danger" data-readiness-path="details.foreignPricing.promoPrice">{t('promoMustBeLower')}</span>}</label>
-        </div>}
-      </div>}
     </section>
     <section className="grid gap-4 rounded-md border border-border bg-surface p-4 sm:p-5">
       <h2 className="text-lg font-bold">رابط الكورس</h2>

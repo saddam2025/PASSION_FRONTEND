@@ -5,7 +5,7 @@ import type { PaymentRecord, PaymentStatus } from '@/schemas/payment';
 
 type Page<T> = { items: T[]; total: number; page: number; pageSize: number };
 export interface LeadFilters {
-  search?: string; courseId?: string; audience?: Enrollment['audience']; enrollmentStatus?: Enrollment['enrollmentStatus'];
+  search?: string; courseId?: string; enrollmentStatus?: Enrollment['enrollmentStatus'];
   followUpStatus?: Enrollment['followUpStatus']; paymentStatus?: string; assigned?: 'me' | 'unassigned' | string;
   dateFrom?: string; dateTo?: string; sort?: 'newest' | 'oldest' | 'name' | 'course';
   page?: number; pageSize?: number; actorRole?: 'admin' | 'assistant';
@@ -14,7 +14,6 @@ type WireSummary = { netMinor: number; status: PaymentStatus; lastPaymentAt?: st
 type WireListRow = {
   id: string; reference: string; lead: { fullName: string; email?: string; phone?: string };
   courseTitle: { ar?: string } | string; priceSnapshot: { amount: number | null; currency: string };
-  audience?: Enrollment['audience'];
   enrollmentStatus: Enrollment['enrollmentStatus']; followUpStatus: Enrollment['followUpStatus'];
   paymentSummary?: WireSummary; assignedTo?: { id: string; name: { ar: string } } | null; registeredAt: string;
 };
@@ -35,7 +34,7 @@ function mapLead(id: string, fullName: string, email: string | undefined, phone:
 function mapListEnrollment(row: WireListRow): Enrollment & { paymentSummary?: WireSummary; lead: Lead } {
   return {
     id: row.id, reference: row.reference, leadId: row.id, courseId: '', lead: mapLead(row.id, row.lead.fullName, row.lead.email, row.lead.phone, row.registeredAt), courseSnapshot: { title: bilingual(toCourseTitle(row.courseTitle)), slug: '' },
-    priceSnapshot: row.priceSnapshot, audience: row.audience ?? 'egyptian', formSnapshot: { fields: [] }, answers: {}, enrollmentStatus: row.enrollmentStatus,
+    priceSnapshot: row.priceSnapshot, formSnapshot: { fields: [] }, answers: {}, enrollmentStatus: row.enrollmentStatus,
     followUpStatus: row.followUpStatus, ...(row.assignedTo?.id ? { assignedToUserId: row.assignedTo.id } : {}),
     registeredAt: row.registeredAt, idempotencyKey: '', history: [], ...(row.paymentSummary ? { paymentSummary: row.paymentSummary } : {}),
   };
@@ -55,7 +54,6 @@ function enrollmentQuery(filters: LeadFilters): URLSearchParams {
   return new URLSearchParams({
     page: String(filters.page ?? 1), pageSize: String(Math.min(50, Math.max(1, filters.pageSize ?? 25))), sort,
     ...(filters.search ? { search: filters.search } : {}), ...(filters.courseId ? { courseId: filters.courseId } : {}),
-    ...(filters.audience ? { audience: filters.audience } : {}),
     ...(filters.enrollmentStatus ? { enrollmentStatus: filters.enrollmentStatus } : {}),
     ...(filters.followUpStatus ? { followUpStatus: filters.followUpStatus } : {}),
     ...(filters.paymentStatus ? { paymentStatus: filters.paymentStatus } : {}),
@@ -101,7 +99,7 @@ export const apiLeadsService = {
     const paymentSummary = { ...(row.paymentSummary as WireSummary | undefined ?? paymentsResult.paymentSummary), outstandingMinor: paymentsResult.outstandingMinor };
     const enrollment = {
       id: String(row.id), reference: String(row.reference), leadId: lead.id, courseId: '', courseSnapshot: { title: bilingual(course?.title), slug: course?.slug ?? '' },
-      priceSnapshot: row.priceSnapshot as Enrollment['priceSnapshot'], audience: row.audience === 'foreign' ? 'foreign' : 'egyptian', formSnapshot: { fields: (form?.fields ?? []).map((field) => ({ ...field, label: bilingual(field.label) })) },
+      priceSnapshot: row.priceSnapshot as Enrollment['priceSnapshot'], formSnapshot: { fields: (form?.fields ?? []).map((field) => ({ ...field, label: bilingual(field.label) })) },
       answers: row.answers as Enrollment['answers'], enrollmentStatus: row.enrollmentStatus as Enrollment['enrollmentStatus'], followUpStatus: row.followUpStatus as Enrollment['followUpStatus'],
       ...(row.assignedTo && typeof row.assignedTo === 'object' && 'id' in row.assignedTo ? { assignedToUserId: String((row.assignedTo as { id: unknown }).id) } : {}),
       registeredAt, idempotencyKey: '', history: mapHistory(row.history as Array<Record<string, unknown>>) as Enrollment['history'], paymentSummary,

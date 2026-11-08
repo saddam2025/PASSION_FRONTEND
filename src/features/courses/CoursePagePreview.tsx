@@ -38,11 +38,6 @@ export function CoursePagePreview({
       startDate: d.schedule.startDate ?? '',
       registrationOpen: d.enrollment.registrationOpen,
       pricingContactUs: d.pricing.contactUs === true,
-      foreignPricing: d.foreignPricing.enabled ? {
-        ...d.foreignPricing,
-        price: d.foreignPricing.price == null ? null : minorToMajor(d.foreignPricing.price),
-        promoPrice: d.foreignPricing.promoPrice == null ? null : minorToMajor(d.foreignPricing.promoPrice),
-      } : undefined,
       accreditationVerified: d.accreditation.verifiedByAcademy,
       instructor: d.instructor,
       delivery: d.delivery,

@@ -47,9 +47,8 @@ export function useLandingMetaPixel(course: CoursePageDetail | null, language: A
       content_type: 'course',
       content_ids: [course.slug],
     };
-    // Dual offers have no audience selection at page load, so omit price data.
-    if (!course.foreignPricing?.enabled && typeof course.price === 'number' && Number.isFinite(course.price)) {
-      params.currency = 'EGP';
+    if (typeof course.price === 'number' && Number.isFinite(course.price)) {
+      params.currency = course.currency;
       params.value = course.promoPrice ?? course.price;
     }
     track('ViewContent', params);

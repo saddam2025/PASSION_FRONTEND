@@ -63,7 +63,6 @@ export default function LeadsPage() {
           | 'cancelled'
           | undefined,
         paymentStatus: params.get('payment') ?? undefined,
-        audience: (params.get('audience') ?? undefined) as 'egyptian' | 'foreign' | undefined,
         assigned: (params.get('assigned') ?? undefined) as 'me' | 'unassigned' | undefined,
         dateFrom: params.get('from') ?? undefined,
         dateTo: params.get('to') ?? undefined,
@@ -135,7 +134,6 @@ export default function LeadsPage() {
           | 'cancelled'
           | undefined,
         paymentStatus: params.get('payment') ?? undefined,
-        audience: (params.get('audience') ?? undefined) as 'egyptian' | 'foreign' | undefined,
         assigned: (params.get('assigned') ?? undefined) as 'me' | 'unassigned' | undefined,
         dateFrom: params.get('from') ?? undefined,
         dateTo: params.get('to') ?? undefined,
@@ -189,9 +187,6 @@ export default function LeadsPage() {
         </select>
       </div>
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        <select className="min-h-11 rounded-xs border px-3" value={params.get('audience') ?? ''} onChange={(e) => setFilter('audience', e.target.value)} aria-label={t('audience')}>
-          <option value="">{t('allAudiences')}</option><option value="egyptian">{t('egyptianAudience')}</option><option value="foreign">{t('foreignAudience')}</option>
-        </select>
         <select
           className="min-h-11 rounded-xs border px-3"
           value={params.get('payment') ?? ''}
@@ -297,8 +292,7 @@ export default function LeadsPage() {
                     'email',
                     'phone',
                     'course',
-                    'audience',
-                    'audiencePrice',
+                    'price',
                     'registered',
                     'enrollment',
                     ...(showPaymentColumns ? ['payment', 'netPaid'] : []),
@@ -335,7 +329,6 @@ export default function LeadsPage() {
                         {lead?.phone}
                       </td>
                       <td className="p-3">{enrollment.courseSnapshot.title[language]}</td>
-                      <td className="p-3">{t(enrollment.audience === 'foreign' ? 'foreignAudience' : 'egyptianAudience')}</td>
                       <td className="p-3">{enrollment.priceSnapshot.amount === null ? t('contactUs') : formatMoneyMinor(enrollment.priceSnapshot.amount, enrollment.priceSnapshot.currency === 'USD' ? 'USD' : 'EGP')}</td>
                       <td className="p-3" dir="ltr">
                         {formatDate(enrollment.registeredAt)}
@@ -394,7 +387,7 @@ export default function LeadsPage() {
                     {lead?.email} · {lead?.phone}
                   </p>
                   <p>{enrollment.courseSnapshot.title[language]}</p>
-                  <p>{t(enrollment.audience === 'foreign' ? 'foreignAudience' : 'egyptianAudience')} · {enrollment.priceSnapshot.amount === null ? t('contactUs') : formatMoneyMinor(enrollment.priceSnapshot.amount, enrollment.priceSnapshot.currency === 'USD' ? 'USD' : 'EGP')}</p>
+                  <p>{t('price')}: {enrollment.priceSnapshot.amount === null ? t('contactUs') : formatMoneyMinor(enrollment.priceSnapshot.amount, enrollment.priceSnapshot.currency === 'USD' ? 'USD' : 'EGP')}</p>
                   <p>
                     {t(`enrollmentStatuses.${enrollment.enrollmentStatus}`)} ·{' '}
                     {t(`followUpStatuses.${enrollment.followUpStatus}`)}

@@ -32,14 +32,7 @@ export default function PricingCtaRenderer({ section }: AnyRendererProps) {
         <SectionHeading title={c.title} language={language} />
         {c.note && <RichTextRenderer value={c.note} />}
         {c.paymentType && <p className="text-sm font-semibold text-muted">{getBilingualText(c.paymentType, language)}</p>}
-        {course.foreignPricing?.enabled ? (
-          <div className="grid gap-3 @container sm:grid-cols-2">
-            {[{ id: 'egyptian', label: t('priceEgyptians'), price: course.price, promo: course.promoPrice, currency: course.currency, contact: course.pricingContactUs }, { id: 'foreign', label: t('priceForeigners'), price: course.foreignPricing.price, promo: course.foreignPricing.promoPrice, currency: 'USD', contact: course.foreignPricing.contactUs }].map((offer) => <article key={offer.id} className="grid content-start gap-2 rounded-sm border border-border bg-canvas p-4">
-              <h3 className="font-semibold">{offer.label}</h3>
-              {offer.contact || offer.price === null ? <p className="text-lg font-semibold">{c.overrideLabel ? getBilingualText(c.overrideLabel, language) : t('noPrice')}</p> : <p className="text-2xl font-bold text-primary-strong"><Price amount={offer.promo ?? offer.price} currency={offer.currency} language={language}/>{offer.promo != null && <del className="ms-2 text-base font-normal text-muted"><Price amount={offer.price} currency={offer.currency} language={language}/></del>}</p>}
-            </article>)}
-          </div>
-        ) : model.showPrice ? (
+        {model.showPrice ? (
           <div>
             <p className="text-sm text-muted">{t('price')}</p>
             <p className="text-3xl font-bold text-primary-strong">

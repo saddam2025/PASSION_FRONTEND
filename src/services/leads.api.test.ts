@@ -4,29 +4,31 @@ import { apiLeadsService } from './leads.api';
 
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
 
-describe('dual-currency enrollment list adapter', () => {
+describe('single-currency enrollment adapter', () => {
   beforeEach(() => resetApiSessionForTests());
   afterEach(() => { vi.unstubAllGlobals(); resetApiSessionForTests(); });
 
-  it('sends the audience filter and preserves the audience and currency snapshot from the API', async () => {
+  it('does not send audience filters and preserves each enrollment currency snapshot', async () => {
     let requested = '';
     vi.stubGlobal('fetch', vi.fn(async (url: RequestInfo | URL) => {
       requested = String(url);
       return json({ items: [{ id: 'enrollment-1', reference: 'PAS-123456', lead: { fullName: 'مها علي' }, courseTitle: { ar: 'كورس' }, priceSnapshot: { amount: 12500, currency: 'USD' }, audience: 'foreign', enrollmentStatus: 'pending', followUpStatus: 'new', registeredAt: '2026-11-06T10:00:00.000Z' }], total: 1, page: 1, pageSize: 25 });
     }));
-    const result = await apiLeadsService.list({ audience: 'foreign', actorRole: 'assistant' });
+    const result = await apiLeadsService.list({ actorRole: 'assistant' });
     expect(requested).toContain('/enrollments?');
-    expect(new URL(requested, 'http://localhost').searchParams.get('audience')).toBe('foreign');
-    expect(result.items[0]).toMatchObject({ audience: 'foreign', priceSnapshot: { amount: 12500, currency: 'USD' } });
+    expect(new URL(requested, 'http://localhost').searchParams.has('audience')).toBe(false);
+    expect(result.items[0]).toMatchObject({ priceSnapshot: { amount: 12500, currency: 'USD' } });
+    expect(result.items[0]).not.toHaveProperty('audience');
   });
 
-  it('treats legacy rows without audience as Egyptian while preserving their price currency', async () => {
+  it('preserves currency for historical rows without an audience field', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => json({ items: [{ id: 'enrollment-2', reference: 'PAS-654321', lead: { fullName: 'مها علي' }, courseTitle: 'كورس', priceSnapshot: { amount: 200000, currency: 'EGP' }, enrollmentStatus: 'pending', followUpStatus: 'new', registeredAt: '2026-11-06T10:00:00.000Z' }], total: 1, page: 1, pageSize: 25 })));
     const result = await apiLeadsService.list({ actorRole: 'assistant' });
-    expect(result.items[0]).toMatchObject({ audience: 'egyptian', priceSnapshot: { amount: 200000, currency: 'EGP' } });
+    expect(result.items[0]).toMatchObject({ priceSnapshot: { amount: 200000, currency: 'EGP' } });
+    expect(result.items[0]).not.toHaveProperty('audience');
   });
 
-  it('preserves a foreign audience and USD price/payment snapshots in registration detail', async () => {
+  it('preserves USD enrollment and payment snapshots without exposing audience', async () => {
     vi.stubGlobal('fetch', vi.fn(async (url: RequestInfo | URL) => {
       const path = String(url);
       if (path.includes('/payments')) return json({
@@ -42,7 +44,8 @@ describe('dual-currency enrollment list adapter', () => {
     }));
 
     const result = await apiLeadsService.getCustomer('enrollment-3', 'assistant');
-    expect(result.enrollments[0]).toMatchObject({ audience: 'foreign', priceSnapshot: { amount: 12550, currency: 'USD' } });
+    expect(result.enrollments[0]).toMatchObject({ priceSnapshot: { amount: 12550, currency: 'USD' } });
+    expect(result.enrollments[0]).not.toHaveProperty('audience');
     expect(result.payments[0]).toMatchObject({ amount: 12550, currency: 'USD' });
   });
 });

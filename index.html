@@ -27,6 +27,10 @@
       @keyframes boot-progress { from { transform: translateX(280%); } to { transform: translateX(-280%); } }
       @media (prefers-reduced-motion: reduce) { #boot-splash, #boot-splash img, #boot-splash-track::after { animation: none; transition: none; } }
     </style>
+    <title>أكاديمية باشن</title>
+  </head>
+  <body>
+    <div id="root"></div>
     <script>
       (() => {
         const path = location.pathname;
@@ -40,7 +44,7 @@
         splash.dataset.startedAt = String(start);
         splash.innerHTML = '<div id="boot-splash-card"><img src="/images/academy-logo.png" width="148" height="72" alt="الأكاديمية"><div id="boot-splash-track" aria-hidden="true"></div><span id="boot-splash-message">جاري التحميل</span><button id="boot-splash-retry" type="button">جرّب تاني</button></div>';
         document.body.append(splash);
-        document.getElementById('boot-splash-retry').addEventListener('click', () => location.reload());
+        document.getElementById('boot-splash-retry')?.addEventListener('click', () => location.reload());
         window.addEventListener('passion:boot-ready', () => {
           const wait = Math.max(0, 400 - (Date.now() - start));
           setTimeout(() => {
@@ -51,14 +55,11 @@
         setTimeout(() => {
           if (!splash.isConnected || splash.classList.contains('is-hiding')) return;
           splash.classList.add('has-error');
-          document.getElementById('boot-splash-message').textContent = 'حصلت مشكلة في التحميل';
+          const message = document.getElementById('boot-splash-message');
+          if (message) message.textContent = 'حصلت مشكلة في التحميل';
         }, 12000);
       })();
     </script>
-    <title>أكاديمية باشن</title>
-  </head>
-  <body>
-    <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
