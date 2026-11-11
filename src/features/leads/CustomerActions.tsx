@@ -16,6 +16,7 @@ import type { Enrollment, Lead } from '@/schemas/lead';
 import type { PaymentRecord } from '@/schemas/payment';
 import { leadsService } from '@/services/leads.service';
 import { settingsService } from '@/services/settings.api';
+import { withFollowUpStatus } from './customerFollowUp';
 
 interface Props {
   lead: Lead;
@@ -23,6 +24,8 @@ interface Props {
   payments: PaymentRecord[];
   staffUsers: { id: string; name: { ar: string; en: string }; role: string; active: boolean }[];
 }
+type CustomerData = Awaited<ReturnType<typeof leadsService.getCustomer>>;
+
 export default function CustomerActions({ lead, enrollment, payments, staffUsers }: Props) {
   const { t } = useTranslation('leads');
   const { language } = useLanguage();
@@ -71,7 +74,19 @@ export default function CustomerActions({ lead, enrollment, payments, staffUsers
     mutationFn: (input: { status: Enrollment['followUpStatus']; note: string }) =>
       leadsService.updateFollowUp(enrollment.id, input.status, input.note),
     onSuccess: mutationDone,
-    onError: (error: Error) => toast.notify({ title: error.message, tone: 'danger' }),
+    onMutate: async (input) => {
+      const queryKey = ['customer', lead.id] as const;
+      await client.cancelQueries({ queryKey });
+      const previous = client.getQueryData<CustomerData>(queryKey);
+      client.setQueryData<CustomerData>(queryKey, (current) =>
+        withFollowUpStatus(current, enrollment.id, input.status),
+      );
+      return { previous };
+    },
+    onError: (error: Error, _input, context) => {
+      if (context) client.setQueryData(['customer', lead.id], context.previous);
+      toast.notify({ title: error.message, tone: 'danger' });
+    },
   });
   const contact = useMutation({
     mutationFn: () => leadsService.logContact(enrollment.id),
