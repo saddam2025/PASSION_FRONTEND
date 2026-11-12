@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { withFollowUpStatus } from './customerFollowUp';
+import { customerQueryKey, withFollowUpStatus } from './customerFollowUp';
 
 describe('withFollowUpStatus', () => {
+  it('keys customer detail cache by enrollment id, not lead id', () => {
+    expect(customerQueryKey('enrollment-1')).toEqual(['customer', 'enrollment-1']);
+  });
+
   it('updates the selected enrollment immediately without mutating cached data', () => {
     const current = {
       lead: { id: 'lead-1' },

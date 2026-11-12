@@ -15,6 +15,7 @@ import { canVoidPaymentRecord } from '@/services/paymentAccess';
 import { privateMediaService, receiptIdForKey } from '@/services/privateMedia';
 import { apiErrorMessage } from '@/api/client';
 import CustomerActions from './CustomerActions';
+import { customerQueryKey } from './customerFollowUp';
 import { formatDate, formatPhone, formatMoneyMinor } from '@/lib/formatters';
 import { majorToMinor, minorToMajorText } from '@/lib/money';
 import { enrollmentCurrency, paymentDefaultAmount } from './paymentPresentation';
@@ -47,7 +48,7 @@ export default function CustomerPage() {
   const client = useQueryClient();
   const toast = useToast();
   const q = useQuery({
-    queryKey: ['customer', leadId],
+    queryKey: customerQueryKey(leadId),
     queryFn: () => leadsService.getCustomer(leadId, user?.role),
     enabled: Boolean(leadId),
   });
@@ -57,7 +58,7 @@ export default function CustomerPage() {
     mutationFn: () => leadsService.addNote({ leadId, body: note }),
     onSuccess: () => {
       setNote('');
-      void client.invalidateQueries({ queryKey: ['customer', leadId] });
+      void client.invalidateQueries({ queryKey: customerQueryKey(leadId) });
     },
     onError: (error: Error) => toast.notify({ title: apiErrorMessage(error), tone: 'danger' }),
   });
@@ -79,7 +80,7 @@ export default function CustomerPage() {
       setAmount('');
       setPaymentNote('');
       setPaymentReference(''); setReceiptKey(''); paymentFingerprint.current = '';
-      void client.invalidateQueries({ queryKey: ['customer', leadId] });
+      void client.invalidateQueries({ queryKey: customerQueryKey(leadId) });
       if (input.kind === 'payment') {
         const listPath = pathname.replace(/\/registrations\/[^/]+\/?$/, '/registrations');
         const listParams = new URLSearchParams(params);
@@ -98,7 +99,7 @@ export default function CustomerPage() {
     onSuccess: () => {
       setUnpaidId('');
       setUnpaidReason('');
-      void client.invalidateQueries({ queryKey: ['customer', leadId] });
+      void client.invalidateQueries({ queryKey: customerQueryKey(leadId) });
     },
     onError: (error: Error) => toast.notify({ title: apiErrorMessage(error), tone: 'danger' }),
   });

@@ -16,7 +16,7 @@ import type { Enrollment, Lead } from '@/schemas/lead';
 import type { PaymentRecord } from '@/schemas/payment';
 import { leadsService } from '@/services/leads.service';
 import { settingsService } from '@/services/settings.api';
-import { withFollowUpStatus } from './customerFollowUp';
+import { customerQueryKey, withFollowUpStatus } from './customerFollowUp';
 
 interface Props {
   lead: Lead;
@@ -62,7 +62,7 @@ export default function CustomerActions({ lead, enrollment, payments, staffUsers
   const mutationDone = () => {
     setDialog(null);
     setReason('');
-    void client.invalidateQueries({ queryKey: ['customer', lead.id] });
+    void client.invalidateQueries({ queryKey: customerQueryKey(enrollment.id) });
     void client.invalidateQueries({ queryKey: ['leads'] });
   };
   const assign = useMutation({
@@ -75,7 +75,7 @@ export default function CustomerActions({ lead, enrollment, payments, staffUsers
       leadsService.updateFollowUp(enrollment.id, input.status, input.note),
     onSuccess: mutationDone,
     onMutate: async (input) => {
-      const queryKey = ['customer', lead.id] as const;
+      const queryKey = customerQueryKey(enrollment.id);
       await client.cancelQueries({ queryKey });
       const previous = client.getQueryData<CustomerData>(queryKey);
       client.setQueryData<CustomerData>(queryKey, (current) =>
@@ -84,7 +84,7 @@ export default function CustomerActions({ lead, enrollment, payments, staffUsers
       return { previous };
     },
     onError: (error: Error, _input, context) => {
-      if (context) client.setQueryData(['customer', lead.id], context.previous);
+      if (context) client.setQueryData(customerQueryKey(enrollment.id), context.previous);
       toast.notify({ title: error.message, tone: 'danger' });
     },
   });

@@ -2,6 +2,8 @@ import type { Enrollment } from '@/schemas/lead';
 
 type EnrollmentLike = Pick<Enrollment, 'id' | 'followUpStatus'>;
 
+export const customerQueryKey = (enrollmentId: string) => ['customer', enrollmentId] as const;
+
 /** Updates only the selected enrollment while preserving the customer query shape. */
 export function withFollowUpStatus<T extends { enrollments: EnrollmentLike[] }>(
   current: T | undefined,
