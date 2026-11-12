@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { customerQueryKey, withFollowUpStatus } from './customerFollowUp';
+import { customerQueryKey, hasFollowUpStatus, withFollowUpStatus } from './customerFollowUp';
 
 describe('withFollowUpStatus', () => {
   it('keys customer detail cache by enrollment id, not lead id', () => {
@@ -27,5 +27,12 @@ describe('withFollowUpStatus', () => {
 
   it('keeps an absent customer query absent', () => {
     expect(withFollowUpStatus(undefined, 'enrollment-1', 'interested')).toBeUndefined();
+  });
+
+  it('recognizes a conflict when the requested status is already authoritative', () => {
+    const current = { enrollments: [{ id: 'enrollment-1', followUpStatus: 'interested' as const }] };
+    expect(hasFollowUpStatus(current, 'enrollment-1', 'interested')).toBe(true);
+    expect(hasFollowUpStatus(current, 'enrollment-1', 'contacted')).toBe(false);
+    expect(hasFollowUpStatus(current, 'other-enrollment', 'interested')).toBe(false);
   });
 });

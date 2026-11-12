@@ -12,11 +12,12 @@ import { isLikelyValidPhone } from '@/lib/phone';
 import { formatRelativeTime } from '@/lib/formatters';
 import { formatDate } from '@/lib/formatters';
 import { hasPermission } from '@/schemas/permissions';
+import { ApiError } from '@/api/client';
 import type { Enrollment, Lead } from '@/schemas/lead';
 import type { PaymentRecord } from '@/schemas/payment';
 import { leadsService } from '@/services/leads.service';
 import { settingsService } from '@/services/settings.api';
-import { customerQueryKey, withFollowUpStatus } from './customerFollowUp';
+import { customerQueryKey, hasFollowUpStatus, withFollowUpStatus } from './customerFollowUp';
 
 interface Props {
   lead: Lead;
@@ -83,8 +84,20 @@ export default function CustomerActions({ lead, enrollment, payments, staffUsers
       );
       return { previous };
     },
-    onError: (error: Error, _input, context) => {
-      if (context) client.setQueryData(customerQueryKey(enrollment.id), context.previous);
+    onError: async (error: Error, input, context) => {
+      const queryKey = customerQueryKey(enrollment.id);
+      if (error instanceof ApiError && error.status === 409) {
+        // The API uses 409 when this status is already stored as well as for
+        // cancelled enrollments. Reconcile against the source of truth first.
+        await client.refetchQueries({ queryKey, type: 'active' });
+        const current = client.getQueryData<CustomerData>(queryKey);
+        if (hasFollowUpStatus(current, enrollment.id, input.status)) {
+          void client.invalidateQueries({ queryKey: ['leads'] });
+          return;
+        }
+      } else if (context) {
+        client.setQueryData(queryKey, context.previous);
+      }
       toast.notify({ title: error.message, tone: 'danger' });
     },
   });
@@ -168,6 +181,7 @@ export default function CustomerActions({ lead, enrollment, payments, staffUsers
             <select
               className="min-h-11 rounded-xs border px-3"
               value={enrollment.followUpStatus}
+              disabled={updateFollow.isPending}
               onChange={(e) =>
                 updateFollow.mutate({
                   status: e.target.value as Enrollment['followUpStatus'],
