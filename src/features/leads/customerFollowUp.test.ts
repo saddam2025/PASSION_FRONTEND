@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { customerQueryKey, hasFollowUpStatus, withFollowUpStatus } from './customerFollowUp';
+import type { Enrollment } from '@/schemas/lead';
+import { customerQueryKey, hasFollowUpStatus, isFollowUpChange, resolveFollowUpFailure, withFollowUpStatus } from './customerFollowUp';
 
 describe('withFollowUpStatus', () => {
   it('keys customer detail cache by enrollment id, not lead id', () => {
@@ -34,5 +35,31 @@ describe('withFollowUpStatus', () => {
     expect(hasFollowUpStatus(current, 'enrollment-1', 'interested')).toBe(true);
     expect(hasFollowUpStatus(current, 'enrollment-1', 'contacted')).toBe(false);
     expect(hasFollowUpStatus(current, 'other-enrollment', 'interested')).toBe(false);
+  });
+
+  it('rolls a rejected optimistic update back to the last confirmed status', () => {
+    const previous = { enrollments: [{ id: 'enrollment-1', followUpStatus: 'interested' as const }] };
+
+    expect(resolveFollowUpFailure(previous, undefined, 'enrollment-1', 'closed')).toEqual({
+      data: previous,
+      alreadyApplied: false,
+    });
+  });
+
+  it('keeps a status confirmed by a competing request instead of rolling it back', () => {
+    const previous: { enrollments: { id: string; followUpStatus: Enrollment['followUpStatus'] }[] } = {
+      enrollments: [{ id: 'enrollment-1', followUpStatus: 'interested' }],
+    };
+    const latest = { enrollments: [{ id: 'enrollment-1', followUpStatus: 'closed' as const }] };
+
+    expect(resolveFollowUpFailure(previous, latest, 'enrollment-1', 'closed')).toEqual({
+      data: latest,
+      alreadyApplied: true,
+    });
+  });
+
+  it('does not submit a no-op follow-up status', () => {
+    expect(isFollowUpChange('interested', 'interested')).toBe(false);
+    expect(isFollowUpChange('interested', 'contacted')).toBe(true);
   });
 });

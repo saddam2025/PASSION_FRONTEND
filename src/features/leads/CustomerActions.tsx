@@ -17,7 +17,7 @@ import type { Enrollment, Lead } from '@/schemas/lead';
 import type { PaymentRecord } from '@/schemas/payment';
 import { leadsService } from '@/services/leads.service';
 import { settingsService } from '@/services/settings.api';
-import { customerQueryKey, hasFollowUpStatus, withFollowUpStatus } from './customerFollowUp';
+import { customerQueryKey, isFollowUpChange, resolveFollowUpFailure, withFollowUpStatus } from './customerFollowUp';
 
 interface Props {
   lead: Lead;
@@ -86,17 +86,25 @@ export default function CustomerActions({ lead, enrollment, payments, staffUsers
     },
     onError: async (error: Error, input, context) => {
       const queryKey = customerQueryKey(enrollment.id);
+      const rollback = resolveFollowUpFailure(context?.previous, undefined, enrollment.id, input.status);
+      if (rollback.data !== undefined) client.setQueryData(queryKey, rollback.data);
+      else void client.invalidateQueries({ queryKey });
+
       if (error instanceof ApiError && error.status === 409) {
-        // The API uses 409 when this status is already stored as well as for
-        // cancelled enrollments. Reconcile against the source of truth first.
-        await client.refetchQueries({ queryKey, type: 'active' });
-        const current = client.getQueryData<CustomerData>(queryKey);
-        if (hasFollowUpStatus(current, enrollment.id, input.status)) {
+        // A competing request may have saved the same value; keep the server's
+        // authoritative state, otherwise the optimistic value must stay rolled back.
+        try { await client.refetchQueries({ queryKey, type: 'active' }); } catch { /* rollback above remains authoritative */ }
+        const resolution = resolveFollowUpFailure(
+          context?.previous,
+          client.getQueryData<CustomerData>(queryKey),
+          enrollment.id,
+          input.status,
+        );
+        if (resolution.data !== undefined) client.setQueryData(queryKey, resolution.data);
+        if (resolution.alreadyApplied) {
           void client.invalidateQueries({ queryKey: ['leads'] });
           return;
         }
-      } else if (context) {
-        client.setQueryData(queryKey, context.previous);
       }
       toast.notify({ title: error.message, tone: 'danger' });
     },
@@ -182,12 +190,12 @@ export default function CustomerActions({ lead, enrollment, payments, staffUsers
               className="min-h-11 rounded-xs border px-3"
               value={enrollment.followUpStatus}
               disabled={updateFollow.isPending}
-              onChange={(e) =>
-                updateFollow.mutate({
-                  status: e.target.value as Enrollment['followUpStatus'],
-                  note: followUpNote,
-                })
-              }
+              onChange={(e) => {
+                const status = e.target.value as Enrollment['followUpStatus'];
+                if (isFollowUpChange(enrollment.followUpStatus, status)) {
+                  updateFollow.mutate({ status, note: followUpNote });
+                }
+              }}
             >
               {[
                 'new',
